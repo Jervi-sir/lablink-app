@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenWrapper } from "../../components/screen-wrapper";
 import Text from "../../components/text";
@@ -19,38 +19,38 @@ export default function BusinessLoginScreen() {
   };
 
   return (
-    <ScreenWrapper style={styles.wrapper} statusBarStyle="dark-content">
-      <View style={styles.container}>
+    <ScreenWrapper style={{ backgroundColor: "#F8F9FB" }} statusBarStyle="dark-content">
+      <View style={{ flex: 1 }}>
         {/* Back Button */}
         <TouchableOpacity
-          style={styles.backBtn}
+          style={{ paddingHorizontal: 20, paddingVertical: 16 }}
           onPress={() => navigation.goBack()}
         >
-          <View style={styles.backArrow} />
+          <View style={{ width: 12, height: 12, borderLeftWidth: 2, borderTopWidth: 2, borderColor: '#111', transform: [{ rotate: '-45deg' }] }} />
         </TouchableOpacity>
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
         >
-          <View style={styles.header}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>B2B PORTAL</Text>
+          <View style={{ marginTop: 10, marginBottom: 32 }}>
+            <View style={{ backgroundColor: '#F5F3FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 100, alignSelf: 'flex-start', marginBottom: 12 }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#8B5CF6', letterSpacing: 1 }}>B2B PORTAL</Text>
             </View>
-            <Text style={styles.title}>Provider Login</Text>
-            <Text style={styles.subtitle}>
+            <Text style={{ fontSize: 28, fontWeight: '800', color: '#111', marginBottom: 8 }}>Provider Login</Text>
+            <Text style={{ fontSize: 15, fontWeight: '500', color: '#6B7280', lineHeight: 22 }}>
               Manage your laboratory services, equipment bookings, and facility insights.
             </Text>
           </View>
 
-          <View style={styles.form}>
+          <View style={{ gap: 16 }}>
             <GlobalInput
               label="Business Email"
               placeholder="e.g. contact@labfacility.com"
               value={email}
               onChangeText={setEmail}
               kind="email"
-              containerStyle={styles.inputContainer}
+              containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
               autoCapitalize="none"
             />
 
@@ -60,31 +60,31 @@ export default function BusinessLoginScreen() {
               value={password}
               onChangeText={setPassword}
               kind="password"
-              containerStyle={styles.inputContainer}
+              containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
             />
 
-            <TouchableOpacity style={styles.forgotBtn}>
-              <Text style={styles.forgotText}>Forgot Password?</Text>
+            <TouchableOpacity style={{ alignSelf: 'flex-end', marginTop: -4 }}>
+              <Text style={{ fontSize: 14, color: '#8B5CF6', fontWeight: '600' }}>Forgot Password?</Text>
             </TouchableOpacity>
 
             <Button1
               text="Business Login"
               onPress={handleLogin}
-              style={styles.loginBtn}
+              style={{ height: 56, borderRadius: 12, backgroundColor: '#8B5CF6', marginTop: 12 }}
             />
           </View>
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View style={{ padding: 20, paddingBottom: 40, alignItems: 'center' }}>
           <TouchableOpacity
             onPress={() => {
               // Navigate to business registry
               navigation.navigate('business-registry');
             }}
-            style={styles.registerLink}
+            style={{ padding: 10 }}
           >
-            <Text style={styles.footerText}>
-              Want to list your facility? <Text style={styles.footerLinkText}>Create Business Profile</Text>
+            <Text style={{ fontSize: 14, color: '#5D6575', fontWeight: '500' }}>
+              Want to list your facility? <Text style={{ color: '#8B5CF6', fontWeight: '700' }}>Create Business Profile</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -93,96 +93,3 @@ export default function BusinessLoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: "#F8F9FB",
-  },
-  container: {
-    flex: 1,
-  },
-  backBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  backArrow: {
-    width: 12,
-    height: 12,
-    borderLeftWidth: 2,
-    borderTopWidth: 2,
-    borderColor: '#111',
-    transform: [{ rotate: '-45deg' }],
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  header: {
-    marginTop: 10,
-    marginBottom: 32,
-  },
-  badge: {
-    backgroundColor: '#F5F3FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 100,
-    alignSelf: 'flex-start',
-    marginBottom: 12,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#8B5CF6',
-    letterSpacing: 1,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#111',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#6B7280',
-    lineHeight: 22,
-  },
-  form: {
-    gap: 16,
-  },
-  inputContainer: {
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-  },
-  forgotBtn: {
-    alignSelf: 'flex-end',
-    marginTop: -4,
-  },
-  forgotText: {
-    fontSize: 14,
-    color: '#8B5CF6',
-    fontWeight: '600',
-  },
-  loginBtn: {
-    height: 56,
-    borderRadius: 12,
-    backgroundColor: '#8B5CF6', // Purple for Business
-    marginTop: 12,
-  },
-  footer: {
-    padding: 20,
-    paddingBottom: 40,
-    alignItems: 'center',
-  },
-  registerLink: {
-    padding: 10,
-  },
-  footerText: {
-    fontSize: 14,
-    color: '#5D6575',
-    fontWeight: '500',
-  },
-  footerLinkText: {
-    color: '#8B5CF6',
-    fontWeight: '700',
-  },
-});

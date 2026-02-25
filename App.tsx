@@ -1,6 +1,6 @@
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator, TransitionPresets, } from "@react-navigation/stack";
 import { Routes } from "./utils/helpers/routes";
 import BootScreen from "./screens/auth/boot-screen";
@@ -48,11 +48,21 @@ import ProPlanStatusScreen from "./screens/business/m5/pro-plan-status-screen";
 import BusinessSupportScreen from "./screens/business/m5/business-support-screen";
 import ServiceAgreementsScreen from "./screens/business/m5/service-agreements-screen";
 import EditContactScreen from "./screens/business/m5/edit-contact-screen";
+import { useEffect } from "react";
 
 export default function App() {
+  const navigationRef = useNavigationContainerRef();
+
+  // TODO: remove this in production
+  useEffect(() => {
+    const unsubscribe = navigationRef.addListener("state", () => {
+      console.log("Navigation state changed:", navigationRef.getCurrentRoute());
+    });
+    return unsubscribe;
+  }, [navigationRef]);
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <SafeAreaProvider>
           <Navigation />
         </SafeAreaProvider>
