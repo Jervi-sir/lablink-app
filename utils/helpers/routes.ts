@@ -1,0 +1,72 @@
+export const Routes = {
+
+  M1: 'm1',
+  M2: 'm2',
+  M3: 'm3',
+  M4: 'm4',
+  M5: 'm5',
+
+  // students
+  StudentNavigation: 'student-navigation-screen',
+  StudentM1Navigation: 'student-m1-navigation',
+  StudentM2Navigation: 'student-m2-navigation',
+  StudentM3Navigation: 'student-m3-navigation',
+  StudentM4Navigation: 'student-m4-navigation',
+  StudentM5Navigation: 'student-m5-navigation',
+
+  // common / detail screens
+  ProductScreen: 'product-screen',
+  BusinessScreen: 'business-screen',
+  FilterScreen: 'filter-screen',
+  LabProductsScreen: 'lab-products-screen',
+  CheckoutScreen: 'checkout-screen',
+  OrderDetailScreen: 'order-detail-screen',
+  ChatDetailScreen: 'chat-detail-screen',
+  StudentSavedProductsScreen: 'student-saved-products-screen',
+  StudentSavedBusinessesScreen: 'student-saved-businesses-screen',
+  StudentFollowedBusinessesScreen: 'student-followed-businesses-screen',
+  EditProfileScreen: 'edit-profile-screen',
+  NotificationsScreen: 'notifications-screen',
+  LanguageScreen: 'language-screen',
+  PrivacySecurityScreen: 'privacy-security-screen',
+  HelpSupportScreen: 'help-support-screen',
+  ChangePasswordScreen: 'change-password-screen',
+  TwoFactorAuthScreen: 'two-factor-auth-screen',
+  LoginActivityScreen: 'login-activity-screen',
+  ProfileVisibilityScreen: 'profile-visibility-screen',
+  DataUsageScreen: 'data-usage-screen',
+  FAQScreen: 'faq-screen',
+  ContactSupportScreen: 'contact-support-screen',
+  TermsOfServiceScreen: 'terms-of-service-screen',
+
+  // business
+  BusinessNavigation: 'business-navigation-screen',
+  BusinessM1Navigation: 'business-m1-navigation',
+  BusinessM2Navigation: 'business-m2-navigation',
+  BusinessM3Navigation: 'business-m3-navigation',
+  BusinessM4Navigation: 'business-m4-navigation',
+  BusinessM5Navigation: 'business-m5-navigation',
+  BusinessProductDetailScreen: 'business-product-detail-screen',
+  EditCreateProductScreen: 'edit-create-product-screen',
+  BusinessOrderDetailScreen: 'business-order-detail-screen',
+  BusinessInvoiceScreen: 'business-invoice-screen',
+  BusinessStudentProfileScreen: 'business-student-profile-screen',
+  EditLabProfileScreen: 'edit-lab-profile-screen',
+  InventoryAnalyticsScreen: 'inventory-analytics-screen',
+  OperatingHoursScreen: 'operating-hours-screen',
+  PayoutHistoryScreen: 'payout-history-screen',
+  TaxDocumentsScreen: 'tax-documents-screen',
+  ProPlanStatusScreen: 'pro-plan-status-screen',
+  BusinessSupportScreen: 'business-support-screen',
+  ServiceAgreementsScreen: 'service-agreements-screen',
+  EditContactScreen: 'edit-contact-screen',
+
+  // auth
+  BootScreen: 'boot-screen',
+  AuthSelectorScreen: 'auth-selector-screen',
+  StudentLoginScreen: 'student-login-screen',
+  StudentRegisterScreen: 'student-register-screen',
+  BusinessLoginScreen: 'business-login-screen',
+
+
+}
