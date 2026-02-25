@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, FlatList, StyleSheet, Dimensions, Platform } from "react-native";
+import { View, FlatList, Dimensions, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { Routes } from "@/utils/helpers/routes";
@@ -59,42 +59,42 @@ export default function StudentM3Navigation() {
 
   const renderOrder = ({ item }: { item: any }) => (
     <TouchableOpacity
-      style={styles.orderCard}
+      style={{ backgroundColor: '#FFF', borderRadius: 20, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#F1F5F9' }}
       activeOpacity={0.7}
       onPress={() => navigateToDetail(item)}
     >
-      <View style={styles.orderHeader}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
         <View>
-          <Text style={styles.orderId}>{item.id}</Text>
-          <Text style={styles.orderDate}>{item.date}</Text>
+          <Text style={{ fontSize: 16, fontWeight: '800', color: '#1E293B' }}>{item.id}</Text>
+          <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '600', marginTop: 2 }}>{item.date}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: item.statusColor + '15' }]}>
-          <View style={[styles.statusDot, { backgroundColor: item.statusColor }]} />
-          <Text style={[styles.statusText, { color: item.statusColor }]}>{item.status}</Text>
-        </View>
-      </View>
-
-      <View style={styles.divider} />
-
-      <View style={styles.orderBody}>
-        <View style={styles.imagePlaceholder} />
-        <View style={styles.itemInfo}>
-          <Text style={styles.labName}>{item.lab}</Text>
-          <Text style={styles.productName} numberOfLines={1}>{item.product}</Text>
-          <Text style={styles.price}>{item.price}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 6, backgroundColor: item.statusColor + '15' }}>
+          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: item.statusColor }} />
+          <Text style={{ fontSize: 11, fontWeight: '800', textTransform: 'uppercase', color: item.statusColor }}>{item.status}</Text>
         </View>
       </View>
 
-      <View style={styles.orderFooter}>
+      <View style={{ height: 1, backgroundColor: '#F8FAFC', marginVertical: 12 }} />
+
+      <View style={{ flexDirection: 'row', gap: 12 }}>
+        <View style={{ width: 70, height: 70, borderRadius: 14, backgroundColor: '#F1F5F9' }} />
+        <View style={{ flex: 1, justifyContent: 'center', gap: 2 }}>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: '#137FEC' }}>{item.lab}</Text>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B' }} numberOfLines={1}>{item.product}</Text>
+          <Text style={{ fontSize: 14, fontWeight: '800', color: '#111', marginTop: 2 }}>{item.price}</Text>
+        </View>
+      </View>
+
+      <View style={{ flexDirection: 'row', marginTop: 16, gap: 10 }}>
         <TouchableOpacity
-          style={styles.detailsBtn}
+          style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}
           onPress={() => navigateToDetail(item)}
         >
-          <Text style={styles.detailsBtnText}>View Details</Text>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: '#475569' }}>View Details</Text>
         </TouchableOpacity>
         {item.status === 'In Progress' && (
-          <TouchableOpacity style={styles.trackBtn} onPress={() => navigateToDetail(item)}>
-            <Text style={styles.trackBtnText}>Track Order</Text>
+          <TouchableOpacity style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: '#137FEC', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigateToDetail(item)}>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF' }}>Track Order</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -102,24 +102,27 @@ export default function StudentM3Navigation() {
   );
 
   return (
-    <ScreenWrapper style={styles.wrapper}>
+    <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Orders</Text>
-        <TouchableOpacity style={styles.searchBtn}>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, backgroundColor: '#FFF' }}>
+        <Text style={{ fontSize: 22, fontWeight: '800', color: '#111' }}>My Orders</Text>
+        <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ fontSize: 20 }}>🔍</Text>
         </TouchableOpacity>
       </View>
 
       {/* Tabs */}
-      <View style={styles.tabsContainer}>
+      <View style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 12, backgroundColor: '#FFF', gap: 8, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
         {TABS.map(tab => (
           <TouchableOpacity
             key={tab}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
+            style={[
+              { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: '#F1F5F9' },
+              activeTab === tab && { backgroundColor: '#137FEC' }
+            ]}
             onPress={() => setActiveTab(tab)}
           >
-            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
+            <Text style={[{ fontSize: 14, fontWeight: '700', color: '#64748B' }, activeTab === tab && { color: '#FFF' }]}>{tab}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -128,196 +131,14 @@ export default function StudentM3Navigation() {
         data={ORDERS_DATA.filter(o => activeTab === 'All' || o.status === activeTab)}
         renderItem={renderOrder}
         keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No orders found</Text>
+          <View style={{ alignItems: 'center', marginTop: 100 }}>
+            <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '600' }}>No orders found</Text>
           </View>
         }
       />
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: '#F8F9FB',
-  },
-  header: {
-    height: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    backgroundColor: '#FFF',
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#111',
-  },
-  searchBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#F8F9FB',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: '#FFF',
-    gap: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
-  },
-  activeTab: {
-    backgroundColor: '#137FEC',
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  activeTabText: {
-    color: '#FFF',
-  },
-  listContent: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  orderCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.02,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  orderId: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#1E293B',
-  },
-  orderDate: {
-    fontSize: 12,
-    color: '#94A3B8',
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    gap: 6,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#F8FAFC',
-    marginVertical: 12,
-  },
-  orderBody: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  imagePlaceholder: {
-    width: 70,
-    height: 70,
-    borderRadius: 14,
-    backgroundColor: '#F1F5F9',
-  },
-  itemInfo: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: 2,
-  },
-  labName: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#137FEC',
-  },
-  productName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1E293B',
-  },
-  price: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#111',
-    marginTop: 2,
-  },
-  orderFooter: {
-    flexDirection: 'row',
-    marginTop: 16,
-    gap: 10,
-  },
-  detailsBtn: {
-    flex: 1,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  detailsBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#475569',
-  },
-  trackBtn: {
-    flex: 1,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#137FEC',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  trackBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFF',
-  },
-  emptyState: {
-    alignItems: 'center',
-    marginTop: 100,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#64748B',
-    fontWeight: '600',
-  },
-});

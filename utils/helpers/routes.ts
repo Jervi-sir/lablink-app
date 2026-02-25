@@ -52,6 +52,7 @@ export const Routes = {
   BusinessInvoiceScreen: 'business-invoice-screen',
   BusinessStudentProfileScreen: 'business-student-profile-screen',
   EditLabProfileScreen: 'edit-lab-profile-screen',
+  LabProfileScreen: 'lab-profile-screen',
   InventoryAnalyticsScreen: 'inventory-analytics-screen',
   OperatingHoursScreen: 'operating-hours-screen',
   PayoutHistoryScreen: 'payout-history-screen',

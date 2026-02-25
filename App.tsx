@@ -10,7 +10,7 @@ import AuthSelectorScreen from "./screens/auth/auth-selector-screen";
 import StudentLoginScreen from "./screens/auth/student/student-login-screen";
 import StudentRegisterScreen from "./screens/auth/student/student-register-screen";
 import BusinessLoginScreen from "./screens/auth/business/business-login-screen";
-import BusinessRegistryNavigation from "./screens/auth/business-registry/business-registry-navigation";
+import BusinessRegistryNavigation from "./screens/auth/business/business-registry/business-registry-navigation";
 import ProductScreen from "./screens/student/common/product/product-screen";
 import BusinessScreen from "./screens/student/common/business/business-screen";
 import FilterScreen from "./screens/student/common/filter-screen";
@@ -39,7 +39,8 @@ import EditCreateProductScreen from "./screens/business/m2/edit-create-product-s
 import BusinessOrderDetailScreen from "./screens/business/m3/business-order-detail-screen";
 import BusinessInvoiceScreen from "./screens/business/m3/invoice-screen";
 import BusinessStudentProfileScreen from "./screens/business/common/student-profile-screen";
-import EditLabProfileScreen from "./screens/business/m5/edit-lab-profile-screen";
+import EditLabProfileScreen from "./screens/business/m5/lab-profile/edit-lab-profile-screen";
+import LabProfileScreen from "./screens/business/m5/lab-profile/lab-profile-screen";
 import InventoryAnalyticsScreen from "./screens/business/m5/inventory-analytics-screen";
 import OperatingHoursScreen from "./screens/business/m5/operating-hours-screen";
 import PayoutHistoryScreen from "./screens/business/m5/payout-history-screen";
@@ -128,6 +129,7 @@ const Navigation = () => {
         { name: Routes.BusinessInvoiceScreen, component: BusinessInvoiceScreen },
         { name: Routes.BusinessStudentProfileScreen, component: BusinessStudentProfileScreen },
         { name: Routes.EditLabProfileScreen, component: EditLabProfileScreen },
+        { name: Routes.LabProfileScreen, component: LabProfileScreen },
         { name: Routes.InventoryAnalyticsScreen, component: InventoryAnalyticsScreen },
         { name: Routes.OperatingHoursScreen, component: OperatingHoursScreen },
         { name: Routes.PayoutHistoryScreen, component: PayoutHistoryScreen },

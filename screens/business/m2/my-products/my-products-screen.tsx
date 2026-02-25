@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, TextInput, StyleSheet } from "react-native";
+import { View, ScrollView, TextInput } from "react-native";
 
 const CATEGORIES = [
   { id: '1', name: 'All', active: true },
@@ -21,39 +21,115 @@ const MY_PRODUCTS = [
 export default function MyProductsScreen() {
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{
+        padding: 16,
+        gap: 16,
+        paddingBottom: 40,
+      }}>
 
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>New Product</Text>
-          <TouchableOpacity style={styles.addButton}>
-            <Text style={styles.addButtonText}>+</Text>
+        <View style={{
+          backgroundColor: '#FFF',
+          borderRadius: 12,
+          padding: 12,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.03,
+          shadowRadius: 8,
+          elevation: 2,
+        }}>
+          <Text style={{
+            fontSize: 16,
+            fontWeight: '700',
+            color: '#111',
+          }}>New Product</Text>
+          <TouchableOpacity style={{
+            width: 36,
+            height: 36,
+            backgroundColor: '#E7F2FD',
+            borderRadius: 18,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+            <Text style={{
+              fontSize: 24,
+              color: '#137FEC',
+              fontWeight: '500',
+              marginTop: -2,
+            }}>+</Text>
           </TouchableOpacity>
         </View>
 
         {/* Search & Filters Section */}
-        <View style={styles.searchFilterContainer}>
+        <View style={{
+          backgroundColor: '#FFF',
+          borderRadius: 12,
+          padding: 12,
+          gap: 12,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.03,
+          shadowRadius: 8,
+          elevation: 2,
+        }}>
           {/* Search Bar */}
-          <View style={styles.searchBar}>
-            <View style={styles.searchIconPlaceholder} />
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#F6F7F8',
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            height: 48,
+            gap: 10,
+          }}>
+            <View style={{
+              width: 20,
+              height: 20,
+              borderRadius: 10,
+              borderWidth: 2,
+              borderColor: '#616A7B',
+            }} />
             <TextInput
-              style={styles.searchInput}
+              style={{
+                flex: 1,
+                fontSize: 14,
+                color: '#111',
+              }}
               placeholder="Search chemicals, glassware"
               placeholderTextColor="#A0AEC0"
             />
-            <TouchableOpacity style={styles.filterIconButton}>
-              <View style={styles.filterIconPlaceholder} />
+            <TouchableOpacity style={{ padding: 4 }}>
+              <View style={{
+                width: 18,
+                height: 14,
+                justifyContent: 'space-between',
+                borderTopWidth: 2,
+                borderBottomWidth: 2,
+                borderColor: '#137FEC',
+              }} />
             </TouchableOpacity>
           </View>
 
           {/* Category Chips */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {CATEGORIES.map((cat) => (
               <TouchableOpacity
                 key={cat.id}
-                style={[styles.chip, cat.active && styles.activeChip]}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  borderRadius: 100,
+                  backgroundColor: cat.active ? '#137FEC' : '#F6F7F8',
+                }}
               >
-                <Text style={[styles.chipText, cat.active && styles.activeChipText]}>
+                <Text style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: cat.active ? '#FFF' : '#5D6575',
+                }}>
                   {cat.name}
                 </Text>
               </TouchableOpacity>
@@ -62,27 +138,77 @@ export default function MyProductsScreen() {
         </View>
 
         {/* Product List */}
-        <View style={styles.productList}>
+        <View style={{ gap: 12 }}>
           {MY_PRODUCTS.map((product) => (
-            <View key={product.id} style={styles.productCard}>
-              <View style={styles.productImagePlaceholder} />
+            <View key={product.id} style={{
+              flexDirection: 'row',
+              backgroundColor: '#FFF',
+              borderRadius: 16,
+              padding: 12,
+              gap: 12,
+              alignItems: 'center',
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.05,
+              shadowRadius: 10,
+              elevation: 3,
+            }}>
+              <View style={{
+                width: 80,
+                height: 80,
+                backgroundColor: '#D9D9D9',
+                borderRadius: 12,
+              }} />
 
-              <View style={styles.productInfo}>
-                <Text style={styles.productName} numberOfLines={2}>
+              <View style={{
+                flex: 1,
+                gap: 4,
+              }}>
+                <Text style={{
+                  fontSize: 14,
+                  fontWeight: '700',
+                  color: '#111',
+                }} numberOfLines={2}>
                   {product.name}
                 </Text>
 
-                <View style={styles.skuPriceRow}>
-                  <Text style={styles.skuText}>SKU: {product.sku}</Text>
-                  <Text style={styles.priceText}>{product.price}</Text>
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  paddingRight: 8,
+                }}>
+                  <Text style={{
+                    fontSize: 11,
+                    color: '#5D6575',
+                    fontWeight: '600',
+                  }}>SKU: {product.sku}</Text>
+                  <Text style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: '#111',
+                  }}>{product.price}</Text>
                 </View>
 
-                <Text style={styles.stockStatus}>{product.stock}</Text>
+                <Text style={{
+                  fontSize: 12,
+                  fontWeight: '700',
+                  color: '#27AE60',
+                }}>{product.stock}</Text>
               </View>
 
-              <TouchableOpacity style={styles.editButton}>
+              <TouchableOpacity style={{
+                width: 36,
+                height: 36,
+                backgroundColor: '#F0F2F5',
+                borderRadius: 8,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}>
                 {/* Pencil Icon Placeholder */}
-                <View style={styles.pencilIcon}>
+                <View style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
                   <View style={{ width: 12, height: 4, backgroundColor: '#137FEC', borderRadius: 1, transform: [{ rotate: '-45deg' }] }} />
                 </View>
               </TouchableOpacity>
@@ -94,169 +220,3 @@ export default function MyProductsScreen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    gap: 16,
-    paddingBottom: 40,
-  },
-  header: {
-    backgroundColor: '#FFF',
-    borderRadius: 12,
-    padding: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111',
-  },
-  addButton: {
-    width: 36,
-    height: 36,
-    backgroundColor: '#E7F2FD',
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addButtonText: {
-    fontSize: 24,
-    color: '#137FEC',
-    fontWeight: '500',
-    marginTop: -2,
-  },
-  searchFilterContainer: {
-    backgroundColor: '#FFF',
-    borderRadius: 12,
-    padding: 12,
-    gap: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F6F7F8',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 48,
-    gap: 10,
-  },
-  searchIconPlaceholder: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#616A7B',
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: '#111',
-  },
-  filterIconButton: {
-    padding: 4,
-  },
-  filterIconPlaceholder: {
-    width: 18,
-    height: 14,
-    justifyContent: 'space-between',
-    borderTopWidth: 2,
-    borderBottomWidth: 2,
-    borderColor: '#137FEC',
-  },
-  chipsContainer: {
-    gap: 8,
-  },
-  chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 100,
-    backgroundColor: '#F6F7F8',
-  },
-  activeChip: {
-    backgroundColor: '#137FEC',
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#5D6575',
-  },
-  activeChipText: {
-    color: '#FFF',
-  },
-  productList: {
-    gap: 12,
-  },
-  productCard: {
-    flexDirection: 'row',
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    padding: 12,
-    gap: 12,
-    alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  productImagePlaceholder: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#D9D9D9',
-    borderRadius: 12,
-  },
-  productInfo: {
-    flex: 1,
-    gap: 4,
-  },
-  productName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111',
-  },
-  skuPriceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingRight: 8,
-  },
-  skuText: {
-    fontSize: 11,
-    color: '#5D6575',
-    fontWeight: '600',
-  },
-  priceText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#111',
-  },
-  stockStatus: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#27AE60',
-  },
-  editButton: {
-    width: 36,
-    height: 36,
-    backgroundColor: '#F0F2F5',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pencilIcon: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  }
-});

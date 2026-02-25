@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, StyleSheet, TextInput, FlatList, Dimensions } from "react-native";
+import { View, ScrollView, TextInput, FlatList, Dimensions } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
 import { useState } from "react";
@@ -46,45 +46,45 @@ export default function BusinessM3Navigation() {
     const statusStyle = getStatusStyle(item.status);
 
     return (
-      <View style={styles.orderCard}>
-        <View style={styles.cardHeader}>
+      <View style={{ backgroundColor: '#FFF', borderRadius: 24, marginBottom: 16, padding: 16, borderWidth: 1, borderColor: '#F1F5F9', shadowColor: "#000", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.04, shadowRadius: 12, elevation: 2 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View>
-            <Text style={styles.orderId}>{item.id}</Text>
-            <Text style={styles.orderDate}>{item.date}</Text>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#111' }}>{item.id}</Text>
+            <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '600', marginTop: 2 }}>{item.date}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
-            <Text style={[styles.statusText, { color: statusStyle.text }]}>{item.status}</Text>
+          <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: statusStyle.bg }}>
+            <Text style={{ fontSize: 10, fontWeight: '800', textTransform: 'uppercase', color: statusStyle.text }}>{item.status}</Text>
           </View>
         </View>
 
-        <View style={styles.cardDivider} />
+        <View style={{ height: 1, backgroundColor: '#F8FAFC', marginVertical: 14 }} />
 
-        <View style={styles.cardBody}>
-          <View style={styles.studentIcon}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+          <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9' }}>
             <Text style={{ fontSize: 24 }}>{item.emoji}</Text>
           </View>
-          <View style={styles.orderInfo}>
-            <Text style={styles.studentName}>{item.student}</Text>
-            <Text style={styles.itemsSummary} numberOfLines={1}>{item.items}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: '#111' }}>{item.student}</Text>
+            <Text style={{ fontSize: 12, color: '#64748B', fontWeight: '500', marginTop: 2 }} numberOfLines={1}>{item.items}</Text>
           </View>
-          <View style={styles.amountWrap}>
-            <Text style={styles.amountLabel}>Total</Text>
-            <Text style={styles.amountValue}>{item.amount}</Text>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>Total</Text>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: '#111' }}>{item.amount}</Text>
           </View>
         </View>
 
-        <View style={styles.cardActions}>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
           <TouchableOpacity
-            style={[styles.actionBtn, styles.primaryAction]}
+            style={{ flex: 2, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F3FF' }}
             onPress={() => navigation.navigate(Routes.BusinessOrderDetailScreen, { order: item })}
           >
-            <Text style={styles.primaryActionText}>Manage Order</Text>
+            <Text style={{ color: '#8B5CF6', fontSize: 13, fontWeight: '800' }}>Manage Order</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.secondaryAction}
+            style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}
             onPress={() => navigation.navigate(Routes.BusinessInvoiceScreen, { order: item })}
           >
-            <Text style={styles.secondaryActionText}>Invoicing</Text>
+            <Text style={{ color: '#64748B', fontSize: 13, fontWeight: '700' }}>Invoicing</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -92,45 +92,45 @@ export default function BusinessM3Navigation() {
   };
 
   return (
-    <ScreenWrapper style={styles.wrapper}>
+    <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       {/* 1. Dashboard Header */}
-      <View style={styles.header}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 16, marginBottom: 20 }}>
         <View>
-          <Text style={styles.headerTitle}>Order Hub</Text>
-          <Text style={styles.headerSub}>Manage procurement requests</Text>
+          <Text style={{ fontSize: 24, fontWeight: '800', color: '#111' }}>Order Hub</Text>
+          <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500', marginTop: 2 }}>Manage procurement requests</Text>
         </View>
-        <TouchableOpacity style={styles.statsBtn}>
-          <View style={styles.dotIndicator} />
-          <Text style={styles.statsBtnText}>3 New</Text>
+        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: '#F1F5F9' }}>
+          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#8B5CF6', marginRight: 8 }} />
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#111' }}>3 New</Text>
         </TouchableOpacity>
       </View>
 
       {/* 2. Quick Metrics Row */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.metricsContainer}>
-        <View style={[styles.metricBox, { borderColor: '#8B5CF6' }]}>
-          <Text style={styles.metricLabel}>Pending</Text>
-          <Text style={[styles.metricValue, { color: '#8B5CF6' }]}>12</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, marginBottom: 24 }}>
+        <View style={{ width: 100, backgroundColor: '#FFF', padding: 12, borderRadius: 16, borderLeftWidth: 3, borderLeftColor: '#8B5CF6', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 1 }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginBottom: 4 }}>Pending</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#8B5CF6' }}>12</Text>
         </View>
-        <View style={styles.metricBox}>
-          <Text style={styles.metricLabel}>Processing</Text>
-          <Text style={styles.metricValue}>5</Text>
+        <View style={{ width: 100, backgroundColor: '#FFF', padding: 12, borderRadius: 16, borderLeftWidth: 3, borderLeftColor: '#E2E8F0', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 1 }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginBottom: 4 }}>Processing</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>5</Text>
         </View>
-        <View style={styles.metricBox}>
-          <Text style={styles.metricLabel}>Ready</Text>
-          <Text style={styles.metricValue}>8</Text>
+        <View style={{ width: 100, backgroundColor: '#FFF', padding: 12, borderRadius: 16, borderLeftWidth: 3, borderLeftColor: '#E2E8F0', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 1 }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginBottom: 4 }}>Ready</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>8</Text>
         </View>
-        <View style={styles.metricBox}>
-          <Text style={styles.metricLabel}>Completed</Text>
-          <Text style={styles.metricValue}>142</Text>
+        <View style={{ width: 100, backgroundColor: '#FFF', padding: 12, borderRadius: 16, borderLeftWidth: 3, borderLeftColor: '#E2E8F0', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 1 }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginBottom: 4 }}>Completed</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>142</Text>
         </View>
       </ScrollView>
 
       {/* 3. Filter Sticky Bar */}
-      <View style={styles.filterBar}>
-        <View style={styles.searchBox}>
-          <Text style={styles.searchEmoji}>🔍</Text>
+      <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 14, paddingHorizontal: 16, height: 48, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 16 }}>
+          <Text style={{ marginRight: 10, fontSize: 16 }}>🔍</Text>
           <TextInput
-            style={styles.searchInput}
+            style={{ flex: 1, fontSize: 14, fontWeight: '600', color: '#111' }}
             placeholder="Search Order ID or Researcher..."
             placeholderTextColor="#94A3B8"
             value={searchQuery}
@@ -138,14 +138,21 @@ export default function BusinessM3Navigation() {
           />
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 4 }}>
           {TABS.map(tab => (
             <TouchableOpacity
               key={tab}
-              style={[styles.tab, activeTab === tab && styles.activeTab]}
+              style={{
+                paddingHorizontal: 18,
+                paddingVertical: 10,
+                borderRadius: 100,
+                backgroundColor: activeTab === tab ? '#8B5CF6' : '#FFF',
+                borderWidth: 1,
+                borderColor: activeTab === tab ? '#8B5CF6' : '#E2E8F0'
+              }}
               onPress={() => setActiveTab(tab)}
             >
-              <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: activeTab === tab ? '#FFF' : '#64748B' }}>{tab}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -156,65 +163,16 @@ export default function BusinessM3Navigation() {
         data={filteredOrders}
         renderItem={renderOrderItem}
         keyExtractor={item => item.id}
-        contentContainerStyle={styles.listArea}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View style={styles.emptyWrap}>
-            <Text style={styles.emptyIcon}>📂</Text>
-            <Text style={styles.emptyTitle}>No Orders Found</Text>
-            <Text style={styles.emptySub}>Adjust your filters or search criteria</Text>
+          <View style={{ alignItems: 'center', paddingVertical: 60 }}>
+            <Text style={{ fontSize: 48, marginBottom: 16 }}>📂</Text>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#111', marginBottom: 4 }}>No Orders Found</Text>
+            <Text style={{ fontSize: 14, color: '#6B7280', textAlign: 'center' }}>Adjust your filters or search criteria</Text>
           </View>
         }
       />
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: { backgroundColor: '#F8F9FB' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 16, marginBottom: 20 },
-  headerTitle: { fontSize: 24, fontWeight: '800', color: '#111' },
-  headerSub: { fontSize: 13, color: '#6B7280', fontWeight: '500', marginTop: 2 },
-  statsBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: '#F1F5F9' },
-  dotIndicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#8B5CF6', marginRight: 8 },
-  statsBtnText: { fontSize: 13, fontWeight: '800', color: '#111' },
-  metricsContainer: { paddingHorizontal: 20, gap: 12, marginBottom: 24 },
-  metricBox: { width: 100, backgroundColor: '#FFF', padding: 12, borderRadius: 16, borderLeftWidth: 3, borderLeftColor: '#E2E8F0', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 1 },
-  metricLabel: { fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginBottom: 4 },
-  metricValue: { fontSize: 18, fontWeight: '800', color: '#111' },
-  filterBar: { paddingHorizontal: 20, marginBottom: 16 },
-  searchBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 14, paddingHorizontal: 16, height: 48, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 16 },
-  searchEmoji: { marginRight: 10, fontSize: 16 },
-  searchInput: { flex: 1, fontSize: 14, fontWeight: '600', color: '#111' },
-  tabContainer: { gap: 8, paddingBottom: 4 },
-  tab: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 100, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0' },
-  activeTab: { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' },
-  tabText: { fontSize: 13, fontWeight: '700', color: '#64748B' },
-  activeTabText: { color: '#FFF' },
-  listArea: { paddingHorizontal: 20, paddingBottom: 100 },
-  orderCard: { backgroundColor: '#FFF', borderRadius: 24, marginBottom: 16, padding: 16, borderWidth: 1, borderColor: '#F1F5F9', shadowColor: "#000", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.04, shadowRadius: 12, elevation: 2 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  orderId: { fontSize: 16, fontWeight: '800', color: '#111' },
-  orderDate: { fontSize: 12, color: '#94A3B8', fontWeight: '600', marginTop: 2 },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  statusText: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
-  cardDivider: { height: 1, backgroundColor: '#F8FAFC', marginVertical: 14 },
-  cardBody: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
-  studentIcon: { width: 48, height: 48, borderRadius: 14, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9' },
-  orderInfo: { flex: 1 },
-  studentName: { fontSize: 14, fontWeight: '800', color: '#111' },
-  itemsSummary: { fontSize: 12, color: '#64748B', fontWeight: '500', marginTop: 2 },
-  amountWrap: { alignItems: 'flex-end' },
-  amountLabel: { fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' },
-  amountValue: { fontSize: 14, fontWeight: '800', color: '#111' },
-  cardActions: { flexDirection: 'row', gap: 10 },
-  actionBtn: { flex: 2, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  primaryAction: { backgroundColor: '#F5F3FF' },
-  primaryActionText: { color: '#8B5CF6', fontSize: 13, fontWeight: '800' },
-  secondaryAction: { flex: 1, height: 44, borderRadius: 12, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' },
-  secondaryActionText: { color: '#64748B', fontSize: 13, fontWeight: '700' },
-  emptyWrap: { alignItems: 'center', paddingVertical: 60 },
-  emptyIcon: { fontSize: 48, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: '800', color: '#111', marginBottom: 4 },
-  emptySub: { fontSize: 14, color: '#6B7280', textAlign: 'center' },
-});

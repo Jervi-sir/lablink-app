@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, StyleSheet, Switch } from "react-native";
+import { View, ScrollView, Switch } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { useState } from "react";
@@ -19,27 +19,27 @@ export default function OperatingHoursScreen() {
   ]);
 
   return (
-    <ScreenWrapper style={styles.wrapper}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+    <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Operating Hours</Text>
-        <TouchableOpacity style={styles.saveBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.saveBtnText}>Save</Text>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>Operating Hours</Text>
+        <TouchableOpacity style={{ padding: 8 }} onPress={() => navigation.goBack()}>
+          <Text style={{ color: '#8B5CF6', fontWeight: '800' }}>Save</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.infoCard}>
-          <Text style={styles.infoText}>Set your lab's weekly schedule. This affects when orders can be processed and when customers see you as 'Open'.</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20 }}>
+        <View style={{ backgroundColor: '#F5F3FF', padding: 16, borderRadius: 20, marginBottom: 24 }}>
+          <Text style={{ fontSize: 13, color: '#8B5CF6', fontWeight: '600', lineHeight: 20 }}>Set your lab's weekly schedule. This affects when orders can be processed and when customers see you as 'Open'.</Text>
         </View>
 
-        <View style={styles.list}>
+        <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 8, borderWidth: 1, borderColor: '#F1F5F9' }}>
           {hours.map((item, idx) => (
-            <View key={item.day} style={styles.dayRow}>
-              <View style={styles.dayHeader}>
-                <Text style={styles.dayName}>{item.day}</Text>
+            <View key={item.day} style={[{ padding: 16 }, idx < hours.length - 1 && { borderBottomWidth: 1, borderBottomColor: '#F8FAFC' }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#111' }}>{item.day}</Text>
                 <Switch
                   value={item.enabled}
                   onValueChange={(v) => {
@@ -51,10 +51,10 @@ export default function OperatingHoursScreen() {
                 />
               </View>
               {item.enabled && (
-                <View style={styles.timeInputs}>
-                  <TouchableOpacity style={styles.timeBox}><Text style={styles.timeText}>{item.open}</Text></TouchableOpacity>
-                  <Text style={styles.sep}>to</Text>
-                  <TouchableOpacity style={styles.timeBox}><Text style={styles.timeText}>{item.close}</Text></TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, gap: 12 }}>
+                  <TouchableOpacity style={{ flex: 1, height: 44, backgroundColor: '#F8FAFC', borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}><Text style={{ fontSize: 14, fontWeight: '700', color: '#111' }}>{item.open}</Text></TouchableOpacity>
+                  <Text style={{ color: '#94A3B8', fontWeight: '600' }}>to</Text>
+                  <TouchableOpacity style={{ flex: 1, height: 44, backgroundColor: '#F8FAFC', borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}><Text style={{ fontSize: 14, fontWeight: '700', color: '#111' }}>{item.close}</Text></TouchableOpacity>
                 </View>
               )}
             </View>
@@ -65,22 +65,3 @@ export default function OperatingHoursScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { backgroundColor: '#F8F9FB' },
-  header: { height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: '#111' },
-  backBtn: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' },
-  saveBtn: { padding: 8 },
-  saveBtnText: { color: '#8B5CF6', fontWeight: '800' },
-  scrollContent: { padding: 20 },
-  infoCard: { backgroundColor: '#F5F3FF', padding: 16, borderRadius: 20, marginBottom: 24 },
-  infoText: { fontSize: 13, color: '#8B5CF6', fontWeight: '600', lineHeight: 20 },
-  list: { backgroundColor: '#FFF', borderRadius: 24, padding: 8, borderWidth: 1, borderColor: '#F1F5F9' },
-  dayRow: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
-  dayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dayName: { fontSize: 16, fontWeight: '700', color: '#111' },
-  timeInputs: { flexDirection: 'row', alignItems: 'center', marginTop: 12, gap: 12 },
-  timeBox: { flex: 1, height: 44, backgroundColor: '#F8FAFC', borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' },
-  timeText: { fontSize: 14, fontWeight: '700', color: '#111' },
-  sep: { color: '#94A3B8', fontWeight: '600' }
-});

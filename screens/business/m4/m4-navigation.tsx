@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, FlatList, StyleSheet, Dimensions, TextInput, Platform } from "react-native";
+import { View, FlatList, Dimensions, TextInput, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
 
@@ -55,32 +55,32 @@ export default function BusinessM4Navigation() {
 
   const renderChat = ({ item }: { item: any }) => (
     <TouchableOpacity
-      style={styles.chatItem}
+      style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 14, backgroundColor: '#FFF', gap: 16 }}
       activeOpacity={0.7}
       onPress={() => navigation.navigate(Routes.ChatDetailScreen, { chat: item })}
     >
-      <View style={styles.avatarWrapper}>
-        <View style={styles.avatarPlaceholder}>
+      <View style={{ position: 'relative' }}>
+        <View style={{ width: 64, height: 64, borderRadius: 22, backgroundColor: '#F5F3FF', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' }}>
           <Text style={{ fontSize: 24 }}>{item.avatar}</Text>
         </View>
-        {item.online && <View style={styles.onlineDot} />}
+        {item.online && <View style={{ position: 'absolute', bottom: 2, right: 2, width: 14, height: 14, borderRadius: 7, backgroundColor: '#22C55E', borderWidth: 3, borderColor: '#FFF' }} />}
       </View>
 
-      <View style={styles.chatInfo}>
-        <View style={styles.chatHeader}>
+      <View style={{ flex: 1, justifyContent: 'center', paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
           <View>
-            <Text style={styles.chatName} numberOfLines={1}>{item.name}</Text>
-            <Text style={styles.roleText}>{item.role}</Text>
+            <Text style={{ fontSize: 17, fontWeight: '800', color: '#111', maxWidth: width * 0.45 }} numberOfLines={1}>{item.name}</Text>
+            <Text style={{ fontSize: 12, color: '#8B5CF6', fontWeight: '700', marginTop: 1 }}>{item.role}</Text>
           </View>
-          <Text style={styles.timeText}>{item.time}</Text>
+          <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '600' }}>{item.time}</Text>
         </View>
-        <View style={styles.chatFooter}>
-          <Text style={[styles.lastMessage, item.unread > 0 && styles.lastMessageUnread]} numberOfLines={1}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+          <Text style={[{ fontSize: 14, color: '#64748B', fontWeight: '500', flex: 1 }, item.unread > 0 && { color: '#111', fontWeight: '800' }]} numberOfLines={1}>
             {item.lastMessage}
           </Text>
           {item.unread > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>{item.unread}</Text>
+            <View style={{ backgroundColor: '#8B5CF6', paddingHorizontal: 8, minWidth: 22, height: 22, borderRadius: 11, justifyContent: 'center', alignItems: 'center', marginLeft: 10 }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFF' }}>{item.unread}</Text>
             </View>
           )}
         </View>
@@ -89,24 +89,24 @@ export default function BusinessM4Navigation() {
   );
 
   return (
-    <ScreenWrapper style={styles.wrapper}>
+    <ScreenWrapper style={{ backgroundColor: '#FFF' }}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 16, marginBottom: 8 }}>
         <View>
-          <Text style={styles.headerTitle}>Communications</Text>
-          <Text style={styles.headerSub}>Active research inquiries</Text>
+          <Text style={{ fontSize: 24, fontWeight: '800', color: '#111' }}>Communications</Text>
+          <Text style={{ fontSize: 14, color: '#6B7280', fontWeight: '500', marginTop: 2 }}>Active research inquiries</Text>
         </View>
-        <TouchableOpacity style={styles.newChatBtn}>
+        <TouchableOpacity style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: '#F5F3FF', justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ fontSize: 20 }}>💬</Text>
         </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
-      <View style={styles.searchSection}>
-        <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
+      <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 16, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#F1F5F9' }}>
+          <Text style={{ fontSize: 16, marginRight: 10 }}>🔍</Text>
           <TextInput
-            style={styles.searchInput}
+            style={{ flex: 1, fontSize: 15, fontWeight: '600', color: '#111' }}
             placeholder="Search researchers or messages..."
             placeholderTextColor="#94A3B8"
           />
@@ -117,171 +117,10 @@ export default function BusinessM4Navigation() {
         data={CHATS_DATA}
         renderItem={renderChat}
         keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={<Text style={styles.listTitle}>All Conversations</Text>}
+        ListHeaderComponent={<Text style={{ fontSize: 12, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1, paddingHorizontal: 20, marginVertical: 16 }}>All Conversations</Text>}
       />
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: '#FFF',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    marginBottom: 8,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#111',
-  },
-  headerSub: {
-    fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
-    marginTop: 2,
-  },
-  newChatBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: '#F5F3FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    height: 52,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  searchIcon: {
-    fontSize: 16,
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#111',
-  },
-  listContent: {
-    paddingBottom: 40,
-  },
-  listTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#94A3B8',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    paddingHorizontal: 20,
-    marginVertical: 16,
-  },
-  chatItem: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#FFF',
-    gap: 16,
-  },
-  avatarWrapper: {
-    position: 'relative',
-  },
-  avatarPlaceholder: {
-    width: 64,
-    height: 64,
-    borderRadius: 22,
-    backgroundColor: '#F5F3FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  onlineDot: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#22C55E',
-    borderWidth: 3,
-    borderColor: '#FFF',
-  },
-  chatInfo: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
-  },
-  chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4,
-  },
-  chatName: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#111',
-    maxWidth: width * 0.45,
-  },
-  roleText: {
-    fontSize: 12,
-    color: '#8B5CF6',
-    fontWeight: '700',
-    marginTop: 1,
-  },
-  timeText: {
-    fontSize: 12,
-    color: '#94A3B8',
-    fontWeight: '600',
-  },
-  chatFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  lastMessage: {
-    fontSize: 14,
-    color: '#64748B',
-    fontWeight: '500',
-    flex: 1,
-  },
-  lastMessageUnread: {
-    color: '#111',
-    fontWeight: '800',
-  },
-  unreadBadge: {
-    backgroundColor: '#8B5CF6',
-    paddingHorizontal: 8,
-    minWidth: 22,
-    height: 22,
-    borderRadius: 11,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 10,
-  },
-  unreadText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#FFF',
-  },
-});

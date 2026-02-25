@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, StyleSheet, TextInput, KeyboardAvoidingView, Platform, FlatList } from "react-native";
+import { View, TextInput, KeyboardAvoidingView, Platform, FlatList } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { useState } from "react";
@@ -23,11 +23,20 @@ export default function ChatDetailScreen() {
   const renderMessage = ({ item }: { item: any }) => {
     const isMe = item.sender === 'me';
     return (
-      <View style={[styles.messageBubble, isMe ? styles.myMessage : styles.theirMessage]}>
-        <Text style={[styles.messageText, isMe ? styles.myMessageText : styles.theirMessageText]}>
+      <View style={[
+        { padding: 14, borderRadius: 20, maxWidth: '80%' },
+        isMe ? { alignSelf: 'flex-end', backgroundColor: '#137FEC', borderBottomRightRadius: 4 } : { alignSelf: 'flex-start', backgroundColor: '#FFF', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#F1F5F9' }
+      ]}>
+        <Text style={[
+          { fontSize: 15, lineHeight: 20 },
+          isMe ? { color: '#FFF', fontWeight: '500' } : { color: '#1E293B', fontWeight: '500' }
+        ]}>
           {item.text}
         </Text>
-        <Text style={[styles.messageTime, isMe ? styles.myMessageTime : styles.theirMessageTime]}>
+        <Text style={[
+          { fontSize: 10, marginTop: 4, alignSelf: 'flex-end' },
+          isMe ? { color: 'rgba(255,255,255,0.7)' } : { color: '#94A3B8' }
+        ]}>
           {item.time}
         </Text>
       </View>
@@ -35,20 +44,20 @@ export default function ChatDetailScreen() {
   };
 
   return (
-    <ScreenWrapper style={styles.wrapper}>
+    <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+      <View style={{ height: 70, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+        <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 10, justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
-        <View style={styles.headerInfo}>
-          <View style={styles.avatarPlaceholder} />
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', marginLeft: 8, gap: 12 }}>
+          <View style={{ width: 44, height: 44, borderRadius: 16, backgroundColor: '#F1F5F9' }} />
           <View>
-            <Text style={styles.headerName}>{chat.name}</Text>
-            <Text style={styles.onlineStatus}>{chat.online ? 'Online' : 'Offline'}</Text>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#1E293B' }}>{chat.name}</Text>
+            <Text style={{ fontSize: 12, color: '#10B981', fontWeight: '600' }}>{chat.online ? 'Online' : 'Offline'}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.moreBtn}>
+        <TouchableOpacity style={{ width: 40, height: 40, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ fontSize: 20 }}>⋮</Text>
         </TouchableOpacity>
       </View>
@@ -57,7 +66,7 @@ export default function ChatDetailScreen() {
         data={MOCK_MESSAGES}
         renderItem={renderMessage}
         keyExtractor={item => item.id}
-        contentContainerStyle={styles.messageList}
+        contentContainerStyle={{ padding: 20, gap: 16 }}
         showsVerticalScrollIndicator={false}
       />
 
@@ -65,13 +74,13 @@ export default function ChatDetailScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <View style={styles.inputArea}>
-          <TouchableOpacity style={styles.attachmentBtn}>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-end', backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 12, gap: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
+          <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center', marginBottom: 4 }}>
             <Text style={{ fontSize: 20 }}>📎</Text>
           </TouchableOpacity>
-          <View style={styles.inputContainer}>
+          <View style={{ flex: 1, backgroundColor: '#F8FAFC', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, maxHeight: 100 }}>
             <TextInput
-              style={styles.input}
+              style={{ fontSize: 15, color: '#1E293B', fontWeight: '500' }}
               placeholder="Type a message..."
               value={inputText}
               onChangeText={setInputText}
@@ -79,7 +88,10 @@ export default function ChatDetailScreen() {
             />
           </View>
           <TouchableOpacity
-            style={[styles.sendBtn, !inputText && styles.sendBtnDisabled]}
+            style={[
+              { width: 44, height: 44, borderRadius: 22, backgroundColor: '#137FEC', justifyContent: 'center', alignItems: 'center', marginBottom: 2 },
+              !inputText && { backgroundColor: '#E2E8F0' }
+            ]}
             disabled={!inputText}
           >
             <Text style={{ fontSize: 18, color: '#FFF' }}>➜</Text>
@@ -90,141 +102,3 @@ export default function ChatDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    backgroundColor: '#F8F9FB',
-  },
-  header: {
-    height: 70,
-    backgroundColor: '#FFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 8,
-    gap: 12,
-  },
-  avatarPlaceholder: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    backgroundColor: '#F1F5F9',
-  },
-  headerName: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#1E293B',
-  },
-  onlineStatus: {
-    fontSize: 12,
-    color: '#10B981',
-    fontWeight: '600',
-  },
-  moreBtn: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  messageList: {
-    padding: 20,
-    gap: 16,
-  },
-  messageBubble: {
-    padding: 14,
-    borderRadius: 20,
-    maxWidth: '80%',
-  },
-  myMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#137FEC',
-    borderBottomRightRadius: 4,
-  },
-  theirMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#FFF',
-    borderBottomLeftRadius: 4,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 20,
-  },
-  myMessageText: {
-    color: '#FFF',
-    fontWeight: '500',
-  },
-  theirMessageText: {
-    color: '#1E293B',
-    fontWeight: '500',
-  },
-  messageTime: {
-    fontSize: 10,
-    marginTop: 4,
-    alignSelf: 'flex-end',
-  },
-  myMessageTime: {
-    color: 'rgba(255,255,255,0.7)',
-  },
-  theirMessageTime: {
-    color: '#94A3B8',
-  },
-  inputArea: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: '#FFF',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  attachmentBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#F8F9FB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  inputContainer: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    maxHeight: 100,
-  },
-  input: {
-    fontSize: 15,
-    color: '#1E293B',
-    fontWeight: '500',
-  },
-  sendBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#137FEC',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  sendBtnDisabled: {
-    backgroundColor: '#E2E8F0',
-  }
-});

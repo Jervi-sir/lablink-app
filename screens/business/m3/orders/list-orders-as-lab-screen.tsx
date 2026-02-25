@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, StyleSheet, Dimensions } from "react-native";
+import { View, ScrollView, Dimensions } from "react-native";
 
 const SUMMARY_CARDS = [
   { id: '1', title: 'Pending', count: '5', icon: 'clock' },
@@ -50,13 +50,28 @@ const ORDERS = [
 export default function ListOrdersAsLabScreen() {
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
 
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Incoming Orders</Text>
+        <View style={{
+          paddingHorizontal: 16,
+          paddingVertical: 16,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: '#FFF',
+        }}>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#000' }}>Incoming Orders</Text>
           <TouchableOpacity>
-            <View style={styles.filterIcon} />
+            <View style={{
+              width: 22,
+              height: 18,
+              borderTopWidth: 2,
+              borderBottomWidth: 2,
+              borderColor: '#000',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }} />
           </TouchableOpacity>
         </View>
 
@@ -64,27 +79,50 @@ export default function ListOrdersAsLabScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.summaryScroll}
+          contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 16, gap: 12 }}
         >
           {SUMMARY_CARDS.map((card) => (
-            <View key={card.id} style={styles.summaryCard}>
-              <View style={styles.summaryHeader}>
-                <View style={styles.summaryIconPlaceholder} />
-                <Text style={styles.summaryCardTitle}>{card.title}</Text>
+            <View key={card.id} style={{
+              width: 140,
+              backgroundColor: '#FFF',
+              borderRadius: 16,
+              padding: 16,
+              alignItems: 'center',
+              gap: 12,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.05,
+              shadowRadius: 10,
+              elevation: 3,
+            }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ width: 20, height: 20, backgroundColor: '#000', borderRadius: 4 }} />
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#000' }}>{card.title}</Text>
               </View>
-              <Text style={styles.summaryCount}>{card.count}</Text>
+              <Text style={{ fontSize: 28, fontWeight: '800', color: '#000' }}>{card.count}</Text>
             </View>
           ))}
         </ScrollView>
 
         {/* Filter Tabs */}
-        <View style={styles.filterTabsContainer}>
+        <View style={{ flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 16 }}>
           {FILTER_TABS.map((tab, index) => (
             <TouchableOpacity
               key={tab}
-              style={[styles.filterTab, index === 0 && styles.activeFilterTab]}
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderRadius: 8,
+                backgroundColor: index === 0 ? '#137FEC' : '#FFF',
+                borderWidth: 1,
+                borderColor: index === 0 ? '#137FEC' : '#E5E7EB',
+              }}
             >
-              <Text style={[styles.filterTabText, index === 0 && styles.activeFilterTabText]}>
+              <Text style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: index === 0 ? '#FFF' : '#374151',
+              }}>
                 {tab}
               </Text>
             </TouchableOpacity>
@@ -92,44 +130,57 @@ export default function ListOrdersAsLabScreen() {
         </View>
 
         {/* Order List */}
-        <View style={styles.orderList}>
+        <View style={{ paddingHorizontal: 16, gap: 16 }}>
           {ORDERS.map((order, index) => (
-            <View key={index} style={styles.orderCard}>
+            <View key={index} style={{
+              backgroundColor: '#FFF',
+              borderRadius: 16,
+              padding: 16,
+              gap: 16,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.05,
+              shadowRadius: 10,
+              elevation: 3,
+            }}>
               {/* Card Header */}
-              <View style={styles.orderCardHeader}>
-                <View style={styles.orderIdBadge}>
-                  <Text style={styles.orderIdText}>{order.id}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: '#F3F4F6', borderRadius: 6 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#137FEC' }}>{order.id}</Text>
                 </View>
-                <Text style={styles.orderTimeText}>{order.time}</Text>
+                <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500' }}>{order.time}</Text>
               </View>
 
               {/* Card Body */}
-              <View style={styles.orderCardBody}>
-                <View style={styles.itemImagePlaceholder} />
-                <View style={styles.itemInfo}>
-                  <Text style={styles.itemTitle}>{order.title}</Text>
-                  <Text style={styles.itemSubtext}>{order.description}</Text>
-                  <Text style={styles.itemSubtext}>{order.location}</Text>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <View style={{ width: 66, height: 66, backgroundColor: '#D9D9D9', borderRadius: 12 }} />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '800', color: '#000' }}>{order.title}</Text>
+                  <Text style={{ fontSize: 14, color: '#6B7280', fontWeight: '500' }}>{order.description}</Text>
+                  <Text style={{ fontSize: 14, color: '#6B7280', fontWeight: '500' }}>{order.location}</Text>
                 </View>
               </View>
 
               {/* Card Footer */}
-              <View style={styles.orderCardFooter}>
-                <View style={[styles.statusBadge, { backgroundColor: order.statusBg }]}>
-                  <View style={[styles.statusDot, { backgroundColor: order.statusColor }]} />
-                  <Text style={[styles.statusText, { color: order.statusColor }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 6, backgroundColor: order.statusBg }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: order.statusColor }} />
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: order.statusColor }}>
                     {order.status}
                   </Text>
                 </View>
 
-                <TouchableOpacity style={[
-                  styles.detailsBtn,
-                  order.buttonType === 'secondary' && styles.detailsBtnSecondary
-                ]}>
-                  <Text style={[
-                    styles.detailsBtnText,
-                    order.buttonType === 'secondary' && styles.detailsBtnTextSecondary
-                  ]}>
+                <TouchableOpacity style={{
+                  backgroundColor: order.buttonType === 'secondary' ? '#E7F2FD' : '#137FEC',
+                  paddingHorizontal: 20,
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                }}>
+                  <Text style={{
+                    color: order.buttonType === 'secondary' ? '#137FEC' : '#FFF',
+                    fontSize: 14,
+                    fontWeight: '700',
+                  }}>
                     View Details
                   </Text>
                 </TouchableOpacity>
@@ -142,196 +193,3 @@ export default function ListOrdersAsLabScreen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingBottom: 40,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#000',
-  },
-  filterIcon: {
-    width: 22,
-    height: 18,
-    borderTopWidth: 2,
-    borderBottomWidth: 2,
-    borderColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  summaryScroll: {
-    paddingHorizontal: 12,
-    paddingVertical: 16,
-    gap: 12,
-  },
-  summaryCard: {
-    width: 140,
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    gap: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  summaryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  summaryIconPlaceholder: {
-    width: 20,
-    height: 20,
-    backgroundColor: '#000',
-    borderRadius: 4,
-  },
-  summaryCardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
-  },
-  summaryCount: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#000',
-  },
-  filterTabsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    gap: 8,
-    marginBottom: 16,
-  },
-  filterTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  activeFilterTab: {
-    backgroundColor: '#137FEC',
-    borderColor: '#137FEC',
-  },
-  filterTabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  activeFilterTabText: {
-    color: '#FFF',
-  },
-  orderList: {
-    paddingHorizontal: 16,
-    gap: 16,
-  },
-  orderCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    padding: 16,
-    gap: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  orderCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  orderIdBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 6,
-  },
-  orderIdText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#137FEC',
-  },
-  orderTimeText: {
-    fontSize: 13,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  orderCardBody: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  itemImagePlaceholder: {
-    width: 66,
-    height: 66,
-    backgroundColor: '#D9D9D9',
-    borderRadius: 12,
-  },
-  itemInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  itemTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#000',
-  },
-  itemSubtext: {
-    fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  orderCardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    gap: 6,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  detailsBtn: {
-    backgroundColor: '#137FEC',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  detailsBtnSecondary: {
-    backgroundColor: '#E7F2FD',
-  },
-  detailsBtnText: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  detailsBtnTextSecondary: {
-    color: '#137FEC',
-  },
-});
