@@ -5,6 +5,7 @@ import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { useState } from "react";
+import { OptionWithDot } from "../../components/options/option-with-dot";
 
 const LANGUAGES = [
   { id: 'en', name: 'English', flag: '🇺🇸' },
@@ -27,17 +28,12 @@ export default function LanguageScreen() {
       </View>
       <View style={{ padding: 20 }}>
         {LANGUAGES.map(lang => (
-          <TouchableOpacity
+          <OptionWithDot
             key={lang.id}
-            style={[
-              { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFF', padding: 18, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: '#F1F5F9' },
-              selected === lang.id && { borderColor: '#137FEC', backgroundColor: '#F0F7FF' }
-            ]}
-            onPress={() => setSelected(lang.id)}
-          >
-            <Text style={{ fontSize: 16, fontWeight: '700', color: '#1E293B' }}>{lang.flag}  {lang.name}</Text>
-            {selected === lang.id && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: '#137FEC' }} />}
-          </TouchableOpacity>
+            label={`${lang.name}`}
+            value={selected === lang.id}
+            onValueChange={() => setSelected(lang.id)}
+          />
         ))}
       </View>
     </ScreenWrapper>

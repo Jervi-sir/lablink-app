@@ -5,6 +5,8 @@ import { View, FlatList, Dimensions, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { Routes } from "@/utils/helpers/routes";
+import { OrderCard1 } from "../components/cards/order-card-1";
+import { ButtonTag } from "../components/buttons/button-tag";
 
 const { width } = Dimensions.get('window');
 
@@ -58,47 +60,10 @@ export default function StudentM3Navigation() {
   };
 
   const renderOrder = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={{ backgroundColor: '#FFF', borderRadius: 20, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#F1F5F9' }}
-      activeOpacity={0.7}
+    <OrderCard1
+      item={item}
       onPress={() => navigateToDetail(item)}
-    >
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-        <View>
-          <Text style={{ fontSize: 16, fontWeight: '800', color: '#1E293B' }}>{item.id}</Text>
-          <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '600', marginTop: 2 }}>{item.date}</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 6, backgroundColor: item.statusColor + '15' }}>
-          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: item.statusColor }} />
-          <Text style={{ fontSize: 11, fontWeight: '800', textTransform: 'uppercase', color: item.statusColor }}>{item.status}</Text>
-        </View>
-      </View>
-
-      <View style={{ height: 1, backgroundColor: '#F8FAFC', marginVertical: 12 }} />
-
-      <View style={{ flexDirection: 'row', gap: 12 }}>
-        <View style={{ width: 70, height: 70, borderRadius: 14, backgroundColor: '#F1F5F9' }} />
-        <View style={{ flex: 1, justifyContent: 'center', gap: 2 }}>
-          <Text style={{ fontSize: 12, fontWeight: '700', color: '#137FEC' }}>{item.lab}</Text>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B' }} numberOfLines={1}>{item.product}</Text>
-          <Text style={{ fontSize: 14, fontWeight: '800', color: '#111', marginTop: 2 }}>{item.price}</Text>
-        </View>
-      </View>
-
-      <View style={{ flexDirection: 'row', marginTop: 16, gap: 10 }}>
-        <TouchableOpacity
-          style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}
-          onPress={() => navigateToDetail(item)}
-        >
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#475569' }}>View Details</Text>
-        </TouchableOpacity>
-        {item.status === 'In Progress' && (
-          <TouchableOpacity style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: '#137FEC', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigateToDetail(item)}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF' }}>Track Order</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </TouchableOpacity>
+    />
   );
 
   return (
@@ -114,16 +79,12 @@ export default function StudentM3Navigation() {
       {/* Tabs */}
       <View style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 12, backgroundColor: '#FFF', gap: 8, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
         {TABS.map(tab => (
-          <TouchableOpacity
+          <ButtonTag
             key={tab}
-            style={[
-              { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: '#F1F5F9' },
-              activeTab === tab && { backgroundColor: '#137FEC' }
-            ]}
+            label={tab}
+            isActive={activeTab === tab}
             onPress={() => setActiveTab(tab)}
-          >
-            <Text style={[{ fontSize: 14, fontWeight: '700', color: '#64748B' }, activeTab === tab && { color: '#FFF' }]}>{tab}</Text>
-          </TouchableOpacity>
+          />
         ))}
       </View>
 

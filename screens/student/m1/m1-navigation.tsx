@@ -4,6 +4,9 @@ import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView, Dimensions } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
+import { ButtonTag } from "../components/buttons/button-tag";
+import { BusinessCard1 } from "../components/cards/business-card-1";
+import { ProductCard1 } from "../components/cards/product-card-1";
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 48 - 16) / 2; // (Total width - horizontal padding - gap) / 2
@@ -101,28 +104,12 @@ export default function StudentM1Navigation() {
           {/* 4. Categories */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
             {CATEGORIES.map((cat) => (
-              <TouchableOpacity
+              <ButtonTag
                 key={cat.id}
-                style={{
-                  paddingHorizontal: 20,
-                  paddingVertical: 12,
-                  borderRadius: 14,
-                  backgroundColor: cat.active ? '#137FEC' : '#FFF',
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 5,
-                  elevation: 2,
-                }}
-              >
-                <Text style={{
-                  color: cat.active ? '#FFF' : '#111',
-                  fontWeight: '700',
-                  fontSize: 15
-                }}>
-                  {cat.name}
-                </Text>
-              </TouchableOpacity>
+                label={cat.name}
+                isActive={cat.active}
+                onPress={() => { }}
+              />
             ))}
           </ScrollView>
 
@@ -145,16 +132,11 @@ export default function StudentM1Navigation() {
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20 }}>
               {FEATURED_LABS.map((lab) => (
-                <TouchableOpacity
+                <BusinessCard1
                   key={lab.id}
+                  lab={lab}
                   onPress={() => navigation.navigate(Routes.BusinessScreen, { labName: lab.name })}
-                  style={{ alignItems: 'center', gap: 8 }}
-                >
-                  <View style={{ width: 64, height: 64, backgroundColor: '#F3F4F6', borderRadius: 32, borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}>
-                    <View style={{ width: 30, height: 30, backgroundColor: '#D1D5DB', borderRadius: 15 }} />
-                  </View>
-                  <Text style={{ fontSize: 12, color: '#111', fontWeight: '600' }}>{lab.name}</Text>
-                </TouchableOpacity>
+                />
               ))}
             </ScrollView>
           </View>
@@ -167,66 +149,11 @@ export default function StudentM1Navigation() {
 
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
               {TRENDING_PRODUCTS.map((product) => (
-                <TouchableOpacity
+                <ProductCard1
                   key={product.id}
+                  product={product}
                   onPress={() => navigation.navigate(Routes.ProductScreen, { product })}
-                  activeOpacity={0.9}
-                  style={{
-                    width: COLUMN_WIDTH,
-                    backgroundColor: '#FFF',
-                    borderRadius: 16,
-                    overflow: 'hidden',
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 8,
-                    elevation: 3
-                  }}
-                >
-                  {/* Image Area */}
-                  <View style={{ height: COLUMN_WIDTH, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' }}>
-                    {/* Heart/Favorite Icon Placeholder */}
-                    <TouchableOpacity style={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      width: 28,
-                      height: 28,
-                      borderRadius: 14,
-                      backgroundColor: 'rgba(255,255,255,0.8)',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 4,
-                      elevation: 2
-                    }}>
-                      <View style={{ width: 14, height: 12, backgroundColor: '#9CA3AF', borderRadius: 2 }} />
-                    </TouchableOpacity>
-                    {/* Main Image Icon Placeholder could go here */}
-                    <View style={{ width: 40, height: 40, backgroundColor: '#D1D5DB', borderRadius: 8 }} />
-                  </View>
-
-                  {/* Details Area */}
-                  <View style={{ padding: 12, gap: 4 }}>
-                    <Text style={{ fontSize: 10, color: '#6B7280', fontWeight: '500' }}>{product.lab}</Text>
-                    <Text style={{ fontSize: 14, color: '#111', fontWeight: '700' }} numberOfLines={2}>{product.name}</Text>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-                      <Text style={{ fontSize: 14, color: '#111', fontWeight: '800' }}>{product.price}</Text>
-                      <TouchableOpacity style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 14,
-                        backgroundColor: '#137FEC',
-                        justifyContent: 'center',
-                        alignItems: 'center'
-                      }}>
-                        <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 16 }}>+</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </TouchableOpacity>
+                />
               ))}
             </View>
           </View>

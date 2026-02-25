@@ -6,6 +6,8 @@ import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { useState } from "react";
 
+import { OptionSettings2 } from "../../components/options/option-settings-2";
+
 const FAQS = [
   { q: "How do I track my order?", a: "You can track your order in the 'My Orders' section of the app. We provide real-time updates as your equipment moves from proposal to delivery." },
   { q: "Can I cancel a procurement request?", a: "Yes, you can cancel a request as long as the status is 'Proposal Submitted'. Once payment is confirmed, please contact the laboratory directly." },
@@ -28,23 +30,13 @@ export default function FAQScreen() {
       </View>
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         {FAQS.map((item, index) => (
-          <TouchableOpacity
+          <OptionSettings2
             key={index}
-            style={{ backgroundColor: '#FFF', borderRadius: 20, padding: 20, marginBottom: 12, borderWidth: 1, borderColor: '#F1F5F9' }}
+            question={item.q}
+            answer={item.a}
+            isExpanded={expanded === index}
             onPress={() => setExpanded(expanded === index ? null : index)}
-            activeOpacity={0.7}
-          >
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={{ flex: 1, fontSize: 15, fontWeight: '800', color: '#1E293B', paddingRight: 12 }}>{item.q}</Text>
-              <View style={[
-                { width: 8, height: 8, borderRightWidth: 2, borderBottomWidth: 2, borderColor: '#CBD5E1', transform: [{ rotate: '45deg' }] },
-                expanded === index && { transform: [{ rotate: '-135deg' }], marginTop: 4 }
-              ]} />
-            </View>
-            {expanded === index && (
-              <Text style={{ fontSize: 14, color: '#64748B', lineHeight: 22, marginTop: 12, borderTopWidth: 1, borderTopColor: '#F8FAFC', paddingTop: 12 }}>{item.a}</Text>
-            )}
-          </TouchableOpacity>
+          />
         ))}
       </ScrollView>
     </ScreenWrapper>

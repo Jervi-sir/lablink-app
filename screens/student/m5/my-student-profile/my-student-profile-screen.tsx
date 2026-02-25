@@ -4,6 +4,7 @@ import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView, Dimensions, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
+import { OptionSettings } from "../../components/options/option-settings";
 
 const { width } = Dimensions.get('window');
 
@@ -11,64 +12,18 @@ export default function MyStudentProfileScreen() {
   const navigation = useNavigation<any>();
 
   const MENU_ITEMS = [
-    {
-      id: 'saved_products',
-      title: 'Saved Products',
-      icon: '🔖',
-      route: Routes.StudentSavedProductsScreen,
-      count: '12'
-    },
-    {
-      id: 'saved_labs',
-      title: 'Saved Laboratories',
-      icon: '🏢',
-      route: Routes.StudentSavedBusinessesScreen,
-      count: '5'
-    },
-    {
-      id: 'followed_facilities',
-      title: 'Followed Facilities',
-      icon: '👥',
-      route: Routes.StudentFollowedBusinessesScreen,
-      count: '8'
-    },
+    { label: 'Saved Products', icon: '🔖', onPress: () => navigation.navigate(Routes.StudentSavedProductsScreen), count: '12' },
+    { label: 'Saved Laboratories', icon: '🏢', onPress: () => navigation.navigate(Routes.StudentSavedBusinessesScreen), count: '5' },
+    { label: 'Followed Facilities', icon: '👥', onPress: () => navigation.navigate(Routes.StudentFollowedBusinessesScreen), count: '8' },
   ];
 
   const SETTINGS_ITEMS = [
-    { id: 'edit_profile', title: 'Edit Profile', icon: '👤', route: Routes.EditProfileScreen },
-    { id: 'notifications', title: 'Notifications', icon: '🔔', route: Routes.NotificationsScreen },
-    { id: 'language', title: 'Language', icon: '🌐', value: 'English', route: Routes.LanguageScreen },
-    { id: 'privacy', title: 'Privacy & Security', icon: '🛡️', route: Routes.PrivacySecurityScreen },
-    { id: 'support', title: 'Help & Support', icon: '❓', route: Routes.HelpSupportScreen },
+    { label: 'Edit Profile', icon: '👤', onPress: () => navigation.navigate(Routes.EditProfileScreen) },
+    { label: 'Notifications', icon: '🔔', onPress: () => navigation.navigate(Routes.NotificationsScreen) },
+    { label: 'Language', icon: '🌐', value: 'English', onPress: () => navigation.navigate(Routes.LanguageScreen) },
+    { label: 'Privacy & Security', icon: '🛡️', onPress: () => navigation.navigate(Routes.PrivacySecurityScreen) },
+    { label: 'Help & Support', icon: '❓', onPress: () => navigation.navigate(Routes.HelpSupportScreen) },
   ];
-
-  const renderMenuItem = (item: any, isFirst: boolean, isLast: boolean) => (
-    <TouchableOpacity
-      key={item.id}
-      style={[
-        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
-        isLast && { borderBottomWidth: 0 }
-      ]}
-      activeOpacity={0.6}
-      onPress={() => item.route && navigation.navigate(item.route)}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontSize: 18 }}>{item.icon}</Text>
-        </View>
-        <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B' }}>{item.title}</Text>
-      </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        {item.count && (
-          <Text style={{ fontSize: 13, fontWeight: '700', color: '#137FEC', backgroundColor: '#F0F7FF', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
-            {item.count}
-          </Text>
-        )}
-        {item.value && <Text style={{ fontSize: 13, fontWeight: '600', color: '#64748B' }}>{item.value}</Text>}
-        <View style={{ width: 8, height: 8, borderRightWidth: 2, borderBottomWidth: 2, borderColor: '#CBD5E1', transform: [{ rotate: '-45deg' }] }} />
-      </View>
-    </TouchableOpacity>
-  );
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
@@ -129,23 +84,20 @@ export default function MyStudentProfileScreen() {
 
         {/* Collections Section */}
         <View style={{ marginTop: 24, paddingHorizontal: 20 }}>
-          <Text style={{ fontSize: 12, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 12, marginLeft: 4 }}>My COLLECTIONS</Text>
-          <View style={{ backgroundColor: '#FFF', borderRadius: 24, borderWidth: 1, borderColor: '#F1F5F9', overflow: 'hidden' }}>
-            {MENU_ITEMS.map((item, index) =>
-              renderMenuItem(item, index === 0, index === MENU_ITEMS.length - 1)
-            )}
-          </View>
+          <OptionSettings
+            title="My COLLECTIONS"
+            items={MENU_ITEMS}
+          />
         </View>
 
         {/* Settings Section */}
         <View style={{ marginTop: 24, paddingHorizontal: 20 }}>
-          <Text style={{ fontSize: 12, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 12, marginLeft: 4 }}>Account Settings</Text>
-          <View style={{ backgroundColor: '#FFF', borderRadius: 24, borderWidth: 1, borderColor: '#F1F5F9', overflow: 'hidden' }}>
-            {SETTINGS_ITEMS.map((item, index) =>
-              renderMenuItem(item, index === 0, index === SETTINGS_ITEMS.length - 1)
-            )}
-          </View>
+          <OptionSettings
+            title="Account Settings"
+            items={SETTINGS_ITEMS}
+          />
         </View>
+
 
         {/* Logout */}
         <TouchableOpacity style={{ marginTop: 32, marginHorizontal: 20, height: 56, backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#FEE2E2', justifyContent: 'center', alignItems: 'center' }} activeOpacity={0.8}>

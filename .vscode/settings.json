@@ -1,0 +1,16 @@
+{
+  "folder-color.pathColors": [
+    {
+      "folderPath": "lablink-app/screens/student/m1/m1-navigation.tsx/",
+      "color": "foldercolorizer.color_006633"
+    },
+    {
+      "folderPath": "lablink-app/screens/student/m2/m2-navigation.tsx/",
+      "color": "foldercolorizer.color_006633"
+    },
+    {
+      "folderPath": "lablink-app/screens/student/m3/m3-navigation.tsx/",
+      "color": "foldercolorizer.color_006633"
+    }
+  ]
+}

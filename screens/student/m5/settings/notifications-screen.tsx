@@ -5,6 +5,7 @@ import { View, Switch } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { useState } from "react";
+import { OptionWithSwitch } from "../../components/options/option-with-switch";
 
 export default function NotificationsScreen() {
   const navigation = useNavigation();
@@ -13,14 +14,11 @@ export default function NotificationsScreen() {
   const [promotions, setPromotions] = useState(false);
 
   const renderToggle = (label: string, value: boolean, onValueChange: (v: boolean) => void) => (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFF', padding: 16, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: '#F1F5F9' }}>
-      <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B' }}>{label}</Text>
-      <Switch
-        value={value}
-        onValueChange={onValueChange}
-        trackColor={{ false: "#E2E8F0", true: "#137FEC" }}
-      />
-    </View>
+    <OptionWithSwitch
+      label={label}
+      value={value}
+      onValueChange={onValueChange}
+    />
   );
 
   return (

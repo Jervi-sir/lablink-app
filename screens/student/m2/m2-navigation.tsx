@@ -5,6 +5,9 @@ import { View, ScrollView, TextInput, Dimensions, FlatList } from "react-native"
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { Routes } from "@/utils/helpers/routes";
+import { ButtonTag } from "../components/buttons/button-tag";
+import { BusinessCard1 } from "../components/cards/business-card-1";
+import { ProductCard1 } from "../components/cards/product-card-1";
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 48) / 2;
@@ -41,9 +44,12 @@ export default function StudentM2Navigation() {
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
           {RECENT_SEARCHES.map(item => (
-            <TouchableOpacity key={item} style={{ backgroundColor: '#F1F5F9', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 }} onPress={() => setSearch(item)}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#475569' }}>{item}</Text>
-            </TouchableOpacity>
+            <ButtonTag
+              key={item}
+              label={item}
+              onPress={() => setSearch(item)}
+              style={{ paddingHorizontal: 16, paddingVertical: 8 }}
+            />
           ))}
         </ScrollView>
       </View>
@@ -53,17 +59,11 @@ export default function StudentM2Navigation() {
         <Text style={{ fontSize: 13, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Top Laboratories</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingRight: 20 }}>
           {TRENDING_LABS.map(lab => (
-            <TouchableOpacity
+            <BusinessCard1
               key={lab.id}
-              style={{ width: 100, alignItems: 'center', gap: 8 }}
+              lab={lab}
               onPress={() => navigation.navigate(Routes.BusinessScreen, { labName: lab.name })}
-            >
-              <View style={{ width: 72, height: 72, borderRadius: 24, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9' }}>
-                <Text style={{ fontSize: 32 }}>{lab.logo}</Text>
-              </View>
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1E293B', textAlign: 'center' }} numberOfLines={1}>{lab.name}</Text>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: '#94A3B8' }}>{lab.city}</Text>
-            </TouchableOpacity>
+            />
           ))}
         </ScrollView>
       </View>
@@ -73,20 +73,12 @@ export default function StudentM2Navigation() {
         <Text style={{ fontSize: 13, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Trending Equipment</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 12 }}>
           {SUGGESTIONS.map(item => (
-            <TouchableOpacity
+            <ProductCard1
               key={item.id}
-              style={{ width: COLUMN_WIDTH, backgroundColor: '#FFF', borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: '#F1F5F9' }}
+              product={item}
+              width={COLUMN_WIDTH}
               onPress={() => navigation.navigate(Routes.ProductScreen, { product: item })}
-            >
-              <View style={{ height: 120, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ fontSize: 40 }}>{item.emoji}</Text>
-              </View>
-              <View style={{ padding: 12, gap: 4 }}>
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>{item.lab}</Text>
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#1E293B' }} numberOfLines={1}>{item.name}</Text>
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#137FEC' }}>{item.price}</Text>
-              </View>
-            </TouchableOpacity>
+            />
           ))}
         </View>
       </View>
@@ -98,16 +90,13 @@ export default function StudentM2Navigation() {
       {/* Tab Switcher */}
       <View style={{ flexDirection: 'row', padding: 16, gap: 12 }}>
         {['Products', 'Laboratories'].map(tab => (
-          <TouchableOpacity
+          <ButtonTag
             key={tab}
-            style={[
-              { flex: 1, height: 44, borderRadius: 12, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9' },
-              activeTab === tab && { backgroundColor: '#137FEC', borderColor: '#137FEC' }
-            ]}
+            label={tab}
+            isActive={activeTab === tab}
             onPress={() => setActiveTab(tab)}
-          >
-            <Text style={[{ fontSize: 14, fontWeight: '700', color: '#64748B' }, activeTab === tab && { color: '#FFF' }]}>{tab}</Text>
-          </TouchableOpacity>
+            style={{ flex: 1, height: 44, paddingHorizontal: 0, paddingVertical: 0 }}
+          />
         ))}
       </View>
 

@@ -6,27 +6,21 @@ import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 
 import { Routes } from "@/utils/helpers/routes";
+import { OptionSettings } from "../../components/options/option-settings";
 
 export default function PrivacySecurityScreen() {
   const navigation = useNavigation<any>();
 
   const renderSection = (title: string, items: { label: string, route?: string }[]) => (
-    <View style={{ marginBottom: 24 }}>
-      <Text style={{ fontSize: 13, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', marginBottom: 12, marginLeft: 4 }}>{title}</Text>
-      <View style={{ backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', overflow: 'hidden' }}>
-        {items.map((item, index) => (
-          <TouchableOpacity
-            key={item.label}
-            style={[{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' }, index === items.length - 1 && { borderBottomWidth: 0 }]}
-            onPress={() => item.route && navigation.navigate(item.route)}
-          >
-            <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B' }}>{item.label}</Text>
-            <View style={{ width: 8, height: 8, borderRightWidth: 2, borderBottomWidth: 2, borderColor: '#CBD5E1', transform: [{ rotate: '-45deg' }] }} />
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
+    <OptionSettings
+      title={title}
+      items={items.map(item => ({
+        label: item.label,
+        onPress: () => item.route && navigation.navigate(item.route)
+      }))}
+    />
   );
+
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
