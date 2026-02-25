@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { View, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { ScreenWrapper } from "../../components/screen-wrapper";
-import Text from "../../components/text";
-import TouchableOpacity from "../../components/touchable-opacity";
-import GlobalInput from "../../components/inputs/global-input";
-import { Button1 } from "../../components/buttons/button-1";
-import { Routes } from "../../utils/helpers/routes";
+import { ScreenWrapper } from "../../../components/screen-wrapper";
+import Text from "../../../components/text";
+import TouchableOpacity from "../../../components/touchable-opacity";
+import GlobalInput from "../../../components/inputs/global-input";
+import { Button1 } from "../../../components/buttons/button-1";
+import { Routes } from "../../../utils/helpers/routes";
 
 export default function BusinessLoginScreen() {
   const navigation = useNavigation<any>();
