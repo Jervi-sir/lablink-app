@@ -34,6 +34,9 @@ export const ApiRoutes = {
     recent: 'products/recent',
   },
   search: 'search',
+  orders: {
+    index: 'orders',
+  },
 }
 
 // @ts-ignore
