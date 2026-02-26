@@ -29,6 +29,7 @@ export default function StudentM1Navigation() {
   const [trendingProducts, setTrendingProducts] = useState<any[]>([]);
   const [nextPageProducts, setNextPageProducts] = useState<number | null>(1);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [savingProductId, setSavingProductId] = useState<string | null>(null);
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -121,6 +122,23 @@ export default function StudentM1Navigation() {
     fetchFeaturedLabs(1);
     // Trending is already handled by the category effect on mount
   }, []);
+
+  const toggleSaveProduct = useCallback(async (productId: string) => {
+    if (savingProductId) return;
+    try {
+      setSavingProductId(productId);
+      const response = await api.post(buildRoute(ApiRoutes.products.toggleSave, { id: productId }));
+      if (response) {
+        setTrendingProducts(prev =>
+          prev.map(p => p.id.toString() === productId ? { ...p, isSaved: response.isSaved } : p)
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling save:", error);
+    } finally {
+      setSavingProductId(null);
+    }
+  }, [savingProductId]);
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
@@ -262,6 +280,8 @@ export default function StudentM1Navigation() {
                   key={product.id}
                   product={product}
                   onPress={() => navigation.navigate(Routes.ProductScreen, { product })}
+                  onToggleSave={() => toggleSaveProduct(product.id.toString())}
+                  isSaving={savingProductId === product.id.toString()}
                 />
               ))}
             </View>

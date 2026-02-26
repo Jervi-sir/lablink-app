@@ -8,13 +8,14 @@ import { Routes } from "@/utils/helpers/routes";
 import { ProductCard1 } from "../../components/cards/product-card-1";
 import { useState, useEffect, useCallback } from "react";
 import api from "@/utils/api/axios-instance";
-import { ApiRoutes } from "@/utils/api/api";
+import { ApiRoutes, buildRoute } from "@/utils/api/api";
 
 export default function StudentSavedProductsScreen() {
   const navigation = useNavigation<any>();
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [savingProductId, setSavingProductId] = useState<string | null>(null);
 
   const fetchSavedProducts = useCallback(async () => {
     try {
@@ -37,10 +38,33 @@ export default function StudentSavedProductsScreen() {
     fetchSavedProducts();
   };
 
+  const toggleSaveProduct = useCallback(async (productId: string) => {
+    if (savingProductId) return;
+    try {
+      setSavingProductId(productId);
+      const response = await api.post(buildRoute(ApiRoutes.products.toggleSave, { id: productId }));
+      if (response && !response.isSaved) {
+        // Product was unsaved, remove from list
+        setProducts(prev => prev.filter(p => p.id.toString() !== productId));
+      }
+    } catch (error) {
+      console.error("Error toggling save:", error);
+    } finally {
+      setSavingProductId(null);
+    }
+  }, [savingProductId]);
+
   const renderProduct = ({ item }: { item: any }) => (
     <ProductCard1
-      product={item}
+      product={{
+        ...item,
+        lab: item.business?.name || 'Unknown Lab',
+        price: typeof item.price === 'number' ? `${item.price.toLocaleString()} DA` : item.price || '0 DA',
+        isSaved: true,
+      }}
       onPress={() => navigation.navigate(Routes.ProductScreen, { product: item })}
+      onToggleSave={() => toggleSaveProduct(item.id.toString())}
+      isSaving={savingProductId === item.id.toString()}
       style={{ marginBottom: 16 }}
     />
   );

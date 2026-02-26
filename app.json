@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lablink.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,10 +22,26 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.lablink.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#137FEC"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f9b5bc3d-b46f-463b-911f-73eb54bba2e7"
+      }
+    },
+    "owner": "jervi"
   }
 }

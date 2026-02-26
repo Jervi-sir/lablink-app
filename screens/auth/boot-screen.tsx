@@ -8,6 +8,7 @@ import { getStoredToken } from "@/utils/async-storage/auth-async-storage";
 import api, { setAxiosAuthToken } from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { useAuthStore } from "@/zustand/auth-store";
+import { registerAndSyncPushToken } from "@/utils/notifications/push-notifications";
 
 export default function BootScreen() {
   const navigation = useNavigation<any>();
@@ -41,6 +42,9 @@ export default function BootScreen() {
             setAuthToken(token);
             setAuthType(response.authType || "student");
             targetRoute = Routes.StudentNavigation;
+
+            // Register and sync push token in the background
+            registerAndSyncPushToken().catch(() => { });
           } else {
             setAxiosAuthToken(null);
           }

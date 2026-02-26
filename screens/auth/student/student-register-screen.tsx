@@ -10,6 +10,7 @@ import { Routes } from "../../../utils/helpers/routes";
 import { apiPublic } from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { useAuthStore } from "@/zustand/auth-store";
+import { registerAndSyncPushToken } from "@/utils/notifications/push-notifications";
 
 export default function StudentRegisterScreen() {
   const navigation = useNavigation<any>();
@@ -34,6 +35,10 @@ export default function StudentRegisterScreen() {
       })
       setAuth(response.user);
       setAuthToken(response.access_token);
+
+      // Register push token separately after auth
+      registerAndSyncPushToken().catch(() => { });
+
       navigation.reset({ index: 0, routes: [{ name: Routes.StudentNavigation }] });
     } catch (error: any) {
       console.error("Register Error:", error.response?.data || error.message || error)

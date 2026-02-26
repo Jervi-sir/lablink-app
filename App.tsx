@@ -51,6 +51,13 @@ import BusinessSupportScreen from "./screens/business/m5/business-support-screen
 import ServiceAgreementsScreen from "./screens/business/m5/service-agreements-screen";
 import EditContactScreen from "./screens/business/m5/edit-contact-screen";
 import { useEffect } from "react";
+import {
+  addNotificationReceivedListener,
+  addNotificationResponseReceivedListener,
+} from "./utils/notifications/push-notifications";
+
+// Import to trigger notification handler setup
+import './utils/notifications/push-notifications';
 
 export default function App() {
   const navigationRef = useNavigationContainerRef();
@@ -62,6 +69,24 @@ export default function App() {
     });
     return unsubscribe;
   }, [navigationRef]);
+
+  // Set up notification listeners
+  useEffect(() => {
+    const notificationListener = addNotificationReceivedListener((notification) => {
+      console.log('[App] Notification received:', notification.request.content);
+    });
+
+    const responseListener = addNotificationResponseReceivedListener((response) => {
+      console.log('[App] Notification tapped:', response.notification.request.content);
+      // TODO: navigate to relevant screen based on notification data
+    });
+
+    return () => {
+      notificationListener.remove();
+      responseListener.remove();
+    };
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer ref={navigationRef}>

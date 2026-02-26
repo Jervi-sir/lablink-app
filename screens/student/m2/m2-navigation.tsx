@@ -9,7 +9,7 @@ import { ButtonTag } from "../components/buttons/button-tag";
 import { BusinessCard1 } from "../components/cards/business-card-1";
 import { ProductCard1 } from "../components/cards/product-card-1";
 import api from "@/utils/api/axios-instance";
-import { ApiRoutes } from "@/utils/api/api";
+import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get('window');
@@ -26,6 +26,7 @@ export default function StudentM2Navigation() {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [topLabs, setTopLabs] = useState<any[]>([]);
   const [recentProducts, setRecentProducts] = useState<any[]>([]);
+  const [savingProductId, setSavingProductId] = useState<string | null>(null);
 
   const isSearching = search.length > 0;
 
@@ -46,6 +47,29 @@ export default function StudentM2Navigation() {
       console.error("Error fetching initial data:", error);
     }
   };
+
+  const toggleSaveProduct = useCallback(async (productId: string) => {
+    if (savingProductId) return;
+    try {
+      setSavingProductId(productId);
+      const response = await api.post(buildRoute(ApiRoutes.products.toggleSave, { id: productId }));
+      if (response) {
+        setRecentProducts(prev =>
+          prev.map(p => p.id.toString() === productId ? { ...p, isSaved: response.isSaved } : p)
+        );
+        setResults(prev => ({
+          ...prev,
+          products: prev.products.map(p =>
+            p.id.toString() === productId ? { ...p, isSaved: response.isSaved } : p
+          ),
+        }));
+      }
+    } catch (error) {
+      console.error("Error toggling save:", error);
+    } finally {
+      setSavingProductId(null);
+    }
+  }, [savingProductId]);
 
   const loadRecentSearches = async () => {
     try {
@@ -163,6 +187,8 @@ export default function StudentM2Navigation() {
                 price: `${item.price.toLocaleString()} DA`
               }}
               onPress={() => navigation.navigate(Routes.ProductScreen, { product: item })}
+              onToggleSave={() => toggleSaveProduct(item.id.toString())}
+              isSaving={savingProductId === item.id.toString()}
             />
           ))}
         </View>
@@ -214,6 +240,8 @@ export default function StudentM2Navigation() {
                     saveRecentSearch(search);
                     navigation.navigate(Routes.ProductScreen, { product: item });
                   }}
+                  onToggleSave={() => toggleSaveProduct(item.id.toString())}
+                  isSaving={savingProductId === item.id.toString()}
                   style={{ marginBottom: 16 }}
                 />
               );

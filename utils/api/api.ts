@@ -16,6 +16,8 @@ export const ApiRoutes = {
       register: 'auth/student/register',
       logout: 'auth/student/logout',
       me: 'auth/student/me',
+      pushToken: 'auth/student/push-token',
+      notificationSettings: 'auth/student/notification-settings',
     }
   },
 
@@ -26,10 +28,16 @@ export const ApiRoutes = {
   },
 
   businesses: {
+    show: 'businesses/:id',
+    products: 'businesses/:id/products',
+    toggleFollow: 'businesses/:id/toggle-follow',
+    toggleSave: 'businesses/:id/toggle-save',
     featuredLabs: 'businesses/featured-labs',
     topLabs: 'businesses/top-labs',
   },
   products: {
+    show: 'products/:id',
+    toggleSave: 'products/:id/toggle-save',
     trending: 'products/trending-products',
     recent: 'products/recent',
   },

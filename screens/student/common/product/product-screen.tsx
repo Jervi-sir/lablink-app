@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, Dimensions, Platform, LayoutAnimation, UIManager } from "react-native";
+import { View, ScrollView, Dimensions, Platform, LayoutAnimation, UIManager, ActivityIndicator, RefreshControl } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { Routes } from "@/utils/helpers/routes";
+import api from "@/utils/api/axios-instance";
+import { ApiRoutes, buildRoute } from "@/utils/api/api";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -23,10 +25,57 @@ const SECTIONS = [
 export default function ProductScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { product = { name: 'Digital LCD Microscope', lab: 'NanoTech', price: '45,000 DA' } } = route.params || {};
+  const { product: navProduct } = route.params || {};
 
+  const [product, setProduct] = useState<any>(navProduct || null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savingToggle, setSavingToggle] = useState(false);
+
+  const productId = navProduct?.id;
+
+  const fetchProduct = useCallback(async () => {
+    if (!productId) return;
+    try {
+      const response = await api.get(buildRoute(ApiRoutes.products.show, { id: productId }));
+      if (response && response.data) {
+        setProduct(response.data);
+        setIsSaved(response.data.isSaved || false);
+      }
+    } catch (error) {
+      console.error("Error fetching product:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [productId]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchProduct();
+    setRefreshing(false);
+  }, [fetchProduct]);
+
+  const toggleSave = useCallback(async () => {
+    if (!productId || savingToggle) return;
+    try {
+      setSavingToggle(true);
+      const response = await api.post(buildRoute(ApiRoutes.products.toggleSave, { id: productId }));
+      if (response) {
+        setIsSaved(response.isSaved);
+      }
+    } catch (error) {
+      console.error("Error toggling save:", error);
+    } finally {
+      setSavingToggle(false);
+    }
+  }, [productId, savingToggle]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
 
   const toggleSection = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -36,60 +85,155 @@ export default function ProductScreen() {
   const incrementQty = () => setQuantity(prev => prev + 1);
   const decrementQty = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
+  const renderStars = (rating: number) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Text key={i} style={{ fontSize: 12, color: i <= rating ? '#F59E0B' : '#D1D5DB' }}>★</Text>
+      );
+    }
+    return stars;
+  };
+
   const renderSectionContent = (id: string) => {
     switch (id) {
       case '1':
+        // Specifications
+        const specs = product?.specifications;
+        if (specs && typeof specs === 'object' && Object.keys(specs).length > 0) {
+          return (
+            <View style={{ padding: 16, paddingTop: 0, gap: 12 }}>
+              {Object.entries(specs).map(([key, value], index) => (
+                <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' }}>
+                  <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '500' }}>{key}</Text>
+                  <Text style={{ fontSize: 14, color: '#1E293B', fontWeight: '700' }}>{String(value)}</Text>
+                </View>
+              ))}
+            </View>
+          );
+        }
         return (
-          <View style={{ padding: 16, paddingTop: 0, gap: 12 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' }}><Text style={{ fontSize: 14, color: '#64748B', fontWeight: '500' }}>Magnification</Text><Text style={{ fontSize: 14, color: '#1E293B', fontWeight: '700' }}>40X - 1600X</Text></View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' }}><Text style={{ fontSize: 14, color: '#64748B', fontWeight: '500' }}>LCD Screen</Text><Text style={{ fontSize: 14, color: '#1E293B', fontWeight: '700' }}>7-inch IPS</Text></View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' }}><Text style={{ fontSize: 14, color: '#64748B', fontWeight: '500' }}>Sensor</Text><Text style={{ fontSize: 14, color: '#1E293B', fontWeight: '700' }}>12MP CMOS</Text></View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' }}><Text style={{ fontSize: 14, color: '#64748B', fontWeight: '500' }}>Output</Text><Text style={{ fontSize: 14, color: '#1E293B', fontWeight: '700' }}>HDMI / USB 2.0</Text></View>
+          <View style={{ padding: 16, paddingTop: 0 }}>
+            <Text style={{ fontSize: 14, color: '#94A3B8', fontStyle: 'italic', fontWeight: '500' }}>No specifications available.</Text>
           </View>
         );
+
       case '2':
+        // Description
         return (
           <View style={{ padding: 16, paddingTop: 0, gap: 12 }}>
             <Text style={{ fontSize: 14, color: '#475569', lineHeight: 22, fontWeight: '500' }}>
-              This professional-grade digital microscope is designed for high-precision biological research. It features a high-density CMOS sensor that captures 1080P video and 12MP stills directly to a MicroSD card. The integrated 7-inch LCD eliminates eye strain from traditional eyepieces.
+              {product?.description || 'No description available.'}
             </Text>
           </View>
         );
+
       case '3':
+        // Safety Data
+        if (product?.msdsPath || product?.documentations) {
+          return (
+            <View style={{ padding: 16, paddingTop: 0, gap: 12 }}>
+              {product?.msdsPath && (
+                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12 }}>
+                  <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#FEE2E2', justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#EF4444' }}>⚠</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B' }}>Material Safety Data Sheet</Text>
+                    <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>PDF Document</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+              {product?.documentations && (
+                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12 }}>
+                  <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#DBEAFE', justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#3B82F6' }}>📄</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B' }}>Documentation & Manuals</Text>
+                    <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>PDF Document</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+            </View>
+          );
+        }
         return (
-          <View style={{ padding: 16, paddingTop: 0, gap: 12 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12 }}>
-              <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#E2E8F0' }} />
-              <View>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B' }}>Electrical Safety Cert</Text>
-                <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>PDF • 1.2 MB</Text>
-              </View>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12 }}>
-              <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#E2E8F0' }} />
-              <View>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B' }}>Handling Guide</Text>
-                <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>PDF • 0.8 MB</Text>
-              </View>
-            </View>
+          <View style={{ padding: 16, paddingTop: 0 }}>
+            <Text style={{ fontSize: 14, color: '#94A3B8', fontStyle: 'italic', fontWeight: '500' }}>No safety data available.</Text>
           </View>
         );
+
       case '4':
+        // Reviews
+        const reviews = product?.reviews || [];
+        if (reviews.length === 0) {
+          return (
+            <View style={{ padding: 16, paddingTop: 0 }}>
+              <Text style={{ fontSize: 14, color: '#94A3B8', fontStyle: 'italic', fontWeight: '500' }}>No reviews yet. Be the first to review!</Text>
+            </View>
+          );
+        }
         return (
           <View style={{ padding: 16, paddingTop: 0, gap: 12 }}>
-            <View style={{ gap: 8, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B' }}>Dr. Amine K.</Text>
-                <Text style={{ fontSize: 12, color: '#F59E0B' }}>★★★★★</Text>
+            {/* Average Rating Summary */}
+            {product?.avgRating && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+                <Text style={{ fontSize: 32, fontWeight: '900', color: '#111' }}>{product.avgRating}</Text>
+                <View style={{ gap: 2 }}>
+                  <View style={{ flexDirection: 'row' }}>{renderStars(Math.round(product.avgRating))}</View>
+                  <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>{product.reviewCount} review{product.reviewCount !== 1 ? 's' : ''}</Text>
+                </View>
               </View>
-              <Text style={{ fontSize: 13, color: '#475569', lineHeight: 18, fontWeight: '500' }}>Exceptional clarity for the price. The HDMI output is perfect for university lectures.</Text>
-            </View>
+            )}
+            {/* Individual Reviews */}
+            {reviews.map((review: any) => (
+              <View key={review.id} style={{ gap: 8, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B' }}>
+                    {review.user?.studentProfile?.fullName || review.user?.email || 'Anonymous'}
+                  </Text>
+                  <View style={{ flexDirection: 'row' }}>{renderStars(review.rating)}</View>
+                </View>
+                <Text style={{ fontSize: 13, color: '#475569', lineHeight: 18, fontWeight: '500' }}>{review.comment}</Text>
+              </View>
+            ))}
           </View>
         );
+
       default:
         return null;
     }
   };
+
+  if (loading) {
+    return (
+      <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }} statusBarStyle="dark-content">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#137FEC" />
+          <Text style={{ marginTop: 12, fontSize: 14, color: '#94A3B8', fontWeight: '500' }}>Loading product...</Text>
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
+  if (!product) {
+    return (
+      <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }} statusBarStyle="dark-content">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+          <Text style={{ fontSize: 18, fontWeight: '700', color: '#111', marginBottom: 8 }}>Product not found</Text>
+          <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '500', textAlign: 'center' }}>The product you're looking for doesn't exist or has been removed.</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20, backgroundColor: '#137FEC', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 }}>
+            <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
+  const labName = product.business?.name || 'Unknown Lab';
+  const productPrice = typeof product.price === 'number' ? `${product.price.toLocaleString()} DA` : product.price || '0 DA';
+  const isInStock = product.isAvailable && product.stock > 0;
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }} statusBarStyle="dark-content">
@@ -99,51 +243,113 @@ export default function ProductScreen() {
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <View style={{ flexDirection: 'row', gap: 12 }}>
-          <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 }}>
-            <View style={{ width: 20, height: 18, borderWidth: 2, borderColor: '#111', borderTopLeftRadius: 5, borderTopRightRadius: 5 }} />
+          {/* Save Button */}
+          <TouchableOpacity
+            style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: isSaved ? '#FEF2F2' : '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 }}
+            onPress={toggleSave}
+            disabled={savingToggle}
+          >
+            {savingToggle ? (
+              <ActivityIndicator size="small" color="#137FEC" />
+            ) : (
+              <Text style={{ fontSize: 20 }}>{isSaved ? '❤️' : '🤍'}</Text>
+            )}
           </TouchableOpacity>
+          {/* Share Button */}
           <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 }}>
             <View style={{ width: 18, height: 18, borderWidth: 2, borderColor: '#111', borderRadius: 2 }} />
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#137FEC" />
+        }
+      >
         {/* Product Image Card */}
         <View style={{ width: width - 32, aspectRatio: 1, backgroundColor: '#FFF', borderRadius: 24, marginHorizontal: 16, marginTop: 8, overflow: 'hidden', shadowColor: "#000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 4 }}>
-          <View style={{ flex: 1, backgroundColor: '#F3F4F6' }} />
-          <View style={{ position: 'absolute', bottom: 16, alignSelf: 'center', flexDirection: 'row', gap: 6 }}>
-            <View style={[{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#D1D5DB' }, { width: 24, backgroundColor: '#137FEC' }]} />
-            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#D1D5DB' }} />
-            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#D1D5DB' }} />
+          <View style={{ flex: 1, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' }}>
+            {product.images && product.images.length > 0 ? (
+              <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '500' }}>Image available</Text>
+            ) : (
+              <View style={{ gap: 8, alignItems: 'center' }}>
+                <View style={{ width: 64, height: 64, borderRadius: 16, backgroundColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 28 }}>🔬</Text>
+                </View>
+                <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>No image</Text>
+              </View>
+            )}
           </View>
+          {product.images && product.images.length > 1 && (
+            <View style={{ position: 'absolute', bottom: 16, alignSelf: 'center', flexDirection: 'row', gap: 6 }}>
+              {product.images.map((_: any, idx: number) => (
+                <View key={idx} style={[{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#D1D5DB' }, idx === 0 && { width: 24, backgroundColor: '#137FEC' }]} />
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Info Section */}
         <View style={{ padding: 24, gap: 8 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#137FEC', letterSpacing: 0.5 }}>{product.lab}</Text>
-            <View style={{ backgroundColor: '#E9F7EF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-              <Text style={{ fontSize: 10, fontWeight: '800', color: '#27AE60' }}>IN STOCK</Text>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#137FEC', letterSpacing: 0.5 }}>{labName}</Text>
+            <View style={{ backgroundColor: isInStock ? '#E9F7EF' : '#FEF2F2', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+              <Text style={{ fontSize: 10, fontWeight: '800', color: isInStock ? '#27AE60' : '#EF4444' }}>
+                {isInStock ? 'IN STOCK' : 'OUT OF STOCK'}
+              </Text>
             </View>
           </View>
 
           <Text style={{ fontSize: 26, fontWeight: '800', color: '#111', lineHeight: 32 }}>{product.name}</Text>
-          <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '600' }}>SKU: #WB-500-DIG</Text>
+          {product.sku && <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '600' }}>SKU: #{product.sku}</Text>}
 
           <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-            <Text style={{ fontSize: 28, fontWeight: '900', color: '#111' }}>{product.price}</Text>
+            <Text style={{ fontSize: 28, fontWeight: '900', color: '#111' }}>{productPrice}</Text>
             <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '500' }}>+ VAT applicable</Text>
           </View>
+
+          {/* Rating badge */}
+          {product.avgRating && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+              <View style={{ flexDirection: 'row' }}>{renderStars(Math.round(product.avgRating))}</View>
+              <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '600' }}>{product.avgRating} ({product.reviewCount})</Text>
+            </View>
+          )}
         </View>
 
         {/* Quick Summary */}
-        <View style={{ paddingHorizontal: 24, paddingBottom: 24, gap: 8 }}>
-          <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Quick Summary</Text>
-          <Text style={{ fontSize: 15, color: '#5D6575', lineHeight: 22, fontWeight: '500' }}>
-            High-performance digital microscope with 7-inch LCD screen. Ideal for biological research and micro-analysis. Includes 1080P video capability.
-          </Text>
-        </View>
+        {product.summary && (
+          <View style={{ paddingHorizontal: 24, paddingBottom: 24, gap: 8 }}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Quick Summary</Text>
+            <Text style={{ fontSize: 15, color: '#5D6575', lineHeight: 22, fontWeight: '500' }}>
+              {product.summary}
+            </Text>
+          </View>
+        )}
+
+        {/* Offer Type & Unit */}
+        {(product.offerType || product.unit) && (
+          <View style={{ paddingHorizontal: 24, paddingBottom: 20, flexDirection: 'row', gap: 12 }}>
+            {product.offerType && (
+              <View style={{ backgroundColor: '#EFF6FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#3B82F6', textTransform: 'capitalize' }}>{product.offerType}</Text>
+              </View>
+            )}
+            {product.unit && (
+              <View style={{ backgroundColor: '#F0FDF4', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#22C55E' }}>Unit: {product.unit}</Text>
+              </View>
+            )}
+            {product.safetyLevel > 0 && (
+              <View style={{ backgroundColor: product.safetyLevel >= 3 ? '#FEF2F2' : '#FFFBEB', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: product.safetyLevel >= 3 ? '#EF4444' : '#F59E0B' }}>Safety: L{product.safetyLevel}</Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Accordion Sections */}
         <View style={{ paddingHorizontal: 20, gap: 12 }}>
@@ -185,11 +391,14 @@ export default function ProductScreen() {
           <TouchableOpacity style={{ width: 40, height: 44, justifyContent: 'center', alignItems: 'center' }} onPress={incrementQty}><Text style={{ fontSize: 20, fontWeight: '600', color: '#111' }}>+</Text></TouchableOpacity>
         </View>
         <TouchableOpacity
-          style={{ flex: 1, backgroundColor: '#137FEC', borderRadius: 12, justifyContent: 'center', alignItems: 'center' }}
+          style={{ flex: 1, backgroundColor: isInStock ? '#137FEC' : '#94A3B8', borderRadius: 12, justifyContent: 'center', alignItems: 'center' }}
           activeOpacity={0.8}
+          disabled={!isInStock}
           onPress={() => navigation.navigate(Routes.CheckoutScreen, { product, quantity })}
         >
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>Request Proposal</Text>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>
+            {isInStock ? 'Request Proposal' : 'Unavailable'}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScreenWrapper>
