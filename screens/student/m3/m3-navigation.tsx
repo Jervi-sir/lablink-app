@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, FlatList, Dimensions, ActivityIndicator, RefreshControl } from "react-native";
+import { View, FlatList, Dimensions, ActivityIndicator, RefreshControl, TextInput } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useState, useEffect, useCallback } from "react";
 import { Routes } from "@/utils/helpers/routes";
@@ -16,13 +16,16 @@ const TABS = ['All', 'In Progress', 'Completed'];
 
 const getStatusColor = (status: string) => {
   switch (status?.toLowerCase()) {
-    case 'in progress': return '#137FEC';
     case 'pending': return '#F59E0B';
-    case 'completed': return '#10B981';
+    case 'confirmed': return '#137FEC';
+    case 'shipped': return '#8B5CF6';
+    case 'delivered': return '#10B981';
     case 'cancelled': return '#EF4444';
     default: return '#64748B';
   }
 };
+
+const capitalize = (s: string) => s?.charAt(0).toUpperCase() + s?.slice(1);
 
 export default function StudentM3Navigation() {
   const navigation = useNavigation<any>();
@@ -32,6 +35,8 @@ export default function StudentM3Navigation() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   const fetchOrders = useCallback(async (page: number | null, refreshing = false) => {
     if (page === null) return;
@@ -48,7 +53,8 @@ export default function StudentM3Navigation() {
       const response: any = await api.get(ApiRoutes.orders.index, {
         params: {
           page,
-          status: statusParam
+          status: statusParam,
+          q: search || undefined
         }
       });
 
@@ -66,11 +72,14 @@ export default function StudentM3Navigation() {
       setIsLoadingMore(false);
       setIsRefreshing(false);
     }
-  }, [activeTab]);
+  }, [activeTab, search]);
 
   useEffect(() => {
-    fetchOrders(1);
-  }, [fetchOrders]);
+    const timer = setTimeout(() => {
+      fetchOrders(1);
+    }, search ? 500 : 0);
+    return () => clearTimeout(timer);
+  }, [search, activeTab]);
 
   const onRefresh = () => {
     fetchOrders(1, true);
@@ -89,8 +98,8 @@ export default function StudentM3Navigation() {
   const formatOrderData = (item: any) => ({
     id: item.code,
     date: new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    status: item.status?.name || 'Unknown',
-    statusColor: getStatusColor(item.status?.name),
+    status: capitalize(item.status?.code) || 'Unknown',
+    statusColor: getStatusColor(item.status?.code),
     lab: item.products?.[0]?.business?.name || 'Laboratory',
     product: item.products?.[0]?.name + (item.products?.length > 1 ? ` (+${item.products.length - 1} more)` : ''),
     price: `${item.total_price?.toLocaleString()} DA`,
@@ -107,23 +116,46 @@ export default function StudentM3Navigation() {
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       {/* Header */}
-      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, backgroundColor: '#FFF' }}>
-        <Text style={{ fontSize: 22, fontWeight: '800', color: '#111' }}>My Orders</Text>
-        <TouchableOpacity style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontSize: 20 }}>🔍</Text>
-        </TouchableOpacity>
-      </View>
+      <View style={{ backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+        <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20 }}>
+          {!isSearchVisible ? (
+            <>
+              <Text style={{ fontSize: 22, fontWeight: '800', color: '#111' }}>My Orders</Text>
+              <TouchableOpacity
+                onPress={() => setIsSearchVisible(true)}
+                style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ fontSize: 20 }}>🔍</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FB', borderRadius: 12, paddingHorizontal: 12, height: 44 }}>
+              <Text style={{ fontSize: 16, marginRight: 8 }}>🔍</Text>
+              <TextInput
+                style={{ flex: 1, fontSize: 15, fontWeight: '600', color: '#1E293B' }}
+                placeholder="Search by order code or product..."
+                value={search}
+                onChangeText={setSearch}
+                autoFocus
+                placeholderTextColor="#94A3B8"
+              />
+              <TouchableOpacity onPress={() => { setIsSearchVisible(false); setSearch(''); }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#64748B' }}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
 
-      {/* Tabs */}
-      <View style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 12, backgroundColor: '#FFF', gap: 8, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        {TABS.map(tab => (
-          <ButtonTag
-            key={tab}
-            label={tab}
-            isActive={activeTab === tab}
-            onPress={() => setActiveTab(tab)}
-          />
-        ))}
+        {/* Tabs */}
+        <View style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 12, gap: 8 }}>
+          {TABS.map(tab => (
+            <ButtonTag
+              key={tab}
+              label={tab}
+              isActive={activeTab === tab}
+              onPress={() => setActiveTab(tab)}
+            />
+          ))}
+        </View>
       </View>
 
       {isLoading && orders.length === 0 ? (
@@ -149,7 +181,7 @@ export default function StudentM3Navigation() {
           }
           ListEmptyComponent={
             <View style={{ alignItems: 'center', marginTop: 100 }}>
-              <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '600' }}>No orders found</Text>
+              <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '600' }}>{search ? 'No results matching search' : 'No orders found'}</Text>
             </View>
           }
         />

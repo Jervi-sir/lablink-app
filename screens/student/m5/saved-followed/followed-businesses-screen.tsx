@@ -1,23 +1,43 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, FlatList } from "react-native";
+import { View, FlatList, ActivityIndicator, RefreshControl } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { Routes } from "@/utils/helpers/routes";
 import { BusinessCard2 } from "../../components/cards/business-card-2";
-
-const FOLLOWED_FACILITIES = [
-  { id: '1', name: 'NanoTech Center', type: 'Applied Physics', university: 'University of Algiers', logo: '🔬', followers: '1.2k', isNew: true },
-  { id: '2', name: 'Bio-Research Laboratory', type: 'Biological Sciences', university: 'USTHB', logo: '🧬', followers: '2.5k', isNew: false },
-  { id: '3', name: 'Genomics Hub', type: 'Genetics', university: 'University of Constantine', logo: '🧬', followers: '840', isNew: false },
-  { id: '4', name: 'ChemLab Algiers', type: 'Chemical Engineering', university: 'USTHB', logo: '🧪', followers: '2.1k', isNew: true },
-];
+import { useState, useEffect, useCallback } from "react";
+import api from "@/utils/api/axios-instance";
+import { ApiRoutes } from "@/utils/api/api";
 
 export default function StudentFollowedBusinessesScreen() {
   const navigation = useNavigation<any>();
+  const [facilities, setFacilities] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const renderFacility = ({ item }: { item: typeof FOLLOWED_FACILITIES[0] }) => (
+  const fetchFollowedFacilities = useCallback(async () => {
+    try {
+      const response: any = await api.get(ApiRoutes.collections.followedBusinesses);
+      setFacilities(response.data || []);
+    } catch (error) {
+      console.error("Error fetching followed facilities:", error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchFollowedFacilities();
+  }, [fetchFollowedFacilities]);
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchFollowedFacilities();
+  };
+
+  const renderFacility = ({ item }: { item: any }) => (
     <BusinessCard2
       business={item}
       onPress={() => navigation.navigate(Routes.BusinessScreen, { labName: item.name })}
@@ -33,18 +53,28 @@ export default function StudentFollowedBusinessesScreen() {
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Followed Facilities</Text>
         <View style={{ width: 44 }} />
       </View>
-      <FlatList
-        data={FOLLOWED_FACILITIES}
-        renderItem={renderFacility}
-        keyExtractor={item => item.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={{ flex: 1, paddingVertical: 100, justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 15 }}>No followed facilities yet.</Text>
-          </View>
-        }
-      />
+
+      {isLoading && !isRefreshing ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator color="#137FEC" size="large" />
+        </View>
+      ) : (
+        <FlatList
+          data={facilities}
+          renderItem={renderFacility}
+          keyExtractor={item => item.id.toString()}
+          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#137FEC']} />
+          }
+          ListEmptyComponent={
+            <View style={{ flex: 1, paddingVertical: 100, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 15 }}>No followed facilities yet.</Text>
+            </View>
+          }
+        />
+      )}
     </ScreenWrapper>
   );
 }

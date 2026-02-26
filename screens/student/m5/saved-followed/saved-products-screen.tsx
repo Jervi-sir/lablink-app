@@ -1,24 +1,41 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, FlatList } from "react-native";
+import { View, FlatList, ActivityIndicator, RefreshControl } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { Routes } from "@/utils/helpers/routes";
-
 import { ProductCard1 } from "../../components/cards/product-card-1";
-
-const SAVED_PRODUCTS = [
-  { id: '1', name: 'Digital LCD Microscope', lab: 'NanoTech', price: '45,000 DA' },
-  { id: '2', name: 'Magnetic Stirrer', lab: 'Bio-Research', price: '12,500 DA' },
-  { id: '3', name: 'High-Speed Centrifuge', lab: 'Bio-Research', price: '85,000 DA' },
-  { id: '4', name: 'Digital pH Meter', lab: 'ChemLab', price: '8,400 DA' },
-  { id: '5', name: 'Laboratory Incubator', lab: 'Bio-Research', price: '120,000 DA' },
-  { id: '6', name: 'Precision Balance', lab: 'NanoTech', price: '32,000 DA' },
-];
+import { useState, useEffect, useCallback } from "react";
+import api from "@/utils/api/axios-instance";
+import { ApiRoutes } from "@/utils/api/api";
 
 export default function StudentSavedProductsScreen() {
   const navigation = useNavigation<any>();
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchSavedProducts = useCallback(async () => {
+    try {
+      const response: any = await api.get(ApiRoutes.collections.savedProducts);
+      setProducts(response.data || []);
+    } catch (error) {
+      console.error("Error fetching saved products:", error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSavedProducts();
+  }, [fetchSavedProducts]);
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchSavedProducts();
+  };
 
   const renderProduct = ({ item }: { item: any }) => (
     <ProductCard1
@@ -27,7 +44,6 @@ export default function StudentSavedProductsScreen() {
       style={{ marginBottom: 16 }}
     />
   );
-
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
@@ -39,20 +55,29 @@ export default function StudentSavedProductsScreen() {
         <View style={{ width: 44 }} />
       </View>
 
-      <FlatList
-        data={SAVED_PRODUCTS}
-        renderItem={renderProduct}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-        columnWrapperStyle={{ justifyContent: 'space-between' }}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={{ flex: 1, height: 400, justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 15 }}>No saved products yet.</Text>
-          </View>
-        }
-      />
+      {isLoading && !isRefreshing ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator color="#137FEC" size="large" />
+        </View>
+      ) : (
+        <FlatList
+          data={products}
+          renderItem={renderProduct}
+          keyExtractor={item => item.id.toString()}
+          numColumns={2}
+          contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+          columnWrapperStyle={{ justifyContent: 'space-between' }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#137FEC']} />
+          }
+          ListEmptyComponent={
+            <View style={{ flex: 1, height: 400, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 15 }}>No saved products yet.</Text>
+            </View>
+          }
+        />
+      )}
     </ScreenWrapper>
   );
 }

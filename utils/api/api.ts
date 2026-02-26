@@ -37,6 +37,21 @@ export const ApiRoutes = {
   orders: {
     index: 'orders',
   },
+  conversations: {
+    index: 'conversations',
+    show: 'conversations/:id',
+    store: 'conversations',
+    sendMessage: 'conversations/:id/messages',
+  },
+  stats: 'stats',
+  collections: {
+    savedProducts: 'collections/saved-products',
+    savedBusinesses: 'collections/saved-businesses',
+    followedBusinesses: 'collections/followed-businesses',
+  },
+  students: {
+    updateMe: 'students/me',
+  },
 }
 
 // @ts-ignore
