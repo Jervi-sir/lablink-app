@@ -39,3 +39,12 @@
     - m5: my profile screen @done
       - edit my profile @done
       - edit my contacts @done
+
+- student
+  - login api
+  - register api
+  - boot screen me api redirect to student navigation
+  - -
+  - m1: 
+    - featured labs api
+    - trending products api

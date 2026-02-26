@@ -1,4 +1,4 @@
-import { StyleProp, TextStyle, ViewStyle } from "react-native";
+import { ActivityIndicator, StyleProp, TextStyle, ViewStyle } from "react-native";
 import TouchableOpacity from "../touchable-opacity";
 import Text from "../text";
 
@@ -8,6 +8,7 @@ interface Button1Props {
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   disabled?: boolean;
+  loading?: boolean;
 }
 
 export const Button1 = ({
@@ -15,12 +16,13 @@ export const Button1 = ({
   onPress,
   style,
   textStyle,
-  disabled
+  disabled,
+  loading
 }: Button1Props) => {
   return (
     <TouchableOpacity
       onPress={onPress}
-      disabled={disabled}
+      disabled={disabled || loading}
       style={[
         {
           height: 48,
@@ -29,12 +31,17 @@ export const Button1 = ({
           justifyContent: 'center',
           alignItems: 'center'
         },
-        style
+        style,
+        (disabled || loading) && { opacity: 0.7 }
       ]}
     >
-      <Text style={[{ fontSize: 18, fontWeight: '700', color: '#F5F5F5' }, textStyle]}>
-        {text}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color="#F5F5F5" />
+      ) : (
+        <Text style={[{ fontSize: 18, fontWeight: '700', color: '#F5F5F5' }, textStyle]}>
+          {text}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };

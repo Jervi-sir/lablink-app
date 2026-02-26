@@ -39,6 +39,8 @@ export const Routes = {
   ContactSupportScreen: 'contact-support-screen',
   TermsOfServiceScreen: 'terms-of-service-screen',
 
+  FeaturedLabsScreen: 'featured-labs-screen',
+
   // business
   BusinessNavigation: 'business-navigation-screen',
   BusinessM1Navigation: 'business-m1-navigation',

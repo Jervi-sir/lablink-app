@@ -2,7 +2,7 @@ import React from "react";
 import { View, TouchableOpacity, Text, Dimensions, ViewStyle } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const DEFAULT_COLUMN_WIDTH = (SCREEN_WIDTH - 48 - 16) / 2;
+const DEFAULT_COLUMN_WIDTH = (SCREEN_WIDTH - 56) / 2;
 
 interface Product {
   id: string;

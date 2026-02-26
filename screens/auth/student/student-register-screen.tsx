@@ -7,17 +7,39 @@ import TouchableOpacity from "../../../components/touchable-opacity";
 import GlobalInput from "../../../components/inputs/global-input";
 import { Button1 } from "../../../components/buttons/button-1";
 import { Routes } from "../../../utils/helpers/routes";
+import { apiPublic } from "@/utils/api/axios-instance";
+import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import { useAuthStore } from "@/zustand/auth-store";
 
 export default function StudentRegisterScreen() {
   const navigation = useNavigation<any>();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fullName, setFullName] = useState("sdfsdf");
+  const [email, setEmail] = useState("gacembekhira@gmail.com");
+  const [password, setPassword] = useState("password");
+  const [studentCardId, setStudentCardId] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = () => {
-    // Navigate or handle register
-    navigation.navigate(Routes.StudentNavigation);
+  const auth = useAuthStore((s) => s.auth);
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const setAuthToken = useAuthStore((s) => s.setAuthToken);
+
+  const handleRegister = async () => {
+    try {
+      setLoading(true);
+      const response = await apiPublic.post(buildRoute(ApiRoutes.auth.student.register), {
+        email: email,
+        password: password,
+        full_name: fullName,
+        student_card_id: studentCardId,
+      })
+      setAuth(response.user);
+      setAuthToken(response.access_token);
+      navigation.reset({ index: 0, routes: [{ name: Routes.StudentNavigation }] });
+    } catch (error: any) {
+      console.error("Register Error:", error.response?.data || error.message || error)
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,11 +93,10 @@ export default function StudentRegisterScreen() {
             />
 
             <GlobalInput
-              label="Confirm Password"
-              placeholder="••••••••"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              kind="password"
+              label="Student ID (Optional)"
+              placeholder="e.g. ST-2024-001"
+              value={studentCardId}
+              onChangeText={setStudentCardId}
               containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
             />
 
@@ -89,6 +110,7 @@ export default function StudentRegisterScreen() {
               text="Create Account"
               onPress={handleRegister}
               style={{ height: 56, borderRadius: 12, backgroundColor: '#1E70E8' }}
+              loading={loading}
             />
           </View>
         </ScrollView>

@@ -7,15 +7,35 @@ import TouchableOpacity from "../../../components/touchable-opacity";
 import GlobalInput from "../../../components/inputs/global-input";
 import { Button1 } from "../../../components/buttons/button-1";
 import { Routes } from "../../../utils/helpers/routes";
+import api, { apiPublic } from "@/utils/api/axios-instance";
+import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import { useAuthStore } from "@/zustand/auth-store";
 
 export default function StudentLoginScreen() {
   const navigation = useNavigation<any>();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("gacembekhira@gmail.com");
+  const [password, setPassword] = useState("password");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Navigate to student navigation or handle login
-    navigation.navigate(Routes.StudentNavigation);
+  const auth = useAuthStore((s) => s.auth);
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const setAuthToken = useAuthStore((s) => s.setAuthToken);
+
+  const handleLogin = async () => {
+    try {
+      setLoading(true);
+      const response = await apiPublic.post(buildRoute(ApiRoutes.auth.student.login), {
+        email: email,
+        password: password,
+      })
+      setAuth(response.user);
+      setAuthToken(response.access_token);
+      navigation.reset({ index: 0, routes: [{ name: Routes.StudentNavigation }] });
+    } catch (error: any) {
+      console.error("Login Error:", error.response?.data || error.message || error)
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,6 +88,7 @@ export default function StudentLoginScreen() {
               text="Login"
               onPress={handleLogin}
               style={{ height: 56, borderRadius: 12, backgroundColor: '#1E70E8', marginTop: 12 }}
+              loading={loading}
             />
           </View>
         </ScrollView>

@@ -18,6 +18,7 @@ import LabProductsScreen from "./screens/student/common/business/lab-products-sc
 import CheckoutScreen from "./screens/student/common/checkout/checkout-screen";
 import OrderDetailScreen from "./screens/student/common/order-detail-screen";
 import ChatDetailScreen from "./screens/student/common/chat-detail-screen";
+import FeaturedLabsScreen from "./screens/student/common/business/featured-labs-screen";
 import StudentSavedProductsScreen from "./screens/student/m5/saved-followed/saved-products-screen";
 import StudentSavedBusinessesScreen from "./screens/student/m5/saved-followed/saved-businesses-screen";
 import StudentFollowedBusinessesScreen from "./screens/student/m5/saved-followed/followed-businesses-screen";
@@ -107,6 +108,7 @@ const Navigation = () => {
         { name: Routes.CheckoutScreen, component: CheckoutScreen },
         { name: Routes.OrderDetailScreen, component: OrderDetailScreen },
         { name: Routes.ChatDetailScreen, component: ChatDetailScreen },
+        { name: Routes.FeaturedLabsScreen, component: FeaturedLabsScreen },
         { name: Routes.StudentSavedProductsScreen, component: StudentSavedProductsScreen },
         { name: Routes.StudentSavedBusinessesScreen, component: StudentSavedBusinessesScreen },
         { name: Routes.StudentFollowedBusinessesScreen, component: StudentFollowedBusinessesScreen },

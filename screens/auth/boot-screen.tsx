@@ -4,15 +4,66 @@ import { useNavigation } from "@react-navigation/native";
 import { ScreenWrapper } from "../../components/screen-wrapper";
 import Text from "../../components/text";
 import { Routes } from "../../utils/helpers/routes";
+import { getStoredToken } from "@/utils/async-storage/auth-async-storage";
+import api, { setAxiosAuthToken } from "@/utils/api/axios-instance";
+import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import { useAuthStore } from "@/zustand/auth-store";
 
 export default function BootScreen() {
   const navigation = useNavigation<any>();
+
+  const auth = useAuthStore((s) => s.auth);
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const setAuthToken = useAuthStore((s) => s.setAuthToken);
+  const setAuthType = useAuthStore((s) => s.setAuthType);
 
   // Use useRef for animated values to maintain their state
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const startTime = Date.now();
+      let targetRoute = Routes.AuthSelectorScreen;
+
+      try {
+        const token = await getStoredToken();
+
+        if (token) {
+          // Set the token in our axios instance
+          setAxiosAuthToken(token);
+
+          // Verify the token by getting user profile
+          const response = await api.get(buildRoute(ApiRoutes.auth.student.me));
+
+          if (response && response.user) {
+            setAuth(response.user);
+            setAuthToken(token);
+            setAuthType(response.authType || "student");
+            targetRoute = Routes.StudentNavigation;
+          } else {
+            setAxiosAuthToken(null);
+          }
+        }
+      } catch (error) {
+        // If it's a 401, we should definitely clear the token
+        // @ts-ignore
+        if (error?.response?.status === 401) {
+          setAxiosAuthToken(null);
+        }
+        console.error("Auth verification failed:", error);
+      } finally {
+        // Ensure splash screen is visible for at least 2 seconds
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 2000 - elapsed);
+
+        setTimeout(() => {
+          navigation.reset({ index: 0, routes: [{ name: targetRoute }] });
+        }, remaining);
+      }
+    };
+
+    checkAuth();
     // Start animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -27,13 +78,6 @@ export default function BootScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-
-    // Navigate after delay
-    const timer = setTimeout(() => {
-      navigation.replace(Routes.AuthSelectorScreen);
-    }, 2800);
-
-    return () => clearTimeout(timer);
   }, []);
 
   return (
