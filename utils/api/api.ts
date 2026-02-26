@@ -44,6 +44,8 @@ export const ApiRoutes = {
   search: 'search',
   orders: {
     index: 'orders',
+    store: 'orders',
+    show: 'orders/:id',
   },
   conversations: {
     index: 'conversations',

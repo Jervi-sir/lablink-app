@@ -1,9 +1,13 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, Dimensions, Platform } from "react-native";
+import { View, ScrollView, Dimensions, Platform, Alert, ActivityIndicator } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
+import { useState } from "react";
+import api from "@/utils/api/axios-instance";
+import { ApiRoutes } from "@/utils/api/api";
+import { Routes } from "@/utils/helpers/routes";
 
 const { width } = Dimensions.get('window');
 
@@ -26,6 +30,48 @@ export default function OrderDetailScreen() {
     price: '45,000 DA',
     date: 'Oct 24, 2024'
   } } = route.params || {};
+
+  const [isMessaging, setIsMessaging] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  // Fallback to extract the raw order properties
+  const rawOrder = order.original || order;
+  const businessUserId = rawOrder?.products?.[0]?.business?.user_id;
+
+  const handleMessageVendor = async () => {
+    if (!businessUserId) {
+      Alert.alert("Error", "Could not identify the business user to start a chat.");
+      return;
+    }
+
+    setIsMessaging(true);
+    try {
+      const response = await api.post(ApiRoutes.conversations.store, {
+        target_user_id: businessUserId
+      });
+      const conversation = response?.data;
+
+      if (conversation) {
+        navigation.navigate(Routes.ChatDetailScreen, { conversation });
+      } else {
+        Alert.alert("Error", "Failed to resolve conversation.");
+      }
+    } catch (error) {
+      console.error("Error starting chat:", error);
+      Alert.alert("Error", "Failed to message vendor. Please try again.");
+    } finally {
+      setIsMessaging(false);
+    }
+  };
+
+  const handleDownloadInvoice = () => {
+    setIsDownloading(true);
+    // Simulating invoice download
+    setTimeout(() => {
+      setIsDownloading(false);
+      Alert.alert("Success", "Invoice downloaded successfully!");
+    }, 1500);
+  };
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
@@ -130,11 +176,19 @@ export default function OrderDetailScreen() {
 
         {/* Actions */}
         <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-          <TouchableOpacity style={{ flex: 1, height: 52, borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#475569' }}>Download Invoice</Text>
+          <TouchableOpacity
+            style={[{ flex: 1, height: 52, borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' }, isDownloading && { opacity: 0.7 }]}
+            onPress={handleDownloadInvoice}
+            disabled={isDownloading}
+          >
+            {isDownloading ? <ActivityIndicator size="small" color="#137FEC" /> : <Text style={{ fontSize: 14, fontWeight: '700', color: '#475569' }}>Download Invoice</Text>}
           </TouchableOpacity>
-          <TouchableOpacity style={{ flex: 1.2, height: 52, borderRadius: 14, backgroundColor: '#137FEC', justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFF' }}>Message Vendor</Text>
+          <TouchableOpacity
+            style={[{ flex: 1.2, height: 52, borderRadius: 14, backgroundColor: '#137FEC', justifyContent: 'center', alignItems: 'center' }, isMessaging && { opacity: 0.7 }]}
+            onPress={handleMessageVendor}
+            disabled={isMessaging}
+          >
+            {isMessaging ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFF' }}>Message Vendor</Text>}
           </TouchableOpacity>
         </View>
 
