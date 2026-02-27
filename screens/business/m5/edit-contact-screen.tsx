@@ -1,21 +1,87 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import { View, ScrollView, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import api from "@/utils/api/axios-instance";
+import { ApiRoutes, buildRoute } from "@/utils/api/api";
 
 export default function EditContactScreen() {
   const navigation = useNavigation<any>();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+
   const [contacts, setContacts] = useState({
-    primaryPhone: '+213 550 123 456',
-    secondaryPhone: '+213 21 45 67 89',
-    email: 'contact@bioresearch-lab.dz',
-    supportEmail: 'support@bioresearch-lab.dz',
-    whatsapp: '+213 550 123 456',
-    linkedin: 'linkedin.com/company/adv-bio-lab'
+    primaryPhone: '',
+    secondaryPhone: '',
+    email: '',
+    supportEmail: '',
+    whatsapp: '',
+    linkedin: '',
+    website: ''
   });
+
+  const fetchContactData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(ApiRoutes.businesses.me);
+      const data = res.data;
+      setProfile(data);
+
+      setContacts({
+        primaryPhone: data.phoneNumbers?.[0] || '',
+        secondaryPhone: data.phoneNumbers?.[1] || '',
+        email: data.businessEmail || '',
+        supportEmail: data.supportEmail || '',
+        whatsapp: data.whatsapp || '',
+        linkedin: data.linkedin || '',
+        website: data.website || ''
+      });
+    } catch (error) {
+      console.error("Fetch contact error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchContactData();
+  }, [fetchContactData]);
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const payload = {
+        phone_numbers: [contacts.primaryPhone, contacts.secondaryPhone].filter(p => !!p),
+        business_email: contacts.email,
+        support_email: contacts.supportEmail,
+        website: contacts.website,
+        whatsapp: contacts.whatsapp,
+        linkedin: contacts.linkedin
+      };
+
+      await api.put(buildRoute(ApiRoutes.businesses.update, { id: profile.id }), payload);
+      Alert.alert("Success", "Contact information updated!", [
+        { text: "OK", onPress: () => navigation.goBack() }
+      ]);
+    } catch (error) {
+      console.error("Save contact error:", error);
+      Alert.alert("Error", "Failed to update contact info.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <ScreenWrapper style={{ backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+      </ScreenWrapper>
+    );
+  }
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
@@ -24,8 +90,8 @@ export default function EditContactScreen() {
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>Contact Information</Text>
-        <TouchableOpacity style={{ padding: 8 }} onPress={() => navigation.goBack()}>
-          <Text style={{ color: '#8B5CF6', fontWeight: '800' }}>Save</Text>
+        <TouchableOpacity style={{ padding: 8 }} onPress={handleSave} disabled={saving}>
+          {saving ? <ActivityIndicator size="small" color="#8B5CF6" /> : <Text style={{ color: '#8B5CF6', fontWeight: '800' }}>Save</Text>}
         </TouchableOpacity>
       </View>
 
@@ -48,6 +114,7 @@ export default function EditContactScreen() {
                   value={contacts.primaryPhone}
                   onChangeText={(v) => setContacts({ ...contacts, primaryPhone: v })}
                   keyboardType="phone-pad"
+                  placeholder="+213..."
                 />
               </View>
               <View style={{ gap: 6 }}>
@@ -57,6 +124,7 @@ export default function EditContactScreen() {
                   value={contacts.secondaryPhone}
                   onChangeText={(v) => setContacts({ ...contacts, secondaryPhone: v })}
                   keyboardType="phone-pad"
+                  placeholder="+213..."
                 />
               </View>
               <View style={{ gap: 6 }}>
@@ -66,6 +134,7 @@ export default function EditContactScreen() {
                   value={contacts.whatsapp}
                   onChangeText={(v) => setContacts({ ...contacts, whatsapp: v })}
                   keyboardType="phone-pad"
+                  placeholder="+213..."
                 />
               </View>
             </View>
@@ -82,6 +151,7 @@ export default function EditContactScreen() {
                   onChangeText={(v) => setContacts({ ...contacts, email: v })}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  placeholder="contact@labname.dz"
                 />
               </View>
               <View style={{ gap: 6 }}>
@@ -92,6 +162,7 @@ export default function EditContactScreen() {
                   onChangeText={(v) => setContacts({ ...contacts, supportEmail: v })}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  placeholder="support@labname.dz"
                 />
               </View>
             </View>
@@ -101,12 +172,23 @@ export default function EditContactScreen() {
             <Text style={{ fontSize: 12, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, marginLeft: 4 }}>Professional Links</Text>
             <View style={{ gap: 16 }}>
               <View style={{ gap: 6 }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Website</Text>
+                <TextInput
+                  style={{ backgroundColor: '#FFF', borderRadius: 16, paddingHorizontal: 16, height: 56, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }}
+                  value={contacts.website}
+                  onChangeText={(v) => setContacts({ ...contacts, website: v })}
+                  autoCapitalize="none"
+                  placeholder="https://www.labname.com"
+                />
+              </View>
+              <View style={{ gap: 6 }}>
                 <Text style={{ fontSize: 13, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>LinkedIn Page</Text>
                 <TextInput
                   style={{ backgroundColor: '#FFF', borderRadius: 16, paddingHorizontal: 16, height: 56, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }}
                   value={contacts.linkedin}
                   onChangeText={(v) => setContacts({ ...contacts, linkedin: v })}
                   autoCapitalize="none"
+                  placeholder="linkedin.com/company/labname"
                 />
               </View>
             </View>

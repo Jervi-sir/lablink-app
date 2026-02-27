@@ -50,6 +50,8 @@ import ProPlanStatusScreen from "./screens/business/m5/pro-plan-status-screen";
 import BusinessSupportScreen from "./screens/business/m5/business-support-screen";
 import ServiceAgreementsScreen from "./screens/business/m5/service-agreements-screen";
 import EditContactScreen from "./screens/business/m5/edit-contact-screen";
+import BusinessNotificationsScreen from "./screens/business/m5/settings/notifications-screen";
+import BusinessLanguageScreen from "./screens/business/m5/settings/language-screen";
 import { useEffect } from "react";
 import {
   addNotificationReceivedListener,
@@ -58,6 +60,8 @@ import {
 
 // Import to trigger notification handler setup
 import './utils/notifications/push-notifications';
+import { SheetProvider } from 'react-native-actions-sheet';
+import './action-sheets';
 
 export default function App() {
   const navigationRef = useNavigationContainerRef();
@@ -91,7 +95,9 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer ref={navigationRef}>
         <SafeAreaProvider>
-          <Navigation />
+          <SheetProvider>
+            <Navigation />
+          </SheetProvider>
         </SafeAreaProvider>
       </NavigationContainer>
     </GestureHandlerRootView>
@@ -165,6 +171,8 @@ const Navigation = () => {
         { name: Routes.BusinessSupportScreen, component: BusinessSupportScreen },
         { name: Routes.ServiceAgreementsScreen, component: ServiceAgreementsScreen },
         { name: Routes.EditContactScreen, component: EditContactScreen },
+        { name: Routes.BusinessNotificationsScreen, component: BusinessNotificationsScreen },
+        { name: Routes.BusinessLanguageScreen, component: BusinessLanguageScreen },
 
         /**-- m1 --*/
 

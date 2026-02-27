@@ -63,6 +63,8 @@ export const Routes = {
   BusinessSupportScreen: 'business-support-screen',
   ServiceAgreementsScreen: 'service-agreements-screen',
   EditContactScreen: 'edit-contact-screen',
+  BusinessNotificationsScreen: 'business-notifications-screen',
+  BusinessLanguageScreen: 'business-language-screen',
 
   // auth
   BootScreen: 'boot-screen',

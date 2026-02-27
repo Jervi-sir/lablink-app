@@ -1,17 +1,60 @@
 import { TopHeader1 } from "@/components/headers/top-header-1";
 import { ScreenWrapper } from "@/components/screen-wrapper";
-import { ScrollView, View, TouchableOpacity } from "react-native";
+import { ScrollView, View, TouchableOpacity, Alert } from "react-native";
 import { BusinessRegistryProgress } from "./components/business-registry-progress";
 import Text from "@/components/text";
 import GlobalInput from "@/components/inputs/global-input";
 import { Button1 } from "@/components/buttons/button-1";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
+import { useBusinessRegistry } from "./context/business-registry-context";
+import { useState } from "react";
+import { apiPublic } from "@/utils/api/axios-instance";
+import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import { useAuthStore } from "@/zustand/auth-store";
 
 const SPECIALIZATIONS = ['Organic Chemistry', 'Bioengineering', 'Genomics', 'PCR Analysis'];
 
 export default function Step3Screen() {
   const navigation = useNavigation<any>();
+  const { formData, setField, resetForm } = useBusinessRegistry();
+  const [loading, setLoading] = useState(false);
+  const { setAuth, setAuthToken } = useAuthStore();
+
+  const handleRegister = async () => {
+    try {
+      setLoading(true);
+      const response = await apiPublic.post(buildRoute(ApiRoutes.auth.business.register), {
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+        nif: formData.nif,
+        business_registration_no: formData.registrationNo,
+        type: formData.type,
+        contact_name: formData.contactName,
+        bio: formData.bio,
+        specializations: formData.specializations,
+        laboratory_category_id: formData.laboratoryCategoryId,
+        business_category_id: formData.businessCategoryId,
+        wilaya_id: formData.wilayaId,
+        address: formData.address,
+      });
+
+      setAuth(response.user);
+      setAuthToken(response.access_token);
+      resetForm();
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: Routes.BusinessNavigation }],
+      });
+    } catch (error: any) {
+      console.error("Business Register Error:", error.response?.data || error.message);
+      Alert.alert("Error", error.response?.data?.message || "Something went wrong during registration.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }} statusBarStyle="dark-content">
@@ -23,6 +66,8 @@ export default function Step3Screen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
         >
           <View style={{ paddingVertical: 24, gap: 8 }}>
             <Text style={{ fontSize: 28, fontWeight: '800', color: '#111', letterSpacing: -0.5 }}>Public Presence</Text>
@@ -51,6 +96,8 @@ export default function Step3Screen() {
               <GlobalInput
                 label="About the Lab"
                 placeholder="Briefly describe your services and expertise..."
+                value={formData.bio}
+                onChangeText={(v) => setField('bio', v)}
                 containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
                 multiline
                 numberOfLines={4}
@@ -79,8 +126,9 @@ export default function Step3Screen() {
           <View style={{ marginTop: 32 }}>
             <Button1
               text="Complete Registration"
-              onPress={() => navigation.navigate(Routes.BusinessNavigation)}
+              onPress={handleRegister}
               style={{ height: 56, backgroundColor: '#8B5CF6', borderRadius: 12 }}
+              loading={loading}
             />
           </View>
         </ScrollView>

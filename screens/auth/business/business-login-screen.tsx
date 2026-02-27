@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenWrapper } from "../../../components/screen-wrapper";
 import Text from "../../../components/text";
@@ -7,15 +7,38 @@ import TouchableOpacity from "../../../components/touchable-opacity";
 import GlobalInput from "../../../components/inputs/global-input";
 import { Button1 } from "../../../components/buttons/button-1";
 import { Routes } from "../../../utils/helpers/routes";
+import { apiPublic } from "@/utils/api/axios-instance";
+import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import { useAuthStore } from "@/zustand/auth-store";
 
 export default function BusinessLoginScreen() {
   const navigation = useNavigation<any>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { setAuth, setAuthToken } = useAuthStore();
 
-  const handleLogin = () => {
-    // Navigate to business navigation or handle login
-    navigation.navigate(Routes.BusinessNavigation);
+  const handleLogin = async () => {
+    try {
+      setLoading(true);
+      const response = await apiPublic.post(buildRoute(ApiRoutes.auth.business.login), {
+        email: email,
+        password: password,
+      });
+
+      setAuth(response.user);
+      setAuthToken(response.access_token);
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: Routes.BusinessNavigation }],
+      });
+    } catch (error: any) {
+      console.error("Business Login Error:", error.response?.data || error.message);
+      Alert.alert("Error", error.response?.data?.message || "Invalid credentials or account type.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,6 +94,7 @@ export default function BusinessLoginScreen() {
               text="Business Login"
               onPress={handleLogin}
               style={{ height: 56, borderRadius: 12, backgroundColor: '#8B5CF6', marginTop: 12 }}
+              loading={loading}
             />
           </View>
         </ScrollView>

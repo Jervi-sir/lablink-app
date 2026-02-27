@@ -1,21 +1,80 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import { View, ScrollView, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
+import api from "@/utils/api/axios-instance";
+import { ApiRoutes } from "@/utils/api/api";
 
 export default function EditLabProfileScreen() {
   const navigation = useNavigation<any>();
+
+  const [businessProfile, setBusinessProfile] = useState<any>(null);
   const [form, setForm] = useState({
-    name: 'Advanced Bio-Research Lab',
-    type: 'Commercial Laboratory',
-    address: 'USTHB Tech Park, Algiers',
-    phone: '+213 550 123 456',
-    email: 'contact@bioresearch-lab.dz',
-    bio: 'Dedicated to providing high-quality research equipment and analytical services to the scientific community in Algeria.'
+    name: '',
+    address: '',
+    phone: '',
+    bio: ''
   });
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const profileRes: any = await api.get(ApiRoutes.auth.business.me);
+      const bProfile = profileRes.user?.businessProfile;
+      setBusinessProfile(bProfile);
+
+      setForm({
+        name: bProfile?.name || '',
+        address: bProfile?.address || '',
+        phone: bProfile?.phoneNumbers?.[0] || '',
+        bio: bProfile?.bio || '',
+      });
+    } catch (error) {
+      console.error("Error fetching lab profile for editing:", error);
+      Alert.alert("Error", "Could not fetch lab profile.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleSave = async () => {
+    if (!businessProfile?.id) return;
+    setIsSaving(true);
+
+    try {
+      await api.put(`businesses/${businessProfile.id}`, {
+        name: form.name,
+        address: form.address,
+        phone_numbers: form.phone ? [form.phone] : [],
+        bio: form.bio,
+      });
+      Alert.alert("Success", "Profile updated successfully.");
+      navigation.goBack();
+    } catch (error) {
+      console.error("Error saving lab profile:", error);
+      Alert.alert("Error", "Could not update profile.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <ScreenWrapper style={{ backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+      </ScreenWrapper>
+    );
+  }
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
@@ -24,8 +83,12 @@ export default function EditLabProfileScreen() {
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>Edit Lab Profile</Text>
-        <TouchableOpacity style={{ padding: 8 }} onPress={() => navigation.goBack()}>
-          <Text style={{ color: '#8B5CF6', fontWeight: '800' }}>Save</Text>
+        <TouchableOpacity style={{ padding: 8 }} onPress={handleSave} disabled={isSaving}>
+          {isSaving ? (
+            <ActivityIndicator size="small" color="#8B5CF6" />
+          ) : (
+            <Text style={{ color: '#8B5CF6', fontWeight: '800' }}>Save</Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -50,8 +113,12 @@ export default function EditLabProfileScreen() {
               <TextInput style={{ backgroundColor: '#FFF', borderRadius: 16, paddingHorizontal: 16, height: 56, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }} value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} />
             </View>
             <View style={{ gap: 8 }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Business Type</Text>
-              <TextInput style={{ backgroundColor: '#FFF', borderRadius: 16, paddingHorizontal: 16, height: 56, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }} value={form.type} onChangeText={(v) => setForm({ ...form, type: v })} />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Contact Phone</Text>
+              <TextInput style={{ backgroundColor: '#FFF', borderRadius: 16, paddingHorizontal: 16, height: 56, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }} value={form.phone} onChangeText={(v) => setForm({ ...form, phone: v })} keyboardType="phone-pad" />
+            </View>
+            <View style={{ gap: 8 }}>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Physical Address</Text>
+              <TextInput style={{ backgroundColor: '#FFF', borderRadius: 16, paddingHorizontal: 16, height: 56, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }} value={form.address} onChangeText={(v) => setForm({ ...form, address: v })} />
             </View>
             <View style={{ gap: 8 }}>
               <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Public Bio / Description</Text>
@@ -61,14 +128,6 @@ export default function EditLabProfileScreen() {
                 onChangeText={(v) => setForm({ ...form, bio: v })}
                 multiline
               />
-            </View>
-            <View style={{ gap: 8 }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Contact Phone</Text>
-              <TextInput style={{ backgroundColor: '#FFF', borderRadius: 16, paddingHorizontal: 16, height: 56, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }} value={form.phone} onChangeText={(v) => setForm({ ...form, phone: v })} keyboardType="phone-pad" />
-            </View>
-            <View style={{ gap: 8 }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Physical Address</Text>
-              <TextInput style={{ backgroundColor: '#FFF', borderRadius: 16, paddingHorizontal: 16, height: 56, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }} value={form.address} onChangeText={(v) => setForm({ ...form, address: v })} />
             </View>
           </View>
         </ScrollView>

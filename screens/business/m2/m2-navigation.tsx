@@ -1,149 +1,251 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, TextInput, FlatList, Dimensions } from "react-native";
+import { View, ScrollView, TextInput, FlatList, Dimensions, ActivityIndicator, RefreshControl, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import api from "@/utils/api/axios-instance";
+import { ApiRoutes, buildRoute } from "@/utils/api/api";
 
 const { width } = Dimensions.get('window');
-
-const MOCK_PRODUCTS = [
-  { id: '1', name: 'Digital LCD Microscope', category: 'Optical Equipment', price: '45,000 DA', stock: 8, status: 'Active', image: '🔬' },
-  { id: '2', name: 'Magnetic Stirrer', category: 'Chemical Tools', price: '12,500 DA', stock: 15, status: 'Active', image: '🧪' },
-  { id: '3', name: 'Borosil Glass Beakers', category: 'Glassware', price: '1,200 DA', stock: 0, status: 'Out of Stock', image: '🧪' },
-  { id: '4', name: 'Centrifuge Machine', category: 'Laboratory Gear', price: '85,000 DA', stock: 3, status: 'Active', image: '🌀' },
-  { id: '5', name: 'Safety Equipment Set', category: 'Safety', price: '5,500 DA', stock: 24, status: 'Draft', image: '🥽' },
-  { id: '6', name: 'Electric Bunsen Burner', category: 'Heating', price: '18,000 DA', stock: 5, status: 'Active', image: '🔥' },
-];
 
 export default function BusinessM2Navigation() {
   const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [nextPage, setNextPage] = useState<number | null>(1);
 
   const TABS = ['All', 'Active', 'Out of Stock', 'Draft'];
 
-  const filteredProducts = MOCK_PRODUCTS.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTab = activeTab === 'All' || p.status === activeTab;
-    return matchesSearch && matchesTab;
-  });
+  const fetchInventory = useCallback(async (page: number = 1, shouldRefresh: boolean = false) => {
+    if (page === 1 && !shouldRefresh) setIsLoading(true);
+    if (page > 1) setIsLoadingMore(true);
 
-  const renderProductItem = ({ item }: { item: typeof MOCK_PRODUCTS[0] }) => (
-    <View style={{
-      backgroundColor: '#FFF',
-      borderRadius: 20,
-      marginBottom: 16,
-      overflow: 'hidden',
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.04,
-      shadowRadius: 10,
-      elevation: 2,
-      borderWidth: 1,
-      borderColor: '#F1F5F9',
-    }}>
-      <TouchableOpacity
-        style={{
-          flexDirection: 'row',
-          padding: 16,
-          gap: 16,
-        }}
-        onPress={() => navigation.navigate(Routes.BusinessProductDetailScreen, { product: item })}
-        activeOpacity={0.7}
-      >
-        <View style={{
-          width: 80,
-          height: 80,
-          borderRadius: 16,
-          backgroundColor: '#F8F9FB',
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderWidth: 1,
-          borderColor: '#F1F5F9',
-        }}>
-          <Text style={{ fontSize: 32 }}>{item.image}</Text>
-        </View>
-        <View style={{ flex: 1, justifyContent: 'center' }}>
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 4,
-          }}>
-            <Text style={{
-              fontSize: 11,
-              fontWeight: '700',
-              color: '#94A3B8',
-              textTransform: 'uppercase',
-            }}>{item.category}</Text>
-            <View style={[
-              { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
-              item.status === 'Active' ? { backgroundColor: '#F0FDF4' } :
-                item.status === 'Draft' ? { backgroundColor: '#F1F5F9' } : { backgroundColor: '#FEF2F2' }
-            ]}>
-              <Text style={[
-                { fontSize: 9, fontWeight: '800', textTransform: 'uppercase' },
-                item.status === 'Active' ? { color: '#16A34A' } :
-                  item.status === 'Draft' ? { color: '#64748B' } : { color: '#EF4444' }
-              ]}>{item.status}</Text>
-            </View>
-          </View>
-          <Text style={{ fontSize: 16, fontWeight: '800', color: '#111', marginBottom: 6 }} numberOfLines={1}>{item.name}</Text>
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-            <Text style={{ fontSize: 15, fontWeight: '800', color: '#8B5CF6' }}>{item.price}</Text>
-            <Text style={[{ fontSize: 12, fontWeight: '600', color: '#64748B' }, item.stock === 0 && { color: '#EF4444' }]}>
-              {item.stock} in stock
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
+    try {
+      const response: any = await api.get(ApiRoutes.products.inventory, {
+        params: {
+          page,
+          search: searchQuery,
+          status: activeTab,
+          per_page: 10
+        }
+      });
 
+      if (shouldRefresh || page === 1) {
+        setProducts(response.data || []);
+      } else {
+        setProducts(prev => [...prev, ...(response.data || [])]);
+      }
+      setNextPage(response.next_page);
+    } catch (error) {
+      console.error("Error fetching inventory:", error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+      setIsLoadingMore(false);
+    }
+  }, [searchQuery, activeTab]);
+
+  useEffect(() => {
+    fetchInventory(1);
+  }, [activeTab]);
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchInventory(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchInventory(1, true);
+  };
+
+  const onLoadMore = () => {
+    if (nextPage && !isLoadingMore) {
+      fetchInventory(nextPage);
+    }
+  };
+
+  const handleDeleteProduct = (productId: string) => {
+    Alert.alert(
+      "Delete Product",
+      "Are you sure you want to delete this product?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await api.delete(buildRoute(ApiRoutes.products.destroy, { id: productId }));
+              setProducts(prev => prev.filter(p => p.id.toString() !== productId.toString()));
+              Alert.alert("Success", "Product removed from inventory");
+            } catch (error) {
+              console.error("Error deleting product:", error);
+              Alert.alert("Error", "Failed to delete product");
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleToggleVisibility = async (product: any) => {
+    try {
+      const newStatus = !product.isAvailable;
+      await api.put(buildRoute(ApiRoutes.products.update, { id: product.id }), {
+        is_available: newStatus
+      });
+      setProducts(prev =>
+        prev.map(p => p.id === product.id ? { ...p, isAvailable: newStatus } : p)
+      );
+    } catch (error) {
+      console.error("Error toggling product visibility:", error);
+      Alert.alert("Error", "Failed to update product visibility");
+    }
+  };
+
+  const getProductStatus = (item: any) => {
+    if (!item.isAvailable) return 'Draft';
+    if (item.stock === 0) return 'Out of Stock';
+    return 'Active';
+  };
+
+  const renderProductItem = ({ item }: { item: any }) => {
+    const status = getProductStatus(item);
+    return (
       <View style={{
-        flexDirection: 'row',
-        borderTopWidth: 1,
-        borderTopColor: '#F1F5F9',
-        backgroundColor: '#FAFBFC',
+        backgroundColor: '#FFF',
+        borderRadius: 20,
+        marginBottom: 16,
+        overflow: 'hidden',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 10,
+        elevation: 2,
+        borderWidth: 1,
+        borderColor: '#F1F5F9',
       }}>
         <TouchableOpacity
           style={{
-            flex: 1,
-            paddingVertical: 12,
+            flexDirection: 'row',
+            padding: 16,
+            gap: 16,
+          }}
+          onPress={() => navigation.navigate(Routes.BusinessProductDetailScreen, { product: item })}
+          activeOpacity={0.7}
+        >
+          <View style={{
+            width: 80,
+            height: 80,
+            borderRadius: 16,
+            backgroundColor: '#F8F9FB',
             justifyContent: 'center',
             alignItems: 'center',
-            borderRightWidth: 1,
-            borderRightColor: '#F1F5F9',
-          }}
-          onPress={() => navigation.navigate(Routes.EditCreateProductScreen, { product: item })}
-        >
-          <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B' }}>Edit</Text>
+            borderWidth: 1,
+            borderColor: '#F1F5F9',
+          }}>
+            {item.images && item.images.length > 0 ? (
+              <ActivityIndicator size="small" /> // Placeholder for real Image component if you had one
+            ) : (
+              <Text style={{ fontSize: 32 }}>📦</Text>
+            )}
+          </View>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 4,
+            }}>
+              <Text style={{
+                fontSize: 11,
+                fontWeight: '700',
+                color: '#94A3B8',
+                textTransform: 'uppercase',
+              }}>{item.category?.code || 'Product'}</Text>
+              <View style={[
+                { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+                status === 'Active' ? { backgroundColor: '#F0FDF4' } :
+                  status === 'Draft' ? { backgroundColor: '#F1F5F9' } : { backgroundColor: '#FEF2F2' }
+              ]}>
+                <Text style={[
+                  { fontSize: 9, fontWeight: '800', textTransform: 'uppercase' },
+                  status === 'Active' ? { color: '#16A34A' } :
+                    status === 'Draft' ? { color: '#64748B' } : { color: '#EF4444' }
+                ]}>{status}</Text>
+              </View>
+            </View>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#111', marginBottom: 6 }} numberOfLines={1}>{item.name}</Text>
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <Text style={{ fontSize: 15, fontWeight: '800', color: '#8B5CF6' }}>{item.price.toLocaleString()} DA</Text>
+              <Text style={[{ fontSize: 12, fontWeight: '600', color: '#64748B' }, item.stock === 0 && { color: '#EF4444' }]}>
+                {item.stock} in stock
+              </Text>
+            </View>
+          </View>
         </TouchableOpacity>
-        <TouchableOpacity style={{
-          flex: 1,
-          paddingVertical: 12,
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderRightWidth: 1,
-          borderRightColor: '#F1F5F9',
+
+        <View style={{
+          flexDirection: 'row',
+          borderTopWidth: 1,
+          borderTopColor: '#F1F5F9',
+          backgroundColor: '#FAFBFC',
         }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B' }}>Hide</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={{
-          flex: 1,
-          paddingVertical: 12,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: '#EF4444' }}>Delete</Text>
-        </TouchableOpacity>
-      </View>
-    </View >
-  );
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRightWidth: 1,
+              borderRightColor: '#F1F5F9',
+            }}
+            onPress={() => navigation.navigate(Routes.EditCreateProductScreen, { product: item })}
+          >
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B' }}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRightWidth: 1,
+              borderRightColor: '#F1F5F9',
+            }}
+            onPress={() => handleToggleVisibility(item)}
+          >
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B' }}>{item.isAvailable ? 'Hide' : 'Show'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => handleDeleteProduct(item.id)}
+          >
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#EF4444' }}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View >
+    );
+  };
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
@@ -226,20 +328,34 @@ export default function BusinessM2Navigation() {
       </View>
 
       {/* 3. Product List */}
-      <FlatList
-        data={filteredProducts}
-        renderItem={renderProductItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={{ alignItems: 'center', paddingVertical: 60 }}>
-            <Text style={{ fontSize: 48, marginBottom: 16 }}>📦</Text>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#111', marginBottom: 4 }}>No products found</Text>
-            <Text style={{ fontSize: 14, color: '#6B7280', textAlign: 'center' }}>Try adjusting your filters or search query</Text>
-          </View>
-        }
-      />
+      {isLoading && !isRefreshing ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#8B5CF6" />
+        </View>
+      ) : (
+        <FlatList
+          data={products}
+          renderItem={renderProductItem}
+          keyExtractor={item => item.id.toString()}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#8B5CF6']} />
+          }
+          onEndReached={onLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isLoadingMore ? <ActivityIndicator size="small" color="#8B5CF6" style={{ paddingVertical: 20 }} /> : null
+          }
+          ListEmptyComponent={
+            <View style={{ alignItems: 'center', paddingVertical: 60 }}>
+              <Text style={{ fontSize: 48, marginBottom: 16 }}>📦</Text>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: '#111', marginBottom: 4 }}>No products found</Text>
+              <Text style={{ fontSize: 14, color: '#6B7280', textAlign: 'center' }}>Try adjusting your filters or search query</Text>
+            </View>
+          }
+        />
+      )}
     </ScreenWrapper>
   );
 }

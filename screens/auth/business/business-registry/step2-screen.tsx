@@ -6,9 +6,11 @@ import Text from "@/components/text";
 import GlobalInput from "@/components/inputs/global-input";
 import { Button1 } from "@/components/buttons/button-1";
 import { useNavigation } from "@react-navigation/native";
+import { useBusinessRegistry } from "./context/business-registry-context";
 
 export default function Step2Screen() {
   const navigation = useNavigation<any>();
+  const { formData, setField } = useBusinessRegistry();
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }} statusBarStyle="dark-content">
@@ -20,6 +22,8 @@ export default function Step2Screen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
         >
           <View style={{ paddingVertical: 24, gap: 8 }}>
             <Text style={{ fontSize: 28, fontWeight: '800', color: '#111', letterSpacing: -0.5 }}>Business Verification</Text>
@@ -37,11 +41,15 @@ export default function Step2Screen() {
               <GlobalInput
                 label="Business Registration No."
                 placeholder="REG-000000000"
+                value={formData.registrationNo}
+                onChangeText={(v) => setField('registrationNo', v)}
                 containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
               />
               <GlobalInput
                 label="Tax Identification Number (NIF)"
                 placeholder="123 456 789 000"
+                value={formData.nif}
+                onChangeText={(v) => setField('nif', v)}
                 containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
               />
             </View>

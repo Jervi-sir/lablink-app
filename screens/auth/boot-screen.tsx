@@ -41,7 +41,7 @@ export default function BootScreen() {
             setAuth(response.user);
             setAuthToken(token);
             setAuthType(response.authType || "student");
-            targetRoute = Routes.StudentNavigation;
+            targetRoute = response.authType === "business" ? Routes.BusinessNavigation : Routes.StudentNavigation;
 
             // Register and sync push token in the background
             registerAndSyncPushToken().catch(() => { });

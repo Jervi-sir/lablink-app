@@ -18,6 +18,14 @@ export const ApiRoutes = {
       me: 'auth/student/me',
       pushToken: 'auth/student/push-token',
       notificationSettings: 'auth/student/notification-settings',
+    },
+    business: {
+      login: 'auth/business/login',
+      register: 'auth/business/register',
+      logout: 'auth/business/logout',
+      me: 'auth/business/me',
+      pushToken: 'auth/business/push-token',
+      notificationSettings: 'auth/business/notification-settings',
     }
   },
 
@@ -29,6 +37,8 @@ export const ApiRoutes = {
 
   businesses: {
     show: 'businesses/:id',
+    me: 'businesses/me',
+    update: 'businesses/:id',
     products: 'businesses/:id/products',
     toggleFollow: 'businesses/:id/toggle-follow',
     toggleSave: 'businesses/:id/toggle-save',
@@ -37,15 +47,21 @@ export const ApiRoutes = {
   },
   products: {
     show: 'products/:id',
+    store: 'products',
+    update: 'products/:id',
+    destroy: 'products/:id',
     toggleSave: 'products/:id/toggle-save',
     trending: 'products/trending-products',
     recent: 'products/recent',
+    inventory: 'business/inventory',
   },
   search: 'search',
   orders: {
     index: 'orders',
     store: 'orders',
     show: 'orders/:id',
+    businessOrders: 'business/orders',
+    updateStatus: 'orders/:id/status',
   },
   conversations: {
     index: 'conversations',

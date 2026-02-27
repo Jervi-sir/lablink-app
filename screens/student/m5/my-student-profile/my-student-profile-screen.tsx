@@ -6,6 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
 import { OptionSettings } from "../../components/options/option-settings";
 import { useEffect, useState, useCallback } from "react";
+import { SheetManager } from "react-native-actions-sheet";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -166,7 +167,13 @@ export default function MyStudentProfileScreen() {
         <TouchableOpacity
           style={{ marginTop: 32, marginHorizontal: 20, height: 56, backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#FEE2E2', justifyContent: 'center', alignItems: 'center' }}
           activeOpacity={0.8}
-          onPress={handleLogout}
+          onPress={() => {
+            SheetManager.show('logout-sheet', {
+              payload: {
+                onLogout: handleLogout
+              }
+            });
+          }}
         >
           <Text style={{ fontSize: 15, fontWeight: '800', color: '#EF4444' }}>Log Out Account</Text>
         </TouchableOpacity>

@@ -3,6 +3,7 @@ export type RoleCode = "student" | "lab" | "wholesale" | "admin";
 export interface Wilaya {
   id: number;
   name: string;
+  code: string;
 }
 
 export interface University {
