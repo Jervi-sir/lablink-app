@@ -1,5 +1,5 @@
-export const SERVER_IP = 'http://192.168.1.102:8000'
-export const SERVER_URL = 'http://192.168.1.102:8000'
+export const SERVER_IP = 'lablink.jervi.dev'
+export const SERVER_URL = 'https://lablink.jervi.dev'
 export const BASE_URL = SERVER_URL + '/api/'
 
 export const UPLOAD_URL = 'https://uploads.octaprize.com/'
