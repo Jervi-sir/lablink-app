@@ -91,7 +91,7 @@ export default function StudentM5Navigation() {
         <View style={{
           backgroundColor: '#FFF',
           padding: paddingHorizontal,
-          paddingTop: Platform.OS === 'ios' ? 20 : 40,
+          paddingTop: 20,
           borderRadius: 18,
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 10 },
@@ -100,15 +100,7 @@ export default function StudentM5Navigation() {
           elevation: 5,
           zIndex: 10,
         }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20, marginBottom: 32 }}>
-            <View style={{ position: 'relative' }}>
-              <View style={{ width: 80, height: 80, borderRadius: 30, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center', borderWidth: 4, borderColor: '#F8FAFC' }}>
-                <Text style={{ fontSize: 28, fontWeight: '800', color: '#137FEC' }}>{initial}</Text>
-              </View>
-              <TouchableOpacity style={{ position: 'absolute', bottom: -4, right: -4, width: 28, height: 28, borderRadius: 10, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 }}>
-                <Text style={{ fontSize: 12 }}>✏️</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A' }}>{studentName}</Text>
               <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '600' }}>{student?.studentCardId || 'ID - Laboratory Researcher'}</Text>
@@ -141,7 +133,7 @@ export default function StudentM5Navigation() {
       </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: paddingHorizontal }}
+        contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: paddingHorizontal, gap: 24 }}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#137FEC']} />}
       >
         {/* Collections Section */}
@@ -153,7 +145,7 @@ export default function StudentM5Navigation() {
         </View>
 
         {/* Settings Section */}
-        <View style={{ marginTop: 24 }}>
+        <View >
           <OptionSettings
             title="Account Settings"
             items={SETTINGS_ITEMS}
@@ -163,7 +155,7 @@ export default function StudentM5Navigation() {
 
         {/* Logout */}
         <TouchableOpacity
-          style={{ marginTop: 32, height: 56, backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#FEE2E2', justifyContent: 'center', alignItems: 'center' }}
+          style={{ marginTop: 20, height: 56, backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#FEE2E2', justifyContent: 'center', alignItems: 'center' }}
           activeOpacity={0.8}
           onPress={() => {
             SheetManager.show('logout-sheet', {

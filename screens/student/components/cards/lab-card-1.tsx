@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Dimensions } from "react-native";
+import { View, Dimensions, Image } from "react-native";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
 
@@ -9,6 +9,7 @@ const COLUMN_WIDTH = (width - 48) / 2;
 interface Lab {
   id: string;
   name: string;
+  logo?: string;
   wilaya?: {
     name: string;
   };
@@ -40,8 +41,12 @@ export const LabCard1: React.FC<LabCard1Props> = ({ lab, onPress, width = COLUMN
       }}
       onPress={onPress}
     >
-      <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
-        <Text style={{ fontSize: 32 }}>🏢</Text>
+      <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', marginBottom: 12, overflow: 'hidden' }}>
+        {lab.logo ? (
+          <Image source={{ uri: lab.logo }} style={{ width: '100%', height: '100%' }} />
+        ) : (
+          <Text style={{ fontSize: 32 }}>🏢</Text>
+        )}
       </View>
       <Text style={{ fontSize: 14, fontWeight: '800', color: '#1E293B', textAlign: 'center' }} numberOfLines={1}>{lab.name}</Text>
       <Text style={{ fontSize: 11, fontWeight: '600', color: '#94A3B8', marginTop: 4, textTransform: 'uppercase' }}>{lab.wilaya?.name || 'Laboratory'}</Text>

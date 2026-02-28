@@ -84,7 +84,7 @@ export default function Step1Screen() {
 
   const selectedBusinessCategory = businessCategories.find(c => c.id === formData.businessCategoryId)?.code || '';
   const selectedWilayaData = wilayas.find(w => w.id === formData.wilayaId);
-  const selectedWilaya = selectedWilayaData ? (selectedWilayaData.code ? `${selectedWilayaData.code} - ${selectedWilayaData.name}` : selectedWilayaData.code) : '';
+  const selectedWilaya = selectedWilayaData ? (selectedWilayaData.code ? `${selectedWilayaData.number} - ${selectedWilayaData.code}` : selectedWilayaData.code) : '';
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }} statusBarStyle="dark-content">

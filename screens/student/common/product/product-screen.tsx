@@ -2,12 +2,14 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, Dimensions, Platform, LayoutAnimation, UIManager, ActivityIndicator, RefreshControl } from "react-native";
+import { View, ScrollView, Dimensions, Platform, LayoutAnimation, UIManager, ActivityIndicator, RefreshControl, Share, Image, FlatList } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { Routes } from "@/utils/helpers/routes";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import ShareIcon from "@/assets/icons/share-icon";
+import SaveIcon from "@/assets/icons/save-icon";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -34,6 +36,7 @@ export default function ProductScreen() {
   const [quantity, setQuantity] = useState(1);
   const [isSaved, setIsSaved] = useState(false);
   const [savingToggle, setSavingToggle] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const productId = navProduct?.id;
 
@@ -235,29 +238,59 @@ export default function ProductScreen() {
   const productPrice = typeof product.price === 'number' ? `${product.price.toLocaleString()} DA` : product.price || '0 DA';
   const isInStock = product.isAvailable && product.stock > 0;
 
+  const handleShare = async () => {
+    try {
+      if (!product) return;
+
+      const shareOptions = {
+        title: `Check out ${product.name} on LabLink!`,
+        message: `I found ${product.name} from ${labName} on LabLink! Check it out!`,
+      };
+
+      const result = await Share.share(shareOptions);
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+        } else {
+          // shared
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+      }
+    } catch (error: any) {
+      console.error(error.message);
+    }
+  };
+
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }} statusBarStyle="dark-content">
-      {/* Top Navigation */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, zIndex: 20 }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 }} onPress={() => navigation.goBack()}>
+      {/* Top Navigation - Overlay */}
+      <View style={{ position: 'absolute', top: Platform.OS === 'ios' ? 50 : 10, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, zIndex: 50 }}>
+        <TouchableOpacity
+          style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.9)', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 }}
+          onPress={() => navigation.goBack()}
+        >
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           {/* Save Button */}
           <TouchableOpacity
-            style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: isSaved ? '#FEF2F2' : '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 }}
+            style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.9)', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 }}
             onPress={toggleSave}
             disabled={savingToggle}
           >
             {savingToggle ? (
               <ActivityIndicator size="small" color="#137FEC" />
             ) : (
-              <Text style={{ fontSize: 20 }}>{isSaved ? '❤️' : '🤍'}</Text>
+              <SaveIcon isActive={isSaved} />
             )}
           </TouchableOpacity>
           {/* Share Button */}
-          <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 }}>
-            <View style={{ width: 18, height: 18, borderWidth: 2, borderColor: '#111', borderRadius: 2 }} />
+          <TouchableOpacity
+            style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.9)', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 }}
+            onPress={handleShare}
+          >
+            <ShareIcon />
           </TouchableOpacity>
         </View>
       </View>
@@ -270,24 +303,59 @@ export default function ProductScreen() {
         }
       >
         {/* Product Image Card */}
-        <View style={{ width: width - 32, aspectRatio: 1, backgroundColor: '#FFF', borderRadius: 24, marginHorizontal: 16, marginTop: 8, overflow: 'hidden', shadowColor: "#000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.05, shadowRadius: 15, elevation: 4 }}>
-          <View style={{ flex: 1, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' }}>
-            {product.images && product.images.length > 0 ? (
-              <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '500' }}>Image available</Text>
-            ) : (
-              <View style={{ gap: 8, alignItems: 'center' }}>
-                <View style={{ width: 64, height: 64, borderRadius: 16, backgroundColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 28 }}>🔬</Text>
+        <View style={{ width: width, aspectRatio: 1.1, backgroundColor: '#FFF', marginTop: 0, overflow: 'hidden' }}>
+          {product.images && product.images.length > 0 ? (
+            <>
+              <FlatList
+                data={product.images}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={(e: any) => {
+                  const index = Math.round(e.nativeEvent.contentOffset.x / width);
+                  setActiveImageIndex(index);
+                }}
+                renderItem={({ item }: { item: any }) => (
+                  <ScrollView
+                    maximumZoomScale={3}
+                    minimumZoomScale={1}
+                    showsHorizontalScrollIndicator={false}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ width: width, height: '100%' }}
+                  >
+                    <View style={{ width: width, height: '100%', backgroundColor: '#F9FAFB' }}>
+                      <Image
+                        source={{ uri: item.url }}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
+                      />
+                    </View>
+                  </ScrollView>
+                )}
+                keyExtractor={(_: any, index: number) => index.toString()}
+              />
+              {product.images.length > 1 && (
+                <View style={{ position: 'absolute', bottom: 20, alignSelf: 'center', flexDirection: 'row', gap: 6, backgroundColor: 'rgba(255,255,255,0.8)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 }}>
+                  {product.images.map((_: any, idx: number) => (
+                    <View
+                      key={idx}
+                      style={[
+                        { width: 6, height: 6, borderRadius: 3, backgroundColor: '#D1D5DB' },
+                        idx === activeImageIndex && { width: 16, backgroundColor: '#137FEC' }
+                      ]}
+                    />
+                  ))}
                 </View>
-                <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>No image</Text>
+              )}
+            </>
+          ) : (
+            <View style={{ flex: 1, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' }}>
+              <View style={{ gap: 8, alignItems: 'center' }}>
+                <View style={{ width: 80, height: 80, borderRadius: 20, backgroundColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 40 }}>🔬</Text>
+                </View>
+                <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '600' }}>No image available</Text>
               </View>
-            )}
-          </View>
-          {product.images && product.images.length > 1 && (
-            <View style={{ position: 'absolute', bottom: 16, alignSelf: 'center', flexDirection: 'row', gap: 6 }}>
-              {product.images.map((_: any, idx: number) => (
-                <View key={idx} style={[{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#D1D5DB' }, idx === 0 && { width: 24, backgroundColor: '#137FEC' }]} />
-              ))}
             </View>
           )}
         </View>
@@ -366,9 +434,9 @@ export default function ProductScreen() {
                   onPress={() => toggleSection(section.id)}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
+                    {/* <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
                       <View style={[{ width: 18, height: 18, backgroundColor: '#CBD5E1', borderRadius: 4 }, isExpanded && { backgroundColor: '#137FEC' }]} />
-                    </View>
+                    </View> */}
                     <Text style={[{ fontSize: 16, fontWeight: '700', color: '#334155' }, isExpanded && { color: '#111' }]}>{section.title}</Text>
                   </View>
                   <View style={[

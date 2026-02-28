@@ -17,7 +17,7 @@ export interface Business {
   name: string;
   nif?: string | null;
   logo?: string | null;
-  bio?: string | null;
+  description?: string | null;
   certificateUrl?: string | null;
   phoneNumbers?: string[] | null;
   address?: string | null;

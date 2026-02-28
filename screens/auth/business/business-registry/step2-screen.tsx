@@ -1,16 +1,90 @@
 import { TopHeader1 } from "@/components/headers/top-header-1";
 import { ScreenWrapper } from "@/components/screen-wrapper";
-import { ScrollView, View, TouchableOpacity } from "react-native";
+import { ScrollView, View, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import { BusinessRegistryProgress } from "./components/business-registry-progress";
 import Text from "@/components/text";
 import GlobalInput from "@/components/inputs/global-input";
 import { Button1 } from "@/components/buttons/button-1";
 import { useNavigation } from "@react-navigation/native";
 import { useBusinessRegistry } from "./context/business-registry-context";
+import { useState } from "react";
+import * as DocumentPicker from "expo-document-picker";
+import { apiPublic } from "@/utils/api/axios-instance";
+import { ApiRoutes, buildRoute } from "@/utils/api/api";
 
 export default function Step2Screen() {
   const navigation = useNavigation<any>();
   const { formData, setField } = useBusinessRegistry();
+  const [pickStatus, setPickStatus] = useState<'idle' | 'picked' | 'uploading' | 'uploaded' | 'error'>('idle');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFile, setSelectedFile] = useState<any>(null);
+
+  const handlePickFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["application/pdf", "image/*"],
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled) {
+        setSelectedFile(result.assets[0]);
+        setPickStatus('picked');
+      }
+    } catch (err) {
+      console.error("Document Picker Error:", err);
+      Alert.alert("Error", "Could not pick the document.");
+    }
+  };
+
+  const handleUploadAndContinue = async () => {
+    if (!selectedFile) {
+      if (formData.certificate) {
+        navigation.navigate("BusinessStep3");
+      } else {
+        Alert.alert("Required", "Please upload your business certificate to continue.");
+      }
+      return;
+    }
+
+    try {
+      setPickStatus('uploading');
+      setUploadProgress(10); // Start progress
+
+      const data = new FormData();
+      data.append('file', {
+        uri: selectedFile.uri,
+        name: selectedFile.name,
+        type: selectedFile.mimeType || 'application/octet-stream',
+      } as any);
+
+      setUploadProgress(30);
+
+      const response: any = await apiPublic.post(buildRoute(ApiRoutes.uploads.temp), data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(30 + Math.floor(progress * 0.7)); // Scale 30-100
+          }
+        },
+      });
+
+      if (response && response.url) {
+        setField('certificate', response.url);
+        setPickStatus('uploaded');
+        setUploadProgress(100);
+        setTimeout(() => {
+          navigation.navigate("BusinessStep3");
+        }, 500);
+      }
+    } catch (error) {
+      console.error("Upload Error:", error);
+      setPickStatus('error');
+      Alert.alert("Upload Failed", "Could not upload the document. Please try again.");
+    }
+  };
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }} statusBarStyle="dark-content">
@@ -60,28 +134,55 @@ export default function Step2Screen() {
               <Text style={{ fontSize: 16, fontWeight: '700', color: '#111' }}>Certification</Text>
             </View>
 
-            <TouchableOpacity style={{ borderWidth: 2, borderColor: '#F5F3FF', borderStyle: 'dashed', borderRadius: 14, height: 140, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FBFBFF', gap: 8 }} activeOpacity={0.7}>
-              <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#F5F3FF', justifyContent: 'center', alignItems: 'center' }}>
-                {/* Mock Upload Icon */}
-                <View style={{ width: 20, height: 20, borderRadius: 4, backgroundColor: '#8B5CF6' }} />
+            <TouchableOpacity
+              onPress={handlePickFile}
+              style={{ borderWidth: 2, borderColor: pickStatus === 'uploaded' ? '#10B981' : '#F5F3FF', borderStyle: 'dashed', borderRadius: 14, height: 140, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FBFBFF', gap: 8 }}
+              activeOpacity={0.7}
+              disabled={pickStatus === 'uploading'}
+            >
+              <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: pickStatus === 'uploaded' ? '#D1FAE5' : '#F5F3FF', justifyContent: 'center', alignItems: 'center' }}>
+                {pickStatus === 'uploaded' ? (
+                  <Text style={{ fontSize: 20 }}>✅</Text>
+                ) : (
+                  <View style={{ width: 22, height: 22, borderWidth: 2, borderColor: '#8B5CF6', borderTopWidth: 6, borderRadius: 4 }} />
+                )}
               </View>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: '#8B5CF6' }}>Upload Document</Text>
-              <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '500' }}>PDF, JPG, PNG (Max 10MB)</Text>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: pickStatus === 'uploaded' ? '#10B981' : '#8B5CF6' }}>
+                {pickStatus === 'idle' ? 'Upload Document' : selectedFile?.name || 'File Selected'}
+              </Text>
+              <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '500' }}>
+                {pickStatus === 'uploaded' ? 'Certificate uploaded successfully' : 'PDF, JPG, PNG (Max 10MB)'}
+              </Text>
             </TouchableOpacity>
           </View>
+
+          {pickStatus === 'uploading' && (
+            <View style={{ marginTop: 24, gap: 8 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#111' }}>Uploading Certificate...</Text>
+                <Text style={{ fontSize: 13, fontWeight: '800', color: '#8B5CF6' }}>{uploadProgress}%</Text>
+              </View>
+              <View style={{ height: 10, backgroundColor: '#F3F4F6', borderRadius: 5, overflow: 'hidden' }}>
+                <View style={{ height: '100%', width: `${uploadProgress}%`, backgroundColor: '#8B5CF6' }} />
+              </View>
+            </View>
+          )}
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 32 }}>
             <TouchableOpacity
               style={{ height: 56, justifyContent: 'center', paddingHorizontal: 8 }}
               onPress={() => navigation.goBack()}
+              disabled={pickStatus === 'uploading'}
             >
               <Text style={{ fontSize: 16, color: '#6B7280', fontWeight: '600' }}>Back</Text>
             </TouchableOpacity>
 
             <Button1
-              text="Verify & Continue"
-              onPress={() => navigation.navigate("BusinessStep3")}
+              text={pickStatus === 'uploading' ? 'Uploading...' : "Verify & Continue"}
+              onPress={handleUploadAndContinue}
               style={{ flex: 1, height: 56, backgroundColor: '#8B5CF6', borderRadius: 12 }}
+              loading={pickStatus === 'uploading'}
+              disabled={!formData.registrationNo || !formData.nif || (!selectedFile && !formData.certificate)}
             />
           </View>
         </ScrollView>

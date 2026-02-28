@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, TextInput, FlatList, Dimensions, ActivityIndicator, RefreshControl } from "react-native";
+import { View, ScrollView, TextInput, FlatList, Dimensions, ActivityIndicator, RefreshControl, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -121,8 +121,16 @@ export default function BusinessM3Navigation() {
         <View style={{ height: 1, backgroundColor: '#F8FAFC', marginVertical: 14 }} />
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-          <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9' }}>
-            <Text style={{ fontSize: 24 }}>📦</Text>
+          <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9', overflow: 'hidden' }}>
+            {item.products && item.products[0]?.images && item.products[0].images.length > 0 ? (
+              <Image
+                source={{ uri: item.products[0].images[0].url }}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text style={{ fontSize: 24 }}>📦</Text>
+            )}
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 14, fontWeight: '800', color: '#111' }}>{studentName}</Text>

@@ -1,5 +1,7 @@
+import SaveIcon from "@/assets/icons/save-icon";
+import TouchableOpacity from "@/components/touchable-opacity";
 import React from "react";
-import { View, TouchableOpacity, Text, Dimensions, ViewStyle, ActivityIndicator } from "react-native";
+import { View, Text, Dimensions, ViewStyle, ActivityIndicator, Image } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DEFAULT_COLUMN_WIDTH = (SCREEN_WIDTH - 56) / 2;
@@ -10,6 +12,7 @@ interface Product {
   lab: string;
   price: string;
   isSaved?: boolean;
+  images?: Array<{ url: string, isMain: boolean }>;
 }
 
 interface ProductCard1Props {
@@ -29,6 +32,8 @@ export const ProductCard1: React.FC<ProductCard1Props> = ({
   width = DEFAULT_COLUMN_WIDTH,
   style
 }) => {
+  const mainImage = product.images?.find(i => i.isMain)?.url || product.images?.[0]?.url;
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -47,12 +52,23 @@ export const ProductCard1: React.FC<ProductCard1Props> = ({
     >
       {/* Image Area */}
       <View style={{ height: width, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' }}>
+        {mainImage ? (
+          <Image
+            source={{ uri: mainImage }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={{ width: 40, height: 40, backgroundColor: '#D1D5DB', borderRadius: 8 }} />
+        )}
+
         {/* Heart/Favorite Icon */}
         <TouchableOpacity
           onPress={(e) => {
             e.stopPropagation?.();
             onToggleSave?.();
           }}
+          hitSlop={{ top: 10, left: 20, right: 10, bottom: 20 }}
           disabled={isSaving}
           style={{
             position: 'absolute',
@@ -61,7 +77,7 @@ export const ProductCard1: React.FC<ProductCard1Props> = ({
             width: 28,
             height: 28,
             borderRadius: 14,
-            backgroundColor: product.isSaved ? 'rgba(254,226,226,0.95)' : 'rgba(255,255,255,0.8)',
+            backgroundColor: 'rgba(255,255,255,0.85)',
             justifyContent: 'center',
             alignItems: 'center',
             shadowColor: "#000",
@@ -75,32 +91,17 @@ export const ProductCard1: React.FC<ProductCard1Props> = ({
           {isSaving ? (
             <ActivityIndicator size={12} color="#EF4444" />
           ) : (
-            <Text style={{ fontSize: 13, marginTop: -1 }}>{product.isSaved ? '❤️' : '🤍'}</Text>
+            <SaveIcon isActive={product.isSaved} />
           )}
         </TouchableOpacity>
-        {/* Main Image Icon Placeholder */}
-        <View style={{ width: 40, height: 40, backgroundColor: '#D1D5DB', borderRadius: 8 }} />
       </View>
 
       {/* Details Area */}
       <View style={{ padding: 12, gap: 4 }}>
-        <Text style={{ fontSize: 10, color: '#6B7280', fontWeight: '500' }}>{product.lab}</Text>
+        <Text style={{ fontSize: 10, color: '#6B7280', fontWeight: '600', textTransform: 'uppercase' }}>{product.lab}</Text>
         <Text style={{ fontSize: 14, color: '#111', fontWeight: '700' }} numberOfLines={2}>{product.name}</Text>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-          <Text style={{ fontSize: 14, color: '#111', fontWeight: '800' }}>{product.price}</Text>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 14,
-              backgroundColor: '#137FEC',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}
-          >
-            <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 16 }}>+</Text>
-          </TouchableOpacity>
+          <Text style={{ fontSize: 14, color: '#137FEC', fontWeight: '800' }}>{product.price}</Text>
         </View>
       </View>
     </TouchableOpacity>

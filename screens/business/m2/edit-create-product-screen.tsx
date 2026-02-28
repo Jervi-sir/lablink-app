@@ -280,36 +280,15 @@ export default function EditCreateProductScreen() {
           contentContainerStyle={{ padding: 20, paddingHorizontal: paddingHorizontal }}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Product / Service Type Toggle */}
-          <View style={{ marginBottom: 24 }}>
-            <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 16, padding: 4 }}>
-              {(['product', 'service'] as const).map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={[
-                    { flex: 1, height: 48, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-                    form.product_type === type && { backgroundColor: '#FFF', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 3 },
-                  ]}
-                  onPress={() => updateForm('product_type', type)}
-                >
-                  <Text style={{ fontSize: 14 }}>{type === 'product' ? '📦' : '🔧'}</Text>
-                  <Text style={[
-                    { fontSize: 13, fontWeight: '700', color: '#94A3B8', marginTop: 2 },
-                    form.product_type === type && { color: '#8B5CF6' },
-                  ]}>{type === 'product' ? 'Product' : 'Service'}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
 
           {/* Image Upload Section */}
           <SectionHeader title='Product Images' />
-          <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, gap: 16, marginBottom: 24, borderWidth: 1, borderColor: '#F1F5F9' }}>
+          <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, gap: 16, marginBottom: 12, borderWidth: 1, borderColor: '#F1F5F9' }}>
             {/* Image Gallery */}
             {allImages.length > 0 && (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                 {allImages.map((img, idx) => (
-                  <View key={`img-${idx}`} style={{ position: 'relative' }}>
+                  <View key={`img-${idx}`} style={{ position: 'relative', paddingTop: 10 }}>
                     <Image
                       source={{ uri: img.type === 'existing' ? img.url : img.uri }}
                       style={{ width: 110, height: 110, borderRadius: 16, backgroundColor: '#F1F5F9' }}
@@ -322,7 +301,7 @@ export default function EditCreateProductScreen() {
                     )}
                     {/* Delete button */}
                     <TouchableOpacity
-                      style={{ position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' }}
+                      style={{ position: 'absolute', top: 0, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' }}
                       onPress={() => {
                         if (img.type === 'existing') {
                           Alert.alert("Remove Image", "Delete this image?", [
@@ -382,6 +361,27 @@ export default function EditCreateProductScreen() {
                 <Text style={{ fontSize: 12, color: '#8B5CF6', fontWeight: '600' }}>Uploading images...</Text>
               </View>
             )}
+          </View>
+          {/* Product / Service Type Toggle */}
+          <View style={{ marginBottom: 12 }}>
+            <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 16, padding: 4 }}>
+              {(['product', 'service'] as const).map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    { flex: 1, height: 48, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+                    form.product_type === type && { backgroundColor: '#FFF', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 3 },
+                  ]}
+                  onPress={() => updateForm('product_type', type)}
+                >
+                  <Text style={{ fontSize: 14 }}>{type === 'product' ? '📦' : '🔧'}</Text>
+                  <Text style={[
+                    { fontSize: 13, fontWeight: '700', color: '#94A3B8', marginTop: 2 },
+                    form.product_type === type && { color: '#8B5CF6' },
+                  ]}>{type === 'product' ? 'Product' : 'Service'}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* 1. Basic Information */}

@@ -104,33 +104,39 @@ export default function StudentM2Navigation() {
     }
   };
 
-  const performSearch = async (query: string) => {
-    if (!query.trim()) {
-      setResults({ products: [], labs: [] });
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const res: any = await api.get(ApiRoutes.search, { params: { q: query } });
-      setResults({
-        products: res.products?.data || [],
-        labs: res.labs?.data || []
-      });
-    } catch (error) {
-      console.error("Search error:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Debounced search
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (search) {
-        performSearch(search);
+    let isActive = true;
+
+    if (!search.trim()) {
+      setResults({ products: [], labs: [] });
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res: any = await api.get(ApiRoutes.search, { params: { q: search } });
+        if (isActive) {
+          setResults({
+            products: res.products?.data || [],
+            labs: res.labs?.data || []
+          });
+          setIsLoading(false);
+        }
+      } catch (error) {
+        if (isActive) {
+          console.error("Search error:", error);
+          setIsLoading(false);
+        }
       }
     }, 500);
-    return () => clearTimeout(timer);
+
+    return () => {
+      isActive = false;
+      clearTimeout(timer);
+    };
   }, [search]);
 
   const handleSearchSubmit = () => {

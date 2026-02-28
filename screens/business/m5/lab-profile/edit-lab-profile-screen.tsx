@@ -20,10 +20,11 @@ export default function EditLabProfileScreen() {
   const { auth, setAuth } = useAuthStore();
   const [profile, setProfile] = useState<any>(auth?.businessProfile || null);
   const [wilayas, setWilayas] = useState<any[]>([]);
+  const [platforms, setPlatforms] = useState<any[]>([]);
 
   // Form State
   const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
+  const [description, setDescription] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
@@ -44,7 +45,7 @@ export default function EditLabProfileScreen() {
       setLoading(true);
       const [profileRes, taxRes]: any = await Promise.all([
         api.get(ApiRoutes.businesses.me),
-        api.get(buildRoute(ApiRoutes.taxonomies), { params: { types: 'wilayas' } })
+        api.get(buildRoute(ApiRoutes.taxonomies), { params: { types: 'wilayas,platforms' } })
       ]);
 
       const data = profileRes.data;
@@ -54,6 +55,7 @@ export default function EditLabProfileScreen() {
       const businessData = data?.businessProfile || data;
 
       setWilayas(taxRes.wilayas || []);
+      setPlatforms(taxRes.platforms || []);
 
       if (data?.businessProfile && data.id) {
         setAuth(data);
@@ -61,11 +63,13 @@ export default function EditLabProfileScreen() {
 
       // Populate form
       setName(businessData.name || "");
-      setBio(businessData.bio || "");
+      setDescription(businessData.description || "");
       setEmail(businessData.user?.email || data?.user?.email || data?.email || "");
-      setPhone(businessData.phone_numbers?.[0] || "");
+      const phoneContact = (businessData.contacts || []).find((c: any) => c.platform?.code === 'phone' || c.platform?.code === 'mobile' || c.platform_id === 1);
+      const websiteContact = (businessData.contacts || []).find((c: any) => c.platform?.code === 'website' || c.platform_id === 4);
+      setPhone(phoneContact?.content || businessData.phone_numbers?.[0] || "");
       setAddress(businessData.address || "");
-      setWebsite(businessData.website || "");
+      setWebsite(websiteContact?.content || businessData.website || "");
       setWilayaId(businessData.wilaya_id || null);
 
       // Set existing logo
@@ -227,12 +231,36 @@ export default function EditLabProfileScreen() {
       setSaving(true);
       const payload = {
         name,
-        bio,
+        description,
         address,
         wilaya_id: wilayaId,
         website,
-        phone_numbers: phone ? [phone] : [],
+        contacts: [] as any[]
       };
+
+      // Add phone contact if exists
+      if (phone.trim()) {
+        const phonePlatform = platforms.find(p => p.code === 'phone') || platforms[0];
+        if (phonePlatform) {
+          payload.contacts.push({
+            platform_id: phonePlatform.id,
+            content: phone.trim(),
+            label: 'Business Phone'
+          });
+        }
+      }
+
+      // Add website contact if exists
+      if (website.trim()) {
+        const websitePlatform = platforms.find(p => p.code === 'website');
+        if (websitePlatform) {
+          payload.contacts.push({
+            platform_id: websitePlatform.id,
+            content: website.trim(),
+            label: 'Official Website'
+          });
+        }
+      }
 
       await api.put(buildRoute(ApiRoutes.businesses.update, { id: profile.id }), payload);
 
@@ -409,7 +437,7 @@ export default function EditLabProfileScreen() {
           </View>
 
           <View style={{ gap: 8 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B' }}>Description / Bio</Text>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B' }}>Description / description</Text>
             <View style={[{ height: 120, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 14, backgroundColor: '#F8FAFC', paddingHorizontal: 16, paddingVertical: paddingHorizontal }]}>
               <TextInput
                 style={[{ fontSize: 14, color: '#1E293B', fontWeight: '500', textAlignVertical: 'top' }]}
@@ -417,8 +445,8 @@ export default function EditLabProfileScreen() {
                 placeholderTextColor="#94A3B8"
                 multiline
                 numberOfLines={4}
-                value={bio}
-                onChangeText={setBio}
+                value={description}
+                onChangeText={setDescription}
               />
             </View>
           </View>

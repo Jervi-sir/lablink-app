@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, FlatList, Dimensions, ActivityIndicator, RefreshControl } from "react-native";
+import { View, FlatList, Dimensions, ActivityIndicator, RefreshControl, Image } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { Routes } from "@/utils/helpers/routes";
@@ -159,13 +159,19 @@ export default function BusinessScreen() {
       {/* Bio & Intro Section */}
       <View style={{ backgroundColor: '#FFF', padding: 20, borderRadius: 24, borderWidth: 1, borderColor: '#F1F5F9' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-          <View style={{ width: 80, height: 80, borderRadius: 24, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', position: 'relative', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+          <View style={{ width: 80, height: 80, borderRadius: 24, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#F1F5F9', position: 'relative', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
             {business?.logo ? (
-              <Text style={{ fontSize: 36 }}>{business?.logo}</Text>
+              business.logo.startsWith('http') ? (
+                <Image source={{ uri: business.logo }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+              ) : (
+                <Text style={{ fontSize: 36 }}>{business?.logo}</Text>
+              )
             ) : (
-              <View style={{ flex: 1, width: '100%', borderRadius: 20, backgroundColor: '#D1D5DB' }} />
+              <View style={{ flex: 1, width: '100%', borderRadius: 20, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ fontSize: 24, fontWeight: '800', color: '#CBD5E1' }}>{business?.name?.charAt(0)}</Text>
+              </View>
             )}
-            <View style={{ position: 'absolute', bottom: -2, right: -2, width: 20, height: 20, borderRadius: 10, backgroundColor: '#22C55E', borderWidth: 3, borderColor: '#FFF' }} />
+            <View style={{ position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderRadius: 11, backgroundColor: '#22C55E', borderWidth: 3, borderColor: '#FFF' }} />
           </View>
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={{ fontSize: 20, fontWeight: '800', color: '#111' }}>{business.name}</Text>
@@ -204,11 +210,11 @@ export default function BusinessScreen() {
       </View>
 
       {/* About Section */}
-      {business.bio && (
+      {business.description && (
         <View style={{ marginTop: 24 }}>
           <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>About Facility</Text>
           <Text style={{ fontSize: 14, color: '#475569', lineHeight: 22, fontWeight: '500', marginTop: 8 }}>
-            {business.bio}
+            {business.description}
           </Text>
         </View>
       )}
@@ -225,7 +231,7 @@ export default function BusinessScreen() {
       )}
 
       {/* Connectivity */}
-      {(business.address || (business.phoneNumbers && business.phoneNumbers.length > 0)) && (
+      {(business.address || (business.contacts && business.contacts.length > 0)) && (
         <View style={{ marginTop: 24 }}>
           <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Connectivity</Text>
           <View style={{ marginTop: 12, gap: 12 }}>
@@ -238,12 +244,19 @@ export default function BusinessScreen() {
                 </View>
               </View>
             )}
-            {business.phoneNumbers && business.phoneNumbers.map((phone: string, idx: number) => (
+            {business.contacts && business.contacts.map((contact: any, idx: number) => (
               <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FFF', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9' }}>
-                <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}><Text style={{ fontSize: 16 }}>📞</Text></View>
+                <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 16 }}>
+                    {contact.platform?.code === 'phone' || contact.platform?.code === 'mobile' ? '📞' :
+                      contact.platform?.code === 'whatsapp' ? '💬' :
+                        contact.platform?.code === 'email' ? '✉️' :
+                          contact.platform?.code === 'website' ? '🌐' : '🔗'}
+                  </Text>
+                </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>Phone</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#1E293B' }}>{phone}</Text>
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>{contact.platform?.code || 'Contact'}</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#1E293B' }}>{contact.content}</Text>
                 </View>
               </View>
             ))}

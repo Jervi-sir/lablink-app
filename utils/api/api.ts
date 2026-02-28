@@ -84,6 +84,9 @@ export const ApiRoutes = {
   students: {
     updateMe: 'students/me',
   },
+  uploads: {
+    temp: 'upload-temp',
+  },
 }
 
 // @ts-ignore

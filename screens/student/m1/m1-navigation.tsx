@@ -53,7 +53,7 @@ export default function StudentM1Navigation() {
     try {
       if (page === 1) setLoadingLabs(true);
       const response = await api.get(buildRoute(ApiRoutes.businesses.featuredLabs), {
-        params: { page, per_page: 6 }
+        params: { page, per_page: 6, random: true }
       });
       if (response && response.data) {
         const formattedLabs = response.data.map((lab: any) => ({
@@ -95,7 +95,8 @@ export default function StudentM1Navigation() {
         params: {
           page,
           per_page: 10,
-          product_category_id: catId === 'all' ? undefined : catId
+          product_category_id: catId === 'all' ? undefined : catId,
+          random: true
         }
       });
       if (response && response.data) {
@@ -217,40 +218,27 @@ export default function StudentM1Navigation() {
             ))}
           </View>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-            {searching ? (
-              <View style={{ marginTop: 40 }}>
-                <ActivityIndicator color="#137FEC" size="large" />
-              </View>
+            {searchTab === 'Products' ? (
+              <ProductGrid
+                products={searchResults.products}
+                onProductPress={(item) => navigation.navigate(Routes.ProductScreen, { product: item })}
+                onToggleSave={(id) => toggleSaveProduct(id)}
+                savingProductId={savingProductId}
+                paddingHorizontal={paddingHorizontal}
+                isLoading={searching}
+              />
             ) : (
-              <>
-                {searchTab === 'Products' ? (
-                  searchResults.products.length > 0 ? (
-                    <ProductGrid
-                      products={searchResults.products}
-                      onProductPress={(item) => navigation.navigate(Routes.ProductScreen, { product: item })}
-                      onToggleSave={(id) => toggleSaveProduct(id)}
-                      savingProductId={savingProductId}
-                      paddingHorizontal={paddingHorizontal}
-                    />
-                  ) : (
-                    <View style={{ alignItems: 'center', marginTop: 40 }}>
-                      <Text style={{ color: '#94A3B8' }}>No products found for "{search}"</Text>
-                    </View>
-                  )
-                ) : (
-                  searchResults.labs.length > 0 ? (
-                    <LabGrid
-                      labs={searchResults.labs}
-                      onLabPress={(item) => navigation.navigate(Routes.BusinessScreen, { labId: item.id, labName: item.name })}
-                      paddingHorizontal={paddingHorizontal}
-                    />
-                  ) : (
-                    <View style={{ alignItems: 'center', marginTop: 40 }}>
-                      <Text style={{ color: '#94A3B8' }}>No laboratories found for "{search}"</Text>
-                    </View>
-                  )
-                )}
-              </>
+              <LabGrid
+                labs={searchResults.labs}
+                onLabPress={(item) => navigation.navigate(Routes.BusinessScreen, { labId: item.id, labName: item.name })}
+                paddingHorizontal={paddingHorizontal}
+                isLoading={searching}
+              />
+            )}
+            {!searching && searchResults.products.length === 0 && searchResults.labs.length === 0 && (
+              <View style={{ alignItems: 'center', marginTop: 40 }}>
+                <Text style={{ color: '#94A3B8' }}>No results found for "{search}"</Text>
+              </View>
             )}
           </ScrollView>
         </View>
@@ -296,19 +284,28 @@ export default function StudentM1Navigation() {
                 elevation: 2
               }}>
                 <View style={{ paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <Text style={{ fontSize: 18, fontWeight: '700', color: '#111111' }}>Featured Labs</Text>
+                  <Text style={{ fontSize: 18, fontWeight: '700', color: '#111111' }}>Discovery Labs</Text>
                   <TouchableOpacity onPress={() => navigation.navigate(Routes.FeaturedLabsScreen)}>
                     <Text style={{ color: '#137FEC', fontWeight: '700' }}>View all</Text>
                   </TouchableOpacity>
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingHorizontal: 16, alignItems: 'center' }}>
-                  {featuredLabs.map((lab) => (
-                    <BusinessCard1
-                      key={lab.id}
-                      lab={lab}
-                      onPress={() => navigation.navigate(Routes.BusinessScreen, { lab })}
-                    />
-                  ))}
+                  {loadingLabs && featuredLabs.length === 0 ? (
+                    [1, 2, 3, 4].map((_, i) => (
+                      <View key={i} style={{ alignItems: 'center', gap: 8 }}>
+                        <View style={{ width: 64, height: 64, backgroundColor: '#F3F4F6', borderRadius: 32 }} />
+                        <View style={{ width: 60, height: 10, backgroundColor: '#F3F4F6', borderRadius: 4 }} />
+                      </View>
+                    ))
+                  ) : (
+                    featuredLabs.map((lab) => (
+                      <BusinessCard1
+                        key={lab.id}
+                        lab={lab}
+                        onPress={() => navigation.navigate(Routes.BusinessScreen, { lab })}
+                      />
+                    ))
+                  )}
                   {nextPageLabs && (
                     <TouchableOpacity
                       onPress={() => fetchFeaturedLabs(nextPageLabs)}
@@ -326,7 +323,7 @@ export default function StudentM1Navigation() {
 
               <View style={{ gap: 16 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 18, fontWeight: '700', color: '#111111' }}>Trending Products</Text>
+                  <Text style={{ fontSize: 18, fontWeight: '700', color: '#111111' }}>Explore Equipment</Text>
                 </View>
 
                 <ProductGrid
@@ -334,6 +331,7 @@ export default function StudentM1Navigation() {
                   onProductPress={(product) => navigation.navigate(Routes.ProductScreen, { product })}
                   onToggleSave={(id) => toggleSaveProduct(id)}
                   savingProductId={savingProductId}
+                  isLoading={loadingProducts && trendingProducts.length === 0}
                 />
 
                 {nextPageProducts && (

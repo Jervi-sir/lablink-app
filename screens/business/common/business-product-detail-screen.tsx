@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, Dimensions, Platform, LayoutAnimation, UIManager, ActivityIndicator, Alert, RefreshControl } from "react-native";
+import { View, ScrollView, Dimensions, Platform, LayoutAnimation, UIManager, ActivityIndicator, Alert, RefreshControl, Image, FlatList } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { Routes } from "@/utils/helpers/routes";
@@ -35,6 +35,7 @@ export default function BusinessProductDetailScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>('stats');
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const fetchProductDetail = useCallback(async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
@@ -206,10 +207,55 @@ export default function BusinessProductDetailScreen() {
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       >
         {/* Product Image Stage */}
-        <View style={{ paddingVertical: 20, alignItems: 'center' }}>
-          <View style={{ width: width - 40, height: width - 40, backgroundColor: '#FFF', borderRadius: 32, justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.04, shadowRadius: 15, elevation: 3 }}>
-            <Text style={{ fontSize: 80 }}>{product.category?.code === 'Reagent' ? '🧪' : '🔬'}</Text>
-          </View>
+        <View style={{ width: width - 40, height: width - 40, backgroundColor: '#FFF', borderRadius: 32, overflow: 'hidden', shadowColor: "#000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.04, shadowRadius: 15, elevation: 3, alignSelf: 'center', marginTop: 20 }}>
+          {product.images && product.images.length > 0 ? (
+            <>
+              <FlatList
+                data={product.images}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={(e: any) => {
+                  const index = Math.round(e.nativeEvent.contentOffset.x / (width - 40));
+                  setActiveImageIndex(index);
+                }}
+                renderItem={({ item }: { item: any }) => (
+                  <ScrollView
+                    maximumZoomScale={3}
+                    minimumZoomScale={1}
+                    showsHorizontalScrollIndicator={false}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ width: width - 40, height: width - 40 }}
+                  >
+                    <Image
+                      source={{ uri: item.url }}
+                      style={{ width: '100%', height: '100%' }}
+                      resizeMode="cover"
+                    />
+                  </ScrollView>
+                )}
+                keyExtractor={(_: any, index: number) => index.toString()}
+              />
+              {product.images.length > 1 && (
+                <View style={{ position: 'absolute', bottom: 16, alignSelf: 'center', flexDirection: 'row', gap: 6, backgroundColor: 'rgba(255,255,255,0.8)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 }}>
+                  {product.images.map((_: any, idx: number) => (
+                    <View
+                      key={idx}
+                      style={[
+                        { width: 6, height: 6, borderRadius: 3, backgroundColor: '#D1D5DB' },
+                        idx === activeImageIndex && { width: 16, backgroundColor: '#8B5CF6' }
+                      ]}
+                    />
+                  ))}
+                </View>
+              )}
+            </>
+          ) : (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ fontSize: 80 }}>{product.category?.code === 'Reagent' ? '🧪' : '🔬'}</Text>
+              <Text style={{ fontSize: 13, color: '#94A3B8', fontWeight: '600', marginTop: 12 }}>No images uploaded</Text>
+            </View>
+          )}
         </View>
 
         {/* Vital Info */}

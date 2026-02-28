@@ -1,9 +1,10 @@
 import React from "react";
-import { View, TouchableOpacity, Text, ViewStyle } from "react-native";
+import { View, TouchableOpacity, Text, ViewStyle, Image } from "react-native";
 
 interface Lab {
   id: string;
   name: string;
+  logo?: string;
 }
 
 interface BusinessCard1Props {
@@ -27,11 +28,16 @@ export const BusinessCard1: React.FC<BusinessCard1Props> = ({ lab, onPress, styl
         borderWidth: 1,
         borderColor: '#E2E8F0',
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        overflow: 'hidden'
       }}>
-        <View style={{ width: 30, height: 30, backgroundColor: '#D1D5DB', borderRadius: 15 }} />
+        {lab.logo ? (
+          <Image source={{ uri: lab.logo }} style={{ width: '100%', height: '100%' }} />
+        ) : (
+          <View style={{ width: 30, height: 30, backgroundColor: '#D1D5DB', borderRadius: 15 }} />
+        )}
       </View>
-      <Text style={{ fontSize: 12, color: '#111', fontWeight: '600' }}>{lab.name}</Text>
+      <Text style={{ fontSize: 12, color: '#111', fontWeight: '600', textAlign: 'center', width: 72 }} numberOfLines={2}>{lab.name}</Text>
     </TouchableOpacity>
   );
 };

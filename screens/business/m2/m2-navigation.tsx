@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, TextInput, FlatList, Dimensions, ActivityIndicator, RefreshControl, Alert } from "react-native";
+import { View, ScrollView, TextInput, FlatList, Dimensions, ActivityIndicator, RefreshControl, Alert, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -132,7 +132,7 @@ export default function BusinessM2Navigation() {
         backgroundColor: '#FFF',
         borderRadius: 20,
         marginBottom: 16,
-        overflow: 'hidden',
+        padding: 16,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.04,
@@ -142,31 +142,37 @@ export default function BusinessM2Navigation() {
         borderColor: '#F1F5F9',
       }}>
         <TouchableOpacity
-          style={{
-            flexDirection: 'row',
-            padding: 16,
-            gap: 16,
-          }}
+          style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}
           onPress={() => navigation.navigate(Routes.BusinessProductDetailScreen, { product: item })}
           activeOpacity={0.7}
         >
+          {/* Image */}
           <View style={{
-            width: 80,
-            height: 80,
+            width: 100,
+            height: 100,
             borderRadius: 16,
             backgroundColor: '#F8F9FB',
             justifyContent: 'center',
             alignItems: 'center',
             borderWidth: 1,
             borderColor: '#F1F5F9',
+            overflow: 'hidden',
           }}>
             {item.images && item.images.length > 0 ? (
-              <ActivityIndicator size="small" /> // Placeholder for real Image component if you had one
+              <Image
+                source={{ uri: item.images[0].url }}
+                style={{
+                  width: 100,
+                  height: 100,
+                }}
+              />
             ) : (
-              <Text style={{ fontSize: 32 }}>📦</Text>
+              <Text style={{ fontSize: 36 }}>📦</Text>
             )}
           </View>
-          <View style={{ flex: 1, justifyContent: 'center' }}>
+
+          {/* Details & Actions */}
+          <View style={{ flex: 1 }}>
             <View style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
@@ -191,65 +197,45 @@ export default function BusinessM2Navigation() {
                 ]}>{status}</Text>
               </View>
             </View>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#111', marginBottom: 6 }} numberOfLines={1}>{item.name}</Text>
+
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#111', marginBottom: 4 }} numberOfLines={1}>{item.name}</Text>
+
             <View style={{
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
+              marginBottom: 10
             }}>
               <Text style={{ fontSize: 15, fontWeight: '800', color: '#8B5CF6' }}>{item.price.toLocaleString()} DA</Text>
               <Text style={[{ fontSize: 12, fontWeight: '600', color: '#64748B' }, item.stock === 0 && { color: '#EF4444' }]}>
                 {item.stock} in stock
               </Text>
             </View>
+
+            {/* Action Buttons as horizontal pills */}
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: 8, backgroundColor: '#F8FAFC', borderRadius: 8, alignItems: 'center' }}
+                onPress={(e) => { e.stopPropagation(); navigation.navigate(Routes.EditCreateProductScreen, { product: item }); }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: 8, backgroundColor: '#F8FAFC', borderRadius: 8, alignItems: 'center' }}
+                onPress={(e) => { e.stopPropagation(); handleToggleVisibility(item); }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>{item.isAvailable ? 'Hide' : 'Show'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#FEF2F2', borderRadius: 8, alignItems: 'center' }}
+                onPress={(e) => { e.stopPropagation(); handleDeleteProduct(item.id); }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#EF4444' }}>Delete</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </TouchableOpacity>
-
-        <View style={{
-          flexDirection: 'row',
-          borderTopWidth: 1,
-          borderTopColor: '#F1F5F9',
-          backgroundColor: '#FAFBFC',
-        }}>
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              paddingVertical: 12,
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderRightWidth: 1,
-              borderRightColor: '#F1F5F9',
-            }}
-            onPress={() => navigation.navigate(Routes.EditCreateProductScreen, { product: item })}
-          >
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B' }}>Edit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              paddingVertical: 12,
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderRightWidth: 1,
-              borderRightColor: '#F1F5F9',
-            }}
-            onPress={() => handleToggleVisibility(item)}
-          >
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B' }}>{item.isAvailable ? 'Hide' : 'Show'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              paddingVertical: 12,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-            onPress={() => handleDeleteProduct(item.id)}
-          >
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#EF4444' }}>Delete</Text>
-          </TouchableOpacity>
-        </View>
-      </View >
+      </View>
     );
   };
 

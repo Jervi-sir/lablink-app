@@ -2,8 +2,11 @@ export type RoleCode = "student" | "lab" | "wholesale" | "admin";
 
 export interface Wilaya {
   id: number;
-  name: string;
   code: string;
+  number: string;
+  en?: string;
+  fr?: string;
+  ar?: string;
 }
 
 export interface University {
@@ -22,4 +25,7 @@ export interface Department {
 export interface Role {
   id: number;
   code: RoleCode;
+  en?: string;
+  fr?: string;
+  ar?: string;
 }

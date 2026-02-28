@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, Dimensions, Platform, ActivityIndicator, Alert } from "react-native";
+import { View, ScrollView, Dimensions, Platform, ActivityIndicator, Alert, Image } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { Routes } from "@/utils/helpers/routes";
@@ -189,8 +189,16 @@ export default function BusinessOrderDetailScreen() {
               style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}
               onPress={() => navigation.navigate(Routes.BusinessProductDetailScreen, { product })}
             >
-              <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ fontSize: 24 }}>📦</Text>
+              <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+                {product.images && product.images.length > 0 ? (
+                  <Image
+                    source={{ uri: product.images[0].url }}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Text style={{ fontSize: 24 }}>📦</Text>
+                )}
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 15, fontWeight: '800', color: '#111' }}>{product.name}</Text>

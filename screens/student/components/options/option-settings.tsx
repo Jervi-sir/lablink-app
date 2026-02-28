@@ -18,7 +18,7 @@ interface OptionSettingsProps {
 
 export const OptionSettings: React.FC<OptionSettingsProps> = ({ title, items }) => {
   return (
-    <View style={{ marginBottom: 24 }}>
+    <View >
       <Text style={{
         fontSize: 12,
         fontWeight: '800',

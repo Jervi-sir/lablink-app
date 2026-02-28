@@ -8,7 +8,7 @@ export interface BusinessRegistryData {
   password?: string;
   registrationNo: string;
   nif: string;
-  bio: string;
+  description: string;
   specializations: string[];
   laboratoryCategoryId: number | null;
   businessCategoryId: number | null;
@@ -32,7 +32,7 @@ const initialData: BusinessRegistryData = {
   password: 'password',
   registrationNo: '1234',
   nif: '1234',
-  bio: '1234',
+  description: '1234',
   specializations: [],
   laboratoryCategoryId: null,
   businessCategoryId: null,
@@ -58,7 +58,7 @@ export const BusinessRegistryProvider = ({ children }: { children: ReactNode }) 
       password: '',
       registrationNo: '',
       nif: '',
-      bio: '',
+      description: '',
       specializations: [],
       laboratoryCategoryId: null,
       businessCategoryId: null,

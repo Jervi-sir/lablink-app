@@ -62,7 +62,7 @@ export default function LabProfileScreen() {
 
   const businessName = business?.name || 'My Laboratory';
   const wilayaName = business?.wilaya?.name || 'Location';
-  const bio = business?.bio || 'No bio provided for this laboratory.';
+  const description = business?.description || 'No bio provided for this laboratory.';
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
@@ -109,9 +109,32 @@ export default function LabProfileScreen() {
         <View style={{ paddingHorizontal: paddingHorizontal, marginBottom: 24, gap: 8 }}>
           <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>About us</Text>
           <Text style={{ fontSize: 14, color: '#5D6575', lineHeight: 20 }}>
-            {bio}
+            {description}
           </Text>
         </View>
+
+        {/* Contacts */}
+        {business?.contacts && business.contacts.length > 0 && (
+          <View style={{ paddingHorizontal: paddingHorizontal, marginBottom: 24, gap: 12 }}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Contact Information</Text>
+            <View style={{ gap: 8 }}>
+              {business.contacts.map((contact: any, idx: number) => (
+                <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 12, borderRadius: 12, gap: 12, borderWidth: 1, borderColor: '#F0F2F5' }}>
+                  <Text style={{ fontSize: 16 }}>
+                    {contact.platform?.code === 'phone' || contact.platform?.code === 'mobile' ? '📞' :
+                      contact.platform?.code === 'whatsapp' ? '💬' :
+                        contact.platform?.code === 'email' ? '✉️' :
+                          contact.platform?.code === 'website' ? '🌐' : '🔗'}
+                  </Text>
+                  <View>
+                    <Text style={{ fontSize: 10, color: '#9CA3AF', fontWeight: '700', textTransform: 'uppercase' }}>{contact.platform?.en || contact.platform?.code}</Text>
+                    <Text style={{ fontSize: 13, color: '#111', fontWeight: '600' }}>{contact.content}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* Tabs */}
         <View style={{ flexDirection: 'row', paddingHorizontal: paddingHorizontal, borderBottomWidth: 1, borderBottomColor: '#F0F2F5', marginBottom: 16 }}>
