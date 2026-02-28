@@ -261,7 +261,7 @@ export default function BusinessM2Navigation() {
         alignItems: 'center',
         paddingHorizontal: paddingHorizontal,
         paddingTop: 8,
-        marginBottom: 16,
+        marginBottom: 8,
         gap: 12,
       }}>
         <View style={{
@@ -316,7 +316,7 @@ export default function BusinessM2Navigation() {
             <TouchableOpacity
               key={tab}
               style={[
-                { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 100, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0' },
+                { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0' },
                 activeTab === tab && { backgroundColor: '#8B5CF6', borderColor: '#8B5CF6' }
               ]}
               onPress={() => setActiveTab(tab)}

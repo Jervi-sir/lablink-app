@@ -7,6 +7,7 @@ import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { useNavigation } from "@react-navigation/native";
 import { paddingHorizontal } from "@/utils/variables/styles";
+import { useAuthStore } from "@/zustand/auth-store";
 
 const { width } = Dimensions.get('window');
 const PRODUCT_CARD_WIDTH = (width - 48 - 12) / 2;
@@ -15,7 +16,8 @@ const TABS = ['Products', 'Certifications'];
 
 export default function LabProfileScreen() {
   const navigation = useNavigation<any>();
-  const [business, setBusiness] = useState<any>(null);
+  const { auth, setAuth } = useAuthStore();
+  const [business, setBusiness] = useState<any>(auth?.businessProfile || null);
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -25,6 +27,9 @@ export default function LabProfileScreen() {
       const profileRes: any = await api.get(ApiRoutes.auth.business.me);
       const bProfile = profileRes.user?.businessProfile;
       setBusiness(bProfile);
+      if (profileRes.user) {
+        setAuth(profileRes.user);
+      }
 
       if (bProfile?.id) {
         const prodRes: any = await api.get(buildRoute(ApiRoutes.businesses.products, { id: bProfile.id }));

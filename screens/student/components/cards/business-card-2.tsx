@@ -1,6 +1,6 @@
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View } from "react-native";
+import { Image, View } from "react-native";
 
 export const BusinessCard2 = ({
   business, onPress
@@ -28,7 +28,10 @@ export const BusinessCard2 = ({
     >
       <View style={{ flexDirection: 'row', gap: 12, flex: 1 }}>
         <View style={{ width: 60, height: 60, borderRadius: 18, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9' }}>
-          <Text style={{ fontSize: 26 }}>{business.logo}</Text>
+          <Image
+            source={{ uri: business?.logo }}
+            style={{ width: 48, height: 48, borderRadius: 16 }}
+          />
         </View>
         <View style={{ gap: 2, flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

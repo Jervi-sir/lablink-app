@@ -13,8 +13,8 @@ import { useAuthStore } from "@/zustand/auth-store";
 
 export default function BusinessLoginScreen() {
   const navigation = useNavigation<any>();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("bizz@gmail.com");
+  const [password, setPassword] = useState("password");
   const [loading, setLoading] = useState(false);
   const { setAuth, setAuthToken } = useAuthStore();
 

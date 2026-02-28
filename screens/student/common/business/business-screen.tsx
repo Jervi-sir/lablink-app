@@ -160,8 +160,8 @@ export default function BusinessScreen() {
       <View style={{ backgroundColor: '#FFF', padding: 20, borderRadius: 24, borderWidth: 1, borderColor: '#F1F5F9' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
           <View style={{ width: 80, height: 80, borderRadius: 24, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', position: 'relative', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
-            {business.logo ? (
-              <Text style={{ fontSize: 36 }}>{business.logo}</Text>
+            {business?.logo ? (
+              <Text style={{ fontSize: 36 }}>{business?.logo}</Text>
             ) : (
               <View style={{ flex: 1, width: '100%', borderRadius: 20, backgroundColor: '#D1D5DB' }} />
             )}

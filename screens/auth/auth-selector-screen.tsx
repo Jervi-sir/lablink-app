@@ -50,7 +50,7 @@ export default function AuthSelectorScreen() {
       <View style={{ flex: 1 }}>
         {/* Back Button */}
         <TouchableOpacity style={{ paddingHorizontal: 20, paddingVertical: 16 }} onPress={() => navigation.goBack()}>
-          <View style={{ width: 12, height: 12, borderLeftWidth: 2, borderTopWidth: 2, borderColor: '#000', transform: [{ rotate: '-45deg' }] }} />
+          <View style={{ width: 12, height: 12 }} />
         </TouchableOpacity>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20 }}>

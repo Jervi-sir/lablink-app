@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, Dimensions, ActivityIndicator, RefreshControl } from "react-native";
+import { View, ScrollView, Dimensions, ActivityIndicator, RefreshControl, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useState, useCallback, useEffect } from "react";
 import api from "@/utils/api/axios-instance";
@@ -83,10 +83,13 @@ export default function BusinessM1Navigation() {
             <Text style={{ fontSize: 24, fontWeight: '900', color: '#1E293B', marginTop: 4 }} numberOfLines={1}>{business?.name || 'Laboratory Tool'}</Text>
           </View>
           <TouchableOpacity
-            style={{ width: 56, height: 56, borderRadius: 20, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 4, borderWidth: 1, borderColor: '#F1F5F9' }}
+            style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 4, borderWidth: 1, borderColor: '#F1F5F9' }}
             onPress={() => navigation.navigate(Routes.BusinessM5Navigation)}
           >
-            <Text style={{ fontSize: 22 }}>🔬</Text>
+            <Image
+              source={{ uri: business?.logo }}
+              style={{ width: 48, height: 48, borderRadius: 16 }}
+            />
             <View style={{ position: 'absolute', top: -2, right: -2, width: 16, height: 16, borderRadius: 8, backgroundColor: '#10B981', borderWidth: 3, borderColor: '#FFF' }} />
           </TouchableOpacity>
         </View>

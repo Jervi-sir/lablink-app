@@ -28,6 +28,7 @@ export interface BusinessAuth {
   userId: number;
   user?: User;
   fullName: string;
+  logo?: string;
   studentCardId: string;
   departmentId: number;
   department?: Department;

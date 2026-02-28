@@ -44,6 +44,9 @@ export const ApiRoutes = {
     toggleSave: 'businesses/:id/toggle-save',
     featuredLabs: 'businesses/featured-labs',
     topLabs: 'businesses/top-labs',
+    uploadLogo: 'businesses/:id/logo',
+    uploadCertificate: 'businesses/:id/certificate',
+    deleteCertificate: 'businesses/:id/certificate',
   },
   products: {
     show: 'products/:id',
@@ -54,6 +57,9 @@ export const ApiRoutes = {
     trending: 'products/trending-products',
     recent: 'products/recent',
     inventory: 'business/inventory',
+    uploadImages: 'products/:id/images',
+    deleteImage: 'product-images/:id',
+    setMainImage: 'product-images/:id/set-main',
   },
   search: 'search',
   orders: {

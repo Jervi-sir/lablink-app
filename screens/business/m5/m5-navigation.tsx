@@ -1,13 +1,14 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, Switch, ActivityIndicator, RefreshControl, Dimensions } from "react-native";
+import { View, ScrollView, Switch, ActivityIndicator, RefreshControl, Dimensions, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
 import { useState, useCallback, useEffect } from "react";
+import { SheetManager } from "react-native-actions-sheet";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuthStore } from "@/zustand/auth-store";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { paddingHorizontal } from "@/utils/variables/styles";
 import ClockIcon from "@/assets/icons/clock-icon";
@@ -21,6 +22,7 @@ import RevenueIcon from "@/assets/icons/revenue-icon";
 import BellIcon from "@/assets/icons/bell-icon";
 import LanguageIcon from "@/assets/icons/language-icon";
 import InfoIcon from "@/assets/icons/info-icon";
+import { BusinessAuth } from "@/utils/types";
 
 const { width } = Dimensions.get('window');
 
@@ -65,8 +67,9 @@ const SECTIONS = [
 
 export default function BusinessM5Navigation() {
   const navigation = useNavigation<any>();
+  const { auth, setAuthToken, setAuth } = useAuthStore();
   const [isAvailable, setIsAvailable] = useState(true);
-  const [business, setBusiness] = useState<any>(null);
+  const [business, setBusiness] = useState<any>(auth?.businessProfile);
   const [stats, setStats] = useState<any>({ active_orders: 0, products: 0, followers: 0, earnings: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -78,6 +81,9 @@ export default function BusinessM5Navigation() {
         api.get(ApiRoutes.stats)
       ]);
       setBusiness(profileRes.user?.businessProfile || null);
+      if (profileRes.user) {
+        setAuth(profileRes.user);
+      }
       setStats(statsRes || { active_orders: 0, products: 0, followers: 0, earnings: 0 });
     } catch (error) {
       console.error("Error fetching profile/stats:", error);
@@ -98,7 +104,8 @@ export default function BusinessM5Navigation() {
 
   const handleLogout = async () => {
     try {
-      await AsyncStorage.multiRemove(['token', 'user']);
+      await setAuthToken(null);
+      setAuth(null);
       navigation.reset({
         index: 0,
         routes: [{ name: Routes.AuthSelectorScreen }],
@@ -122,22 +129,24 @@ export default function BusinessM5Navigation() {
   const wilayaName = business?.wilaya?.name || 'Location';
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#FFF' }}>
+    <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 60 }}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#8B5CF6']} tintColor="#8B5CF6" />}
       >
         {/* Futuristic Minimal Header */}
-        <View style={{ paddingHorizontal: paddingHorizontal, paddingTop: 40, paddingBottom: 24 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+        <View style={{ paddingHorizontal: paddingHorizontal, paddingTop: 5, paddingBottom: 24 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 11, fontWeight: '800', color: '#8B5CF6', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8 }}>Laboratory Hub</Text>
               <Text style={{ fontSize: 32, fontWeight: '900', color: '#111', letterSpacing: -0.5 }}>{businessName}</Text>
               <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '500', marginTop: 4 }}>{categoryName} • {wilayaName}</Text>
             </View>
-            <View style={{ width: 80, height: 80, borderRadius: 28, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9' }}>
-              <Text style={{ fontSize: 40 }}>🔬</Text>
+            <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9' }}>
+              <Image
+                source={{ uri: business?.logo }}
+                style={{ width: 48, height: 48, borderRadius: 16 }}
+              />
               <View style={{ position: 'absolute', top: -4, right: -4, width: 24, height: 24, borderRadius: 12, backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#FFF' }}>
                 <Text style={{ fontSize: 10, color: '#FFF', fontWeight: '900' }}>P</Text>
               </View>
@@ -219,7 +228,13 @@ export default function BusinessM5Navigation() {
           ))}
 
           <TouchableOpacity
-            onPress={handleLogout}
+            onPress={() => {
+              SheetManager.show('logout-sheet', {
+                payload: {
+                  onLogout: handleLogout
+                }
+              });
+            }}
             style={{
               height: 56,
               borderRadius: 18,
