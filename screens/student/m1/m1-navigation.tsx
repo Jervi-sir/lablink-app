@@ -1,7 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, Dimensions, ActivityIndicator, RefreshControl } from "react-native";
+import { View, ScrollView, Dimensions, ActivityIndicator, RefreshControl, TextInput } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
 import { ButtonTag } from "../components/buttons/button-tag";
@@ -11,6 +11,12 @@ import { useEffect, useState, useCallback } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { useAuthStore } from "@/zustand/auth-store";
+import SearchIcon from "@/assets/icons/search-icon";
+import BellIcon from "@/assets/icons/bell-icon";
+import { paddingHorizontal } from "@/utils/variables/styles";
+import { ProductGrid } from "../components/lists/product-grid";
+import { LabGrid } from "../components/lists/lab-grid";
+import { SearchInput } from "../components/inputs/search-input";
 
 const { width } = Dimensions.get('window');
 
@@ -18,6 +24,7 @@ export default function StudentM1Navigation() {
   const navigation = useNavigation<any>();
   const auth = useAuthStore((s) => s.auth);
 
+  // Discovery State
   const [productCategories, setProductCategories] = useState<any[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -32,6 +39,14 @@ export default function StudentM1Navigation() {
   const [savingProductId, setSavingProductId] = useState<string | null>(null);
 
   const [refreshing, setRefreshing] = useState(false);
+
+  // Search State
+  const [search, setSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<{ products: any[], labs: any[] }>({ products: [], labs: [] });
+  const [searchTab, setSearchTab] = useState('Products');
+  const [searching, setSearching] = useState(false);
+
+  const isSearching = search.length > 0;
 
   const fetchFeaturedLabs = useCallback(async (page: number) => {
     if (page === null) return;
@@ -101,6 +116,25 @@ export default function StudentM1Navigation() {
     }
   }, [selectedCategoryId]);
 
+  const performSearch = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults({ products: [], labs: [] });
+      return;
+    }
+    setSearching(true);
+    try {
+      const res: any = await api.get(ApiRoutes.search, { params: { q: query } });
+      setSearchResults({
+        products: res.products?.data || [],
+        labs: res.labs?.data || []
+      });
+    } catch (error) {
+      console.error("Search error in M1:", error);
+    } finally {
+      setSearching(false);
+    }
+  }, []);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([
@@ -111,18 +145,6 @@ export default function StudentM1Navigation() {
     setRefreshing(false);
   }, [fetchProductCategories, fetchFeaturedLabs, fetchTrendingProducts, selectedCategoryId]);
 
-  // Handle category change
-  useEffect(() => {
-    fetchTrendingProducts(1, selectedCategoryId);
-  }, [selectedCategoryId]);
-
-  // Initial load
-  useEffect(() => {
-    fetchProductCategories();
-    fetchFeaturedLabs(1);
-    // Trending is already handled by the category effect on mount
-  }, []);
-
   const toggleSaveProduct = useCallback(async (productId: string) => {
     if (savingProductId) return;
     try {
@@ -132,6 +154,13 @@ export default function StudentM1Navigation() {
         setTrendingProducts(prev =>
           prev.map(p => p.id.toString() === productId ? { ...p, isSaved: response.isSaved } : p)
         );
+        // Also update search results if they exist
+        setSearchResults(prev => ({
+          ...prev,
+          products: prev.products.map(p =>
+            p.id.toString() === productId ? { ...p, isSaved: response.isSaved } : p
+          )
+        }));
       }
     } catch (error) {
       console.error("Error toggling save:", error);
@@ -140,79 +169,99 @@ export default function StudentM1Navigation() {
     }
   }, [savingProductId]);
 
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search) {
+        performSearch(search);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search, performSearch]);
+
+  // Handle category change
+  useEffect(() => {
+    fetchTrendingProducts(1, selectedCategoryId);
+  }, [selectedCategoryId]);
+
+  // Initial load
+  useEffect(() => {
+    fetchProductCategories();
+    fetchFeaturedLabs(1);
+  }, []);
+
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#137FEC" />
-        }
-      >
-        <View style={{ paddingHorizontal: 16, gap: 20, paddingTop: 16 }}>
+      <View style={{ paddingHorizontal: paddingHorizontal, flexDirection: 'row', gap: 8, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 }}>
+        {/* Search & Filters */}
+        <SearchInput
+          value={search}
+          onChangeText={setSearch}
+        />
+        <TouchableOpacity style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 4 }}>
+          <BellIcon />
+          <View style={{ position: 'absolute', top: 12, right: 12, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444', borderWidth: 2, borderColor: '#FFF' }} />
+        </TouchableOpacity>
+      </View>
 
-          {/* 1. Enhanced Header */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View>
-              <Text style={{ fontSize: 14, fontWeight: '500', color: '#6B7280' }}>Good Morning,</Text>
-              <Text style={{ fontSize: 24, fontWeight: '800', color: '#111' }}>{auth?.studentProfile?.fullName || 'User'} 👋</Text>
-            </View>
-            <TouchableOpacity style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 4 }}>
-              <View style={{ width: 22, height: 22, borderTopLeftRadius: 10, borderTopRightRadius: 10, borderBottomLeftRadius: 3, borderBottomRightRadius: 3, backgroundColor: '#111' }} />
-              <View style={{ position: 'absolute', top: 12, right: 12, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444', borderWidth: 2, borderColor: '#FFF' }} />
-            </TouchableOpacity>
+      {isSearching ? (
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', paddingHorizontal: paddingHorizontal, gap: 12, paddingBottom: 8 }}>
+            {['Products', 'Laboratories'].map(tab => (
+              <ButtonTag
+                key={tab}
+                label={tab}
+                isActive={searchTab === tab}
+                onPress={() => setSearchTab(tab)}
+              />
+            ))}
           </View>
-
-          {/* 2. Search & Filters */}
-          <TouchableOpacity
-            activeOpacity={0.9}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: '#FFF',
-              borderRadius: 16,
-              paddingHorizontal: 16,
-              height: 56,
-              gap: 12,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.05,
-              shadowRadius: 15,
-              elevation: 4,
-            }}
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+            {searching ? (
+              <View style={{ marginTop: 40 }}>
+                <ActivityIndicator color="#137FEC" size="large" />
+              </View>
+            ) : (
+              <>
+                {searchTab === 'Products' ? (
+                  searchResults.products.length > 0 ? (
+                    <ProductGrid
+                      products={searchResults.products}
+                      onProductPress={(item) => navigation.navigate(Routes.ProductScreen, { product: item })}
+                      onToggleSave={(id) => toggleSaveProduct(id)}
+                      savingProductId={savingProductId}
+                      paddingHorizontal={paddingHorizontal}
+                    />
+                  ) : (
+                    <View style={{ alignItems: 'center', marginTop: 40 }}>
+                      <Text style={{ color: '#94A3B8' }}>No products found for "{search}"</Text>
+                    </View>
+                  )
+                ) : (
+                  searchResults.labs.length > 0 ? (
+                    <LabGrid
+                      labs={searchResults.labs}
+                      onLabPress={(item) => navigation.navigate(Routes.BusinessScreen, { labId: item.id, labName: item.name })}
+                      paddingHorizontal={paddingHorizontal}
+                    />
+                  ) : (
+                    <View style={{ alignItems: 'center', marginTop: 40 }}>
+                      <Text style={{ color: '#94A3B8' }}>No laboratories found for "{search}"</Text>
+                    </View>
+                  )
+                )}
+              </>
+            )}
+          </ScrollView>
+        </View>
+      ) : (
+        <>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 12, paddingHorizontal: paddingHorizontal }}
+            style={{ flexGrow: 0, paddingVertical: 8 }}
           >
-            <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#137FEC' }}>
-              <View style={{ position: 'absolute', bottom: -3, right: -3, width: 8, height: 2, backgroundColor: '#137FEC', transform: [{ rotate: '45deg' }] }} />
-            </View>
-            <Text style={{ flex: 1, color: '#9CA3AF', fontSize: 15, fontWeight: '500' }}>Search for equipment or labs...</Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate(Routes.FilterScreen)}
-              style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center' }}
-            >
-              <View style={{ gap: 3 }}>
-                <View style={{ width: 14, height: 2, backgroundColor: '#111', borderRadius: 1 }} />
-                <View style={{ width: 10, height: 2, backgroundColor: '#111', borderRadius: 1, alignSelf: 'center' }} />
-                <View style={{ width: 14, height: 2, backgroundColor: '#111', borderRadius: 1 }} />
-              </View>
-            </TouchableOpacity>
-          </TouchableOpacity>
-
-          {/* 3. Promo Banner */}
-          <View style={{ backgroundColor: '#137FEC', borderRadius: 24, padding: 20, flexDirection: 'row', justifyContent: 'space-between', overflow: 'hidden' }}>
-            <View style={{ flex: 1, gap: 8 }}>
-              <View style={{ backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, alignSelf: 'flex-start' }}>
-                <Text style={{ color: '#FFF', fontSize: 10, fontWeight: '800' }}>LAB ACCESS</Text>
-              </View>
-              <Text style={{ color: '#FFF', fontSize: 20, fontWeight: '800', lineHeight: 26 }}>Get 20% Off on{'\n'}PCR Testing Kits</Text>
-              <TouchableOpacity style={{ backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, alignSelf: 'flex-start', marginTop: 4 }}>
-                <Text style={{ color: '#137FEC', fontWeight: '800', fontSize: 12 }}>Claim Now</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{ width: 100, height: 100, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 50, position: 'absolute', right: -20, bottom: -20 }} />
-          </View>
-
-          {/* 4. Categories */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
             <ButtonTag
               label="All"
               isActive={selectedCategoryId === 'all'}
@@ -228,89 +277,91 @@ export default function StudentM1Navigation() {
             ))}
           </ScrollView>
 
-          {/* 3. Featured Labs */}
-          <View style={{
-            backgroundColor: '#FFF',
-            borderRadius: 16,
-            padding: 16,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.03,
-            shadowRadius: 8,
-            elevation: 2
-          }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <Text style={{ fontSize: 18, fontWeight: '700', color: '#111111' }}>Featured Labs</Text>
-              <TouchableOpacity onPress={() => navigation.navigate(Routes.FeaturedLabsScreen)}>
-                <Text style={{ color: '#137FEC', fontWeight: '700' }}>View all</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20, alignItems: 'center' }}>
-              {featuredLabs.map((lab) => (
-                <BusinessCard1
-                  key={lab.id}
-                  lab={lab}
-                  onPress={() => navigation.navigate(Routes.BusinessScreen, { lab })}
-                />
-              ))}
-              {nextPageLabs && (
-                <TouchableOpacity
-                  onPress={() => fetchFeaturedLabs(nextPageLabs)}
-                  style={{ padding: 10, justifyContent: 'center', alignItems: 'center' }}
-                >
-                  {loadingLabs ? (
-                    <ActivityIndicator size="small" color="#137FEC" />
-                  ) : (
-                    <Text style={{ color: '#137FEC', fontWeight: '600', fontSize: 12 }}>Load more</Text>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 120, marginTop: 8 }}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#137FEC" />
+            }
+          >
+            <View style={{ paddingHorizontal: paddingHorizontal, gap: 20 }}>
+              <View style={{
+                backgroundColor: '#FFF',
+                borderRadius: 16,
+                paddingVertical: 16,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.03,
+                shadowRadius: 8,
+                elevation: 2
+              }}>
+                <View style={{ paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <Text style={{ fontSize: 18, fontWeight: '700', color: '#111111' }}>Featured Labs</Text>
+                  <TouchableOpacity onPress={() => navigation.navigate(Routes.FeaturedLabsScreen)}>
+                    <Text style={{ color: '#137FEC', fontWeight: '700' }}>View all</Text>
+                  </TouchableOpacity>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingHorizontal: 16, alignItems: 'center' }}>
+                  {featuredLabs.map((lab) => (
+                    <BusinessCard1
+                      key={lab.id}
+                      lab={lab}
+                      onPress={() => navigation.navigate(Routes.BusinessScreen, { lab })}
+                    />
+                  ))}
+                  {nextPageLabs && (
+                    <TouchableOpacity
+                      onPress={() => fetchFeaturedLabs(nextPageLabs)}
+                      style={{ padding: 10, justifyContent: 'center', alignItems: 'center' }}
+                    >
+                      {loadingLabs ? (
+                        <ActivityIndicator size="small" color="#137FEC" />
+                      ) : (
+                        <Text style={{ color: '#137FEC', fontWeight: '600', fontSize: 12 }}>Load more</Text>
+                      )}
+                    </TouchableOpacity>
                   )}
-                </TouchableOpacity>
-              )}
-            </ScrollView>
-          </View>
+                </ScrollView>
+              </View>
 
-          {/* 4. Trending Products */}
-          <View style={{ gap: 16 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={{ fontSize: 18, fontWeight: '700', color: '#111111' }}>Trending Products</Text>
-            </View>
+              <View style={{ gap: 16 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ fontSize: 18, fontWeight: '700', color: '#111111' }}>Trending Products</Text>
+                </View>
 
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
-              {trendingProducts.map((product) => (
-                <ProductCard1
-                  key={product.id}
-                  product={product}
-                  onPress={() => navigation.navigate(Routes.ProductScreen, { product })}
-                  onToggleSave={() => toggleSaveProduct(product.id.toString())}
-                  isSaving={savingProductId === product.id.toString()}
+                <ProductGrid
+                  products={trendingProducts}
+                  onProductPress={(product) => navigation.navigate(Routes.ProductScreen, { product })}
+                  onToggleSave={(id) => toggleSaveProduct(id)}
+                  savingProductId={savingProductId}
                 />
-              ))}
-            </View>
 
-            {nextPageProducts && (
-              <TouchableOpacity
-                onPress={() => fetchTrendingProducts(nextPageProducts)}
-                style={{
-                  backgroundColor: '#FFF',
-                  padding: 14,
-                  borderRadius: 12,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderWidth: 1,
-                  borderColor: '#E5E7EB',
-                  marginTop: 8
-                }}
-              >
-                {loadingProducts ? (
-                  <ActivityIndicator size="small" color="#137FEC" />
-                ) : (
-                  <Text style={{ color: '#111', fontWeight: '700', fontSize: 14 }}>View more products</Text>
+                {nextPageProducts && (
+                  <TouchableOpacity
+                    onPress={() => fetchTrendingProducts(nextPageProducts)}
+                    style={{
+                      backgroundColor: '#FFF',
+                      padding: 14,
+                      borderRadius: 12,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: '#E5E7EB',
+                      marginTop: 8
+                    }}
+                  >
+                    {loadingProducts ? (
+                      <ActivityIndicator size="small" color="#137FEC" />
+                    ) : (
+                      <Text style={{ color: '#111', fontWeight: '700', fontSize: 14 }}>View more products</Text>
+                    )}
+                  </TouchableOpacity>
                 )}
-              </TouchableOpacity>
-            )}
-          </View>
-
-        </View>
-      </ScrollView>
+              </View>
+            </View>
+          </ScrollView>
+        </>
+      )}
     </ScreenWrapper>
   );
 }

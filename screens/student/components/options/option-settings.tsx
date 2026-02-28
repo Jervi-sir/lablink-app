@@ -49,11 +49,7 @@ export const OptionSettings: React.FC<OptionSettingsProps> = ({ title, items }) 
             activeOpacity={0.7}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              {item.icon && (
-                <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 18 }}>{item.icon}</Text>
-                </View>
-              )}
+              {item.icon}
               <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B' }}>{item.label}</Text>
             </View>
 

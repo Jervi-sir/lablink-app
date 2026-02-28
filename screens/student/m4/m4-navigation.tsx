@@ -8,6 +8,7 @@ import { Routes } from "@/utils/helpers/routes";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 const { width } = Dimensions.get('window');
 
@@ -119,7 +120,7 @@ export default function StudentM4Navigation() {
     const chat = formatChatData(item);
     return (
       <TouchableOpacity
-        style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 14, backgroundColor: '#FFF', gap: 16 }}
+        style={{ flexDirection: 'row', paddingHorizontal: paddingHorizontal, paddingVertical: 8, gap: 16 }}
         activeOpacity={0.7}
         onPress={() => navigation.navigate(Routes.ChatDetailScreen, { conversation: item, chat })}
       >
@@ -151,27 +152,13 @@ export default function StudentM4Navigation() {
   };
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#FFF' }}>
+    <ScreenWrapper>
       {/* Header */}
-      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, backgroundColor: '#FFF' }}>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
         <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A' }}>Messages</Text>
         <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ fontSize: 20 }}>📝</Text>
         </TouchableOpacity>
-      </View>
-
-      {/* Search Bar */}
-      <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F5F9', borderRadius: 16, paddingHorizontal: 16, height: 52 }}>
-          <Text style={{ fontSize: 16, marginRight: 10 }}>🔍</Text>
-          <TextInput
-            style={{ flex: 1, fontSize: 15, fontWeight: '500', color: '#1E293B' }}
-            placeholder="Search conversations..."
-            placeholderTextColor="#94A3B8"
-            value={search}
-            onChangeText={setSearch}
-          />
-        </View>
       </View>
 
       {isLoading && conversations.length === 0 ? (
@@ -190,7 +177,6 @@ export default function StudentM4Navigation() {
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#137FEC']} />
           }
-          ListHeaderComponent={<Text style={{ fontSize: 14, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 1, paddingHorizontal: 20, marginVertical: 16 }}>All Chats</Text>}
           ListFooterComponent={isLoadingMore ? <ActivityIndicator color="#137FEC" style={{ marginVertical: 16 }} /> : null}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', marginTop: 100 }}>

@@ -9,6 +9,8 @@ import { OrderCard1 } from "../components/cards/order-card-1";
 import { ButtonTag } from "../components/buttons/button-tag";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
+import { SearchInput } from "../components/inputs/search-input";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 const { width } = Dimensions.get('window');
 
@@ -116,48 +118,24 @@ export default function StudentM3Navigation() {
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       {/* Header */}
-      <View style={{ backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20 }}>
-          {!isSearchVisible ? (
-            <>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: '#111' }}>My Orders</Text>
-              <TouchableOpacity
-                onPress={() => setIsSearchVisible(true)}
-                style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ fontSize: 20 }}>🔍</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F9FB', borderRadius: 12, paddingHorizontal: 12, height: 44 }}>
-              <Text style={{ fontSize: 16, marginRight: 8 }}>🔍</Text>
-              <TextInput
-                style={{ flex: 1, fontSize: 15, fontWeight: '600', color: '#1E293B' }}
-                placeholder="Search by order code or product..."
-                value={search}
-                onChangeText={setSearch}
-                autoFocus
-                placeholderTextColor="#94A3B8"
-              />
-              <TouchableOpacity onPress={() => { setIsSearchVisible(false); setSearch(''); }}>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#64748B' }}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-
-        {/* Tabs */}
-        <View style={{ flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 12, gap: 8 }}>
-          {TABS.map(tab => (
-            <ButtonTag
-              key={tab}
-              label={tab}
-              isActive={activeTab === tab}
-              onPress={() => setActiveTab(tab)}
-            />
-          ))}
-        </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal, paddingVertical: 8 }}>
+        <SearchInput
+          value={''}
+          onChangeText={() => { }}
+          placeholder="Search product"
+        />
       </View>
-
+      {/* Tabs */}
+      <View style={{ flexDirection: 'row', paddingHorizontal: paddingHorizontal, paddingBottom: 8, gap: 8 }}>
+        {TABS.map(tab => (
+          <ButtonTag
+            key={tab}
+            label={tab}
+            isActive={activeTab === tab}
+            onPress={() => setActiveTab(tab)}
+          />
+        ))}
+      </View>
       {isLoading && orders.length === 0 ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#137FEC" />
@@ -167,7 +145,7 @@ export default function StudentM3Navigation() {
           data={orders}
           renderItem={renderOrder}
           keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+          contentContainerStyle={{ padding: paddingHorizontal, paddingTop: 0 }}
           showsVerticalScrollIndicator={false}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}

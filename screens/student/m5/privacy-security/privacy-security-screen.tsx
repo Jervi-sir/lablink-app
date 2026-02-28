@@ -7,6 +7,7 @@ import ArrowIcon from "@/assets/icons/arrow-icon";
 
 import { Routes } from "@/utils/helpers/routes";
 import { OptionSettings } from "../../components/options/option-settings";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 export default function PrivacySecurityScreen() {
   const navigation = useNavigation<any>();
@@ -23,15 +24,15 @@ export default function PrivacySecurityScreen() {
 
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
-      <View style={{ height: 60, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+    <ScreenWrapper>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Privacy & Security</Text>
         <View style={{ width: 44 }} />
       </View>
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <ScrollView contentContainerStyle={{ padding: paddingHorizontal }}>
         {renderSection("Security", [
           { label: "Change Password", route: Routes.ChangePasswordScreen },
           { label: "Two-Factor Authentication", route: Routes.TwoFactorAuthScreen },
@@ -40,7 +41,6 @@ export default function PrivacySecurityScreen() {
         {renderSection("Privacy", [
           { label: "Profile Visibility", route: Routes.ProfileVisibilityScreen },
           { label: "Data Usage", route: Routes.DataUsageScreen },
-          { label: "Blocked Users" }
         ])}
       </ScrollView>
     </ScreenWrapper>

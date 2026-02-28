@@ -4,20 +4,21 @@ import TouchableOpacity from "@/components/touchable-opacity";
 import { View, TextInput, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 export default function ContactSupportScreen() {
   const navigation = useNavigation();
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
-      <View style={{ height: 60, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+    <ScreenWrapper>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Contact Support</Text>
         <View style={{ width: 44 }} />
       </View>
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <ScrollView contentContainerStyle={{ padding: paddingHorizontal }}>
         <View style={{ backgroundColor: '#137FEC', padding: 24, borderRadius: 24, marginBottom: 24 }}>
           <Text style={{ fontSize: 20, fontWeight: '800', color: '#FFF', marginBottom: 8 }}>How can we help?</Text>
           <Text style={{ fontSize: 14, color: '#DBEAFE', lineHeight: 20 }}>Send us a message and our team will get back to you within 24 hours.</Text>

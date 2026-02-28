@@ -21,9 +21,10 @@ export const ButtonTag: React.FC<ButtonTagProps> = ({
       onPress={onPress}
       activeOpacity={0.7}
       style={[{
+        height: 28,
+        justifyContent: 'center',
         paddingHorizontal: 20,
-        paddingVertical: 8,
-        borderRadius: 14,
+        borderRadius: 8,
         backgroundColor: isActive ? '#137FEC' : '#FFF',
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },

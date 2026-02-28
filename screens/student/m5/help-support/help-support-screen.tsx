@@ -6,20 +6,21 @@ import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 
 import { Routes } from "@/utils/helpers/routes";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 export default function HelpSupportScreen() {
   const navigation = useNavigation<any>();
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
-      <View style={{ height: 60, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+    <ScreenWrapper >
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Help & Support</Text>
         <View style={{ width: 44 }} />
       </View>
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <ScrollView contentContainerStyle={{ padding: paddingHorizontal }}>
         <View style={{ backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', overflow: 'hidden' }}>
           <TouchableOpacity style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 18, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' }} onPress={() => navigation.navigate(Routes.FAQScreen)}>
             <Text style={{ fontSize: 16, fontWeight: '700', color: '#1E293B' }}>Frequently Asked Questions</Text>

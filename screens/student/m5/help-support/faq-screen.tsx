@@ -7,6 +7,7 @@ import ArrowIcon from "@/assets/icons/arrow-icon";
 import { useState } from "react";
 
 import { OptionSettings2 } from "../../components/options/option-settings-2";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 const FAQS = [
   { q: "How do I track my order?", a: "You can track your order in the 'My Orders' section of the app. We provide real-time updates as your equipment moves from proposal to delivery." },
@@ -20,15 +21,15 @@ export default function FAQScreen() {
   const [expanded, setExpanded] = useState<number | null>(null);
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
-      <View style={{ height: 60, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+    <ScreenWrapper>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>FAQs</Text>
         <View style={{ width: 44 }} />
       </View>
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <ScrollView contentContainerStyle={{ padding: paddingHorizontal }}>
         {FAQS.map((item, index) => (
           <OptionSettings2
             key={index}

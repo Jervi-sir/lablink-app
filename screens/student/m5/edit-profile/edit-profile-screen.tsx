@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
 import { useAuthStore } from "@/zustand/auth-store";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 export default function EditProfileScreen() {
   const navigation = useNavigation();
@@ -65,15 +66,15 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
-      <View style={{ height: 60, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+    <ScreenWrapper>
+      <View style={{ height: 60, backgroundColor: '#', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Edit Profile</Text>
         <View style={{ width: 44 }} />
       </View>
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <ScrollView contentContainerStyle={{ padding: paddingHorizontal, flexGrow: 1 }}>
         <View style={{ marginBottom: 20 }}>
           <Text style={{ fontSize: 14, fontWeight: '700', color: '#64748B', marginBottom: 8 }}>Full Name</Text>
           <TextInput
@@ -103,7 +104,8 @@ export default function EditProfileScreen() {
             borderRadius: 16,
             justifyContent: 'center',
             alignItems: 'center',
-            marginTop: 20
+            marginTop: 'auto',
+            marginBottom: 20
           }}
         >
           {isUpdating ? (

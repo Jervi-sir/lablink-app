@@ -5,7 +5,7 @@ import { View } from "react-native";
 export const OrderCard1 = ({ item, onPress }: { item: any, onPress: () => void }) => {
   return (
     <TouchableOpacity
-      style={{ backgroundColor: '#FFF', borderRadius: 20, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#F1F5F9' }}
+      style={{ backgroundColor: '#FFF', borderRadius: 20, padding: 16, marginBottom: 8, borderWidth: 1, borderColor: '#F1F5F9' }}
       activeOpacity={0.7}
       onPress={onPress}
     >

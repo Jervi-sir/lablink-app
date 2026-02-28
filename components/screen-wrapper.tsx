@@ -67,7 +67,7 @@ export const ScreenWrapper: React.FC<Props> = ({
   );
 
   // Make body transparent if we have an image behind it
-  const bodyBaseBg = backgroundImage ? 'transparent' : '#F6F7F8';
+  const bodyBaseBg = backgroundImage ? 'transparent' : '#F8F9FB';
 
   const Body = (
     <View

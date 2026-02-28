@@ -1,11 +1,6 @@
 import { Dimensions, Platform, View } from "react-native";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Routes } from "@/utils/helpers/routes";
-import M1Icon from "@/assets/icons/menu/m1-icon";
-import M2Icon from "@/assets/icons/menu/m2-icon";
-import M3Icon from "@/assets/icons/menu/m3-icon";
-import M4Icon from "@/assets/icons/menu/m4-icon";
-import M5Icon from "@/assets/icons/menu/m5-icon";
 import TouchableOpacity from "@/components/touchable-opacity";
 import { useNavigationState } from "@react-navigation/native";
 import Text from "@/components/text";
@@ -14,15 +9,20 @@ import StudentM2Navigation from "./m2/m2-navigation";
 import StudentM3Navigation from "./m3/m3-navigation";
 import StudentM4Navigation from "./m4/m4-navigation";
 import StudentM5Navigation from "./m5/m5-navigation";
+import M1StudentIcon from "@/assets/icons/menu/student/m1-student-icon";
+import M2StudentIcon from "@/assets/icons/menu/student/m2-student-icon";
+import M3StudentIcon from "@/assets/icons/menu/student/m3-student-icon";
+import M4StudentIcon from "@/assets/icons/menu/student/m4-student-icon";
+import M5StudentIcon from "@/assets/icons/menu/student/m5-student-icon";
 
 function useTabScreens() {
 
   return [
-    { key: 'M1', label: 'Home', routeName: Routes.M1, component: StudentM1Navigation, icon: M1Icon },
-    { key: 'M2', label: 'Search', routeName: Routes.M2, component: StudentM2Navigation, icon: M2Icon },
-    { key: 'M3', label: 'Orders', routeName: Routes.M3, component: StudentM3Navigation, icon: M3Icon },
-    { key: 'M4', label: 'Inbox', routeName: Routes.M4, component: StudentM4Navigation, icon: M4Icon },
-    { key: 'M5', label: 'Profile', routeName: Routes.M5, component: StudentM5Navigation, icon: M5Icon },
+    { key: 'M1', label: 'Home', routeName: Routes.M1, component: StudentM1Navigation, icon: M1StudentIcon },
+    { key: 'M2', label: 'Search', routeName: Routes.M2, component: StudentM2Navigation, icon: M2StudentIcon },
+    { key: 'M3', label: 'Orders', routeName: Routes.M3, component: StudentM3Navigation, icon: M3StudentIcon },
+    { key: 'M4', label: 'Inbox', routeName: Routes.M4, component: StudentM4Navigation, icon: M4StudentIcon },
+    { key: 'M5', label: 'Profile', routeName: Routes.M5, component: StudentM5Navigation, icon: M5StudentIcon },
   ];
 }
 

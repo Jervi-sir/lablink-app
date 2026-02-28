@@ -11,9 +11,10 @@ import { ProductCard1 } from "../components/cards/product-card-1";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const { width } = Dimensions.get('window');
-const COLUMN_WIDTH = (width - 48) / 2;
+import { ProductGrid } from "../components/lists/product-grid";
+import { LabGrid } from "../components/lists/lab-grid";
+import { SearchInput } from "../components/inputs/search-input";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 const RECENT_SEARCHES_KEY = 'lablink_recent_searches';
 
@@ -142,7 +143,7 @@ export default function StudentM2Navigation() {
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
       {/* 1. Recent Searches */}
       {recentSearches.length > 0 && (
-        <View style={{ marginTop: 24, paddingHorizontal: 20 }}>
+        <View style={{ marginTop: 8, paddingHorizontal: paddingHorizontal }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <Text style={{ fontSize: 13, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1 }}>Recent Searches</Text>
             <TouchableOpacity onPress={clearRecentSearches}><Text style={{ fontSize: 12, fontWeight: '700', color: '#137FEC' }}>Clear</Text></TouchableOpacity>
@@ -161,9 +162,11 @@ export default function StudentM2Navigation() {
       )}
 
       {/* 2. Top Laboratories */}
-      <View style={{ marginTop: 24, paddingHorizontal: 20 }}>
-        <Text style={{ fontSize: 13, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Top Laboratories</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingRight: 20 }}>
+      <View style={{ marginTop: 24 }}>
+        <View style={{ paddingHorizontal: paddingHorizontal }}>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Top Laboratories</Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingHorizontal: paddingHorizontal }}>
           {topLabs.map(lab => (
             <BusinessCard1
               key={lab.id}
@@ -175,23 +178,14 @@ export default function StudentM2Navigation() {
       </View>
 
       {/* 3. Recent Products */}
-      <View style={{ marginTop: 24, paddingHorizontal: 20 }}>
+      <View style={{ marginTop: 24, paddingHorizontal: paddingHorizontal }}>
         <Text style={{ fontSize: 13, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Recent Products</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 12 }}>
-          {recentProducts.map(item => (
-            <ProductCard1
-              key={item.id}
-              product={{
-                ...item,
-                lab: item.business?.name || 'Unknown Lab',
-                price: `${item.price.toLocaleString()} DA`
-              }}
-              onPress={() => navigation.navigate(Routes.ProductScreen, { product: item })}
-              onToggleSave={() => toggleSaveProduct(item.id.toString())}
-              isSaving={savingProductId === item.id.toString()}
-            />
-          ))}
-        </View>
+        <ProductGrid
+          products={recentProducts}
+          onProductPress={(item) => navigation.navigate(Routes.ProductScreen, { product: item })}
+          onToggleSave={(id) => toggleSaveProduct(id)}
+          savingProductId={savingProductId}
+        />
       </View>
     </ScrollView>
   );
@@ -199,7 +193,7 @@ export default function StudentM2Navigation() {
   const renderResults = () => (
     <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
       {/* Tab Switcher */}
-      <View style={{ flexDirection: 'row', padding: 16, gap: 12 }}>
+      <View style={{ flexDirection: 'row', paddingHorizontal: paddingHorizontal, gap: 12, paddingVertical: 8 }}>
         {['Products', 'Laboratories'].map(tab => (
           <ButtonTag
             key={tab}
@@ -210,99 +204,62 @@ export default function StudentM2Navigation() {
         ))}
       </View>
 
-      {isLoading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator color="#137FEC" size="large" />
-        </View>
-      ) : (
-        <FlatList
-          data={activeTab === 'Products' ? results.products : results.labs}
-          keyExtractor={item => item.id.toString()}
-          numColumns={2}
-          key={activeTab} // Force re-render when switching tabs if needed for column layout consistency
-          columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 16 }}
-          contentContainerStyle={{ paddingVertical: 16 }}
-          ListEmptyComponent={
-            <View style={{ alignItems: 'center', marginTop: 40, width: '100%' }}>
-              <Text style={{ color: '#94A3B8' }}>No results found for "{search}"</Text>
-            </View>
-          }
-          renderItem={({ item }) => {
-            if (activeTab === 'Products') {
-              return (
-                <ProductCard1
-                  product={{
-                    ...item,
-                    lab: item.business?.name || 'Lab',
-                    price: `${item.price.toLocaleString()} DA`
-                  }}
-                  onPress={() => {
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        {isLoading ? (
+          <View style={{ marginTop: 40 }}>
+            <ActivityIndicator color="#137FEC" size="large" />
+          </View>
+        ) : (
+          <>
+            {activeTab === 'Products' ? (
+              results.products.length > 0 ? (
+                <ProductGrid
+                  products={results.products}
+                  onProductPress={(item) => {
                     saveRecentSearch(search);
                     navigation.navigate(Routes.ProductScreen, { product: item });
                   }}
-                  onToggleSave={() => toggleSaveProduct(item.id.toString())}
-                  isSaving={savingProductId === item.id.toString()}
-                  style={{ marginBottom: 16 }}
+                  onToggleSave={(id) => toggleSaveProduct(id)}
+                  savingProductId={savingProductId}
+                  paddingHorizontal={20}
                 />
-              );
-            }
-            return (
-              <TouchableOpacity
-                style={{
-                  width: COLUMN_WIDTH,
-                  backgroundColor: '#FFF',
-                  borderRadius: 20,
-                  padding: 16,
-                  marginBottom: 16,
-                  alignItems: 'center',
-                  borderWidth: 1,
-                  borderColor: '#F1F5F9',
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 8,
-                  elevation: 2
-                }}
-                onPress={() => {
-                  saveRecentSearch(search);
-                  navigation.navigate(Routes.BusinessScreen, { labId: item.id, labName: item.name });
-                }}
-              >
-                <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
-                  <Text style={{ fontSize: 32 }}>🏢</Text>
+              ) : (
+                <View style={{ alignItems: 'center', marginTop: 40 }}>
+                  <Text style={{ color: '#94A3B8' }}>No products found for "{search}"</Text>
                 </View>
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#1E293B', textAlign: 'center' }} numberOfLines={1}>{item.name}</Text>
-                <Text style={{ fontSize: 11, fontWeight: '600', color: '#94A3B8', marginTop: 4, textTransform: 'uppercase' }}>{item.wilaya?.name || 'Laboratory'}</Text>
-              </TouchableOpacity>
-            );
-          }}
-        />
-      )}
+              )
+            ) : (
+              results.labs.length > 0 ? (
+                <LabGrid
+                  labs={results.labs}
+                  onLabPress={(item) => {
+                    saveRecentSearch(search);
+                    navigation.navigate(Routes.BusinessScreen, { labId: item.id, labName: item.name });
+                  }}
+                  paddingHorizontal={20}
+                />
+              ) : (
+                <View style={{ alignItems: 'center', marginTop: 40 }}>
+                  <Text style={{ color: '#94A3B8' }}>No laboratories found for "{search}"</Text>
+                </View>
+              )
+            )}
+          </>
+        )}
+      </ScrollView>
     </View>
   );
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#FFF' }}>
+    <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       {/* Dynamic Header */}
-      <View style={{ paddingHorizontal: 20, paddingVertical: 16, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 16, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#F1F5F9' }}>
-          <Text style={{ fontSize: 16, marginRight: 10 }}>🔍</Text>
-          <TextInput
-            style={{ flex: 1, fontSize: 15, fontWeight: '600', color: '#1E293B' }}
-            placeholder="Search equipment, labs, chemicals..."
-            value={search}
-            onChangeText={setSearch}
-            onSubmitEditing={handleSearchSubmit}
-            placeholderTextColor="#94A3B8"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          {isSearching && (
-            <TouchableOpacity onPress={() => setSearch('')}>
-              <Text style={{ fontSize: 16, color: '#94A3B8', padding: 4 }}>✕</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+      <View style={{ flexDirection: 'row', paddingHorizontal: paddingHorizontal, paddingVertical: 8, alignItems: 'center' }}>
+        <SearchInput
+          value={search}
+          onChangeText={setSearch}
+          onSubmitEditing={handleSearchSubmit}
+          placeholder="Search equipment, labs, chemicals..."
+        />
       </View>
 
       {isSearching ? renderResults() : renderDiscovery()}
