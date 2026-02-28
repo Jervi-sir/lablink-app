@@ -4,10 +4,12 @@ import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView, TextInput, FlatList, Dimensions, ActivityIndicator, RefreshControl } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
 import moment from "moment";
+import { paddingHorizontal } from "@/utils/variables/styles";
+import SearchIcon from "@/assets/icons/search-icon";
 
 const { width } = Dimensions.get('window');
 
@@ -21,8 +23,9 @@ export default function BusinessM3Navigation() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [nextPage, setNextPage] = useState<number | null>(1);
+  const isFirstRender = useRef(true);
 
-  const TABS = ['All', 'Pending', 'Processing', 'Ready', 'Done'];
+
 
   const fetchOrders = useCallback(async (page: number = 1, shouldRefresh: boolean = false) => {
     if (page === 1 && !shouldRefresh) setIsLoading(true);
@@ -62,6 +65,10 @@ export default function BusinessM3Navigation() {
 
   // Debounced search
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       fetchOrders(1);
     }, 500);
@@ -148,7 +155,7 @@ export default function BusinessM3Navigation() {
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       {/* 1. Dashboard Header */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 16, marginBottom: 20 }}>
+      {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: paddingHorizontal, paddingTop: 16, marginBottom: 20 }}>
         <View>
           <Text style={{ fontSize: 24, fontWeight: '800', color: '#111' }}>Order Hub</Text>
           <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '500', marginTop: 2 }}>Manage procurement requests</Text>
@@ -160,30 +167,21 @@ export default function BusinessM3Navigation() {
           <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: counts.pending > 0 ? '#8B5CF6' : '#94A3B8', marginRight: 8 }} />
           <Text style={{ fontSize: 13, fontWeight: '800', color: '#111' }}>{counts.pending} New</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
 
-      {/* 2. Quick Metrics Row */}
-      <View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 20,
-            paddingVertical: 8, // Space for shadows
-            gap: 12,
-          }}
-        >
-          <MetricCard label="Pending" value={counts.pending} color="#8B5CF6" />
-          <MetricCard label="Processing" value={counts.processing} />
-          <MetricCard label="Ready" value={counts.ready} />
-          <MetricCard label="Completed" value={counts.completed} />
-        </ScrollView>
-      </View>
-
-      {/* 3. Filter Sticky Bar */}
-      <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 14, paddingHorizontal: 16, height: 48, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 16 }}>
-          <Text style={{ marginRight: 10, fontSize: 16 }}>🔍</Text>
+      {/* 3. Search Bar */}
+      <View style={{ paddingHorizontal: paddingHorizontal, marginTop: 8 }}>
+        <View style={{
+          flexDirection: 'row', gap: 8,
+          alignItems: 'center',
+          backgroundColor: '#FFF',
+          borderRadius: 14,
+          paddingHorizontal: 16,
+          height: 48,
+          borderWidth: 1,
+          borderColor: '#E2E8F0',
+        }}>
+          <SearchIcon />
           <TextInput
             style={{ flex: 1, fontSize: 14, fontWeight: '600', color: '#111' }}
             placeholder="Search Order ID or Researcher..."
@@ -192,24 +190,52 @@ export default function BusinessM3Navigation() {
             onChangeText={setSearchQuery}
           />
         </View>
+      </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingBottom: 4 }}>
-          {TABS.map(tab => (
-            <TouchableOpacity
-              key={tab}
-              style={{
-                paddingHorizontal: 18,
-                paddingVertical: 10,
-                borderRadius: 100,
-                backgroundColor: activeTab === tab ? '#8B5CF6' : '#FFF',
-                borderWidth: 1,
-                borderColor: activeTab === tab ? '#8B5CF6' : '#E2E8F0'
-              }}
-              onPress={() => setActiveTab(tab)}
-            >
-              <Text style={{ fontSize: 13, fontWeight: '700', color: activeTab === tab ? '#FFF' : '#64748B' }}>{tab}</Text>
-            </TouchableOpacity>
-          ))}
+      {/* 2. Quick Metrics Row */}
+      <View style={{ paddingVertical: 8, }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: paddingHorizontal,
+            gap: 12,
+          }}
+        >
+          <MetricCard
+            label="All"
+            value={counts.pending + counts.processing + counts.ready + counts.completed}
+            isActive={activeTab === 'All'}
+            onPress={() => setActiveTab('All')}
+          />
+          <MetricCard
+            label="Pending"
+            value={counts.pending}
+            color="#8B5CF6"
+            isActive={activeTab === 'Pending'}
+            onPress={() => setActiveTab('Pending')}
+          />
+          <MetricCard
+            label="Processing"
+            value={counts.processing}
+            color="#F59E0B"
+            isActive={activeTab === 'Processing'}
+            onPress={() => setActiveTab('Processing')}
+          />
+          <MetricCard
+            label="Ready"
+            value={counts.ready}
+            color="#10B981"
+            isActive={activeTab === 'Ready'}
+            onPress={() => setActiveTab('Ready')}
+          />
+          <MetricCard
+            label="Done"
+            value={counts.completed}
+            color="#64748B"
+            isActive={activeTab === 'Done'}
+            onPress={() => setActiveTab('Done')}
+          />
         </ScrollView>
       </View>
 
@@ -223,7 +249,7 @@ export default function BusinessM3Navigation() {
           data={orders}
           renderItem={renderOrderItem}
           keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingHorizontal: paddingHorizontal, paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#8B5CF6']} />
@@ -246,23 +272,28 @@ export default function BusinessM3Navigation() {
   );
 }
 
-function MetricCard({ label, value, color }: { label: string, value: number, color?: string }) {
+function MetricCard({ label, value, color, isActive, onPress }: { label: string, value: number, color?: string, isActive?: boolean, onPress?: () => void }) {
+  const activeColor = color || '#8B5CF6';
   return (
-    <View style={{
-      minWidth: 110,
-      backgroundColor: '#FFF',
-      padding: 16,
-      borderRadius: 18,
-      borderLeftWidth: 4,
-      borderLeftColor: color || '#E2E8F0',
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.06,
-      shadowRadius: 10,
-      elevation: 2,
-    }}>
-      <Text style={{ fontSize: 11, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', marginBottom: 6 }}>{label}</Text>
-      <Text style={{ fontSize: 20, fontWeight: '800', color: color || '#111' }}>{value}</Text>
-    </View>
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={onPress}
+      style={{
+        flexDirection: 'row', alignItems: 'center', gap: 8,
+        minWidth: 60,
+        backgroundColor: isActive ? activeColor : '#FFF',
+        padding: 8,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: isActive ? activeColor : '#F1F5F9',
+        shadowColor: activeColor,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isActive ? 0.3 : 0,
+        shadowRadius: 10,
+        elevation: isActive ? 4 : 0,
+      }}>
+      <Text style={{ fontSize: 14, fontWeight: 700, color: isActive ? 'rgba(255,255,255,0.7)' : '#94A3B8', textTransform: 'uppercase' }}>{label}</Text>
+      <Text style={{ fontSize: 12, fontWeight: 700, color: isActive ? '#FFF' : '#111' }}>({value})</Text>
+    </TouchableOpacity>
   );
 }

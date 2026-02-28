@@ -7,6 +7,7 @@ import ArrowIcon from "@/assets/icons/arrow-icon";
 import { useState, useEffect, useCallback } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 export default function EditContactScreen() {
   const navigation = useNavigation<any>();
@@ -85,8 +86,8 @@ export default function EditContactScreen() {
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
-      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal, }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>Contact Information</Text>
@@ -99,7 +100,7 @@ export default function EditContactScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingHorizontal: paddingHorizontal }}>
           <View style={{ backgroundColor: '#FFF', padding: 16, borderRadius: 20, marginBottom: 24, borderWidth: 1, borderColor: '#F1F5F9' }}>
             <Text style={{ fontSize: 13, color: '#64748B', lineHeight: 20, fontWeight: '500' }}>Update your public contact details. This information will be visible to researchers for technical inquiries and communication.</Text>
           </View>

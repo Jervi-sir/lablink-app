@@ -8,6 +8,11 @@ import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
 import { Routes } from "@/utils/helpers/routes";
 import ArrowIcon from "@/assets/icons/arrow-icon";
+import RevenueIcon from "@/assets/icons/revenue-icon";
+import ProductIcon from "@/assets/icons/product-icon";
+import ProfileIcon from "@/assets/icons/profile-icon";
+import OrderIcon from "@/assets/icons/order-icon";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 40 - 16) / 2;
@@ -49,10 +54,10 @@ export default function BusinessM1Navigation() {
   };
 
   const METRICS = [
-    { id: '1', label: 'Est. Earnings', value: `${stats?.earnings || 0} DA`, icon: '💰', color: '#8B5CF6' },
-    { id: '2', label: 'Active Orders', value: `${stats?.active_orders || 0}`, icon: '📦', color: '#3B82F6' },
-    { id: '3', label: 'Total Products', value: `${stats?.products || 0}`, icon: '🧪', color: '#F59E0B' },
-    { id: '4', label: 'Lab Followers', value: `${stats?.followers || 0}`, icon: '�', color: '#10B981' },
+    { id: '1', label: 'Est. Earnings', value: `${stats?.earnings || 0} DA`, icon: <RevenueIcon />, color: '#8B5CF6' },
+    { id: '2', label: 'Active Orders', value: `${stats?.active_orders || 0}`, icon: <OrderIcon />, color: '#3B82F6' },
+    { id: '3', label: 'Total Products', value: `${stats?.products || 0}`, icon: <ProductIcon />, color: '#F59E0B' },
+    { id: '4', label: 'Lab Followers', value: `${stats?.followers || 0}`, icon: <ProfileIcon />, color: '#10B981' },
   ];
 
   if (loading && !refreshing) {
@@ -67,7 +72,7 @@ export default function BusinessM1Navigation() {
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: paddingHorizontal, paddingTop: 8, paddingBottom: 40 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#8B5CF6']} />}
       >
 
@@ -103,7 +108,7 @@ export default function BusinessM1Navigation() {
               borderColor: '#F8FAFC'
             }}>
               <View style={{ width: 40, height: 40, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 14, backgroundColor: stat.color + '10' }}>
-                <Text style={{ fontSize: 20 }}>{stat.icon}</Text>
+                {stat.icon}
               </View>
               <Text style={{ fontSize: 13, fontWeight: '700', color: '#94A3B8', marginBottom: 6 }}>{stat.label}</Text>
               <Text style={{ fontSize: 19, fontWeight: '900', color: '#1E293B' }}>{stat.value}</Text>

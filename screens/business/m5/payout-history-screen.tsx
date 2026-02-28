@@ -4,6 +4,7 @@ import TouchableOpacity from "@/components/touchable-opacity";
 import { View, FlatList } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 const HISTORY = [
   { id: '1', date: 'Feb 20, 2024', amount: '124,500 DA', status: 'Completed', ref: 'PAY-88221' },
@@ -17,8 +18,8 @@ export default function PayoutHistoryScreen() {
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
-      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>Payout History</Text>
@@ -28,7 +29,7 @@ export default function PayoutHistoryScreen() {
       <FlatList
         data={HISTORY}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: paddingHorizontal, paddingBottom: 40 }}
         ListHeaderComponent={
           <View style={{ backgroundColor: '#111', padding: 24, borderRadius: 28, marginBottom: 32, alignItems: 'center' }}>
             <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 }}>Current Balance</Text>

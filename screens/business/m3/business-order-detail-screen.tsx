@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import moment from "moment";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 const { width } = Dimensions.get('window');
 
@@ -106,12 +107,9 @@ export default function BusinessOrderDetailScreen() {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        backgroundColor: '#FFF',
-        borderBottomWidth: 1,
-        borderBottomColor: '#F1F5F9',
+        paddingHorizontal: paddingHorizontal,
       }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>Order Details</Text>
@@ -120,7 +118,7 @@ export default function BusinessOrderDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 150 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 10, paddingHorizontal: paddingHorizontal, paddingBottom: 150 }}>
 
         {/* 1. Order Summary Card */}
         <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#F1F5F9', marginBottom: 24 }}>
@@ -159,7 +157,7 @@ export default function BusinessOrderDetailScreen() {
         <Text style={{ fontSize: 14, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 16, marginLeft: 4 }}>Fulfillment Workflow</Text>
         <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#F1F5F9', marginBottom: 24 }}>
           {steps.map((step, index) => (
-            <View key={step.id} style={{ flexDirection: 'row', gap: 16 }}>
+            <View key={step.id} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 16 }}>
               <View style={{ alignItems: 'center', width: 24 }}>
                 <View style={[
                   { width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 2, backgroundColor: '#FFF' },
@@ -236,7 +234,7 @@ export default function BusinessOrderDetailScreen() {
       </ScrollView>
 
       {/* Bottom Management Actions */}
-      <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#FFF', padding: 20, paddingBottom: Platform.OS === 'ios' ? 34 : 20, flexDirection: 'row', gap: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
+      <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#FFF', padding: 20, paddingHorizontal: paddingHorizontal, paddingBottom: Platform.OS === 'ios' ? 34 : 20, flexDirection: 'row', gap: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
         <TouchableOpacity
           style={{ flex: 1, height: 56, borderRadius: 16, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}
           onPress={() => navigation.navigate(Routes.ChatDetailScreen, {

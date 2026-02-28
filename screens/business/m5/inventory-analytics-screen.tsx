@@ -4,20 +4,21 @@ import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 export default function InventoryAnalyticsScreen() {
   const navigation = useNavigation<any>();
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
-      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', paddingHorizontal: paddingHorizontal }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#111', marginLeft: 16 }}>Inventory Analytics</Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: paddingHorizontal }}>
         <View style={{ backgroundColor: '#111', padding: 24, borderRadius: 28, marginBottom: 24 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: '700' }}>STOCK HEALTH</Text>

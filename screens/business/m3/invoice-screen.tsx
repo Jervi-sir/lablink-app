@@ -7,6 +7,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 const { width } = Dimensions.get('window');
 
@@ -69,24 +70,23 @@ export default function BusinessInvoiceScreen() {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        backgroundColor: '#FFF',
+        paddingHorizontal: paddingHorizontal,
       }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>Invoice Document</Text>
-        <TouchableOpacity style={{ padding: 8 }} onPress={() => Alert.alert("Export", "Drafting PDF...")}>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: '#FFFFFF' }}>Invoice Document</Text>
+        <TouchableOpacity style={{ padding: 8, backgroundColor: '#FFFFFF', borderRadius: 8 }} onPress={() => Alert.alert("Export", "Drafting PDF...")}>
           <Text style={{ color: '#8B5CF6', fontWeight: '800' }}>Export</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 60, alignItems: 'center' }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: paddingHorizontal, paddingBottom: 60, alignItems: 'center' }}>
 
         {/* The Invoice Paper */}
         <View style={{
           width: width - 40,
-          backgroundColor: '#FFF',
+          backgroundColor: '#FFFFFF',
           padding: 24,
           borderRadius: 8,
           shadowColor: "#000",

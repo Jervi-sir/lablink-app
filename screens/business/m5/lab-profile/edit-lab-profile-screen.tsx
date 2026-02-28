@@ -8,6 +8,7 @@ import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { SheetManager } from "react-native-actions-sheet";
 import ArrowIcon from "@/assets/icons/arrow-icon";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 export default function EditLabProfileScreen() {
   const navigation = useNavigation<any>();
@@ -122,13 +123,10 @@ export default function EditLabProfileScreen() {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        backgroundColor: '#FFF',
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F2F5',
+        paddingHorizontal: paddingHorizontal,
       }}>
         <TouchableOpacity
-          style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}
+          style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}
           onPress={() => navigation.goBack()}
         >
           <ArrowIcon size={24} color="#111" />
@@ -147,10 +145,10 @@ export default function EditLabProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 40 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 40, paddingHorizontal: paddingHorizontal }}>
 
         {/* Profile Picture Section */}
-        <View style={{ alignItems: 'center', paddingVertical: 12 }}>
+        <View style={{ alignItems: 'center', paddingVertical: paddingHorizontal }}>
           <View style={{ width: 140, height: 140, backgroundColor: '#F1F5F9', borderRadius: 70, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0', position: 'relative' }}>
             <Text style={{ fontSize: 60 }}>🔬</Text>
             <TouchableOpacity style={{ position: 'absolute', bottom: 4, right: 4, width: 36, height: 36, backgroundColor: '#8B5CF6', borderRadius: 18, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#FFF' }}>
@@ -178,7 +176,7 @@ export default function EditLabProfileScreen() {
 
           <View style={{ gap: 8 }}>
             <Text style={{ fontSize: 13, fontWeight: '700', color: '#64748B' }}>Description / Bio</Text>
-            <View style={[{ height: 120, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 14, backgroundColor: '#F8FAFC', paddingHorizontal: 16, paddingVertical: 12 }]}>
+            <View style={[{ height: 120, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 14, backgroundColor: '#F8FAFC', paddingHorizontal: 16, paddingVertical: paddingHorizontal }]}>
               <TextInput
                 style={[{ fontSize: 14, color: '#1E293B', fontWeight: '500', textAlignVertical: 'top' }]}
                 placeholder="Tell researchers about your facility..."

@@ -4,6 +4,7 @@ import TouchableOpacity from "@/components/touchable-opacity";
 import { View, FlatList } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 const DOCUMENTS = [
   { id: '1', title: '2023 Annual Tax Summary', date: 'Jan 15, 2024', size: '2.4 MB' },
@@ -17,8 +18,8 @@ export default function TaxDocumentsScreen() {
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
-      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>Tax Documents</Text>

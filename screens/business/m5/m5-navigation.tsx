@@ -9,6 +9,18 @@ import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ArrowIcon from "@/assets/icons/arrow-icon";
+import { paddingHorizontal } from "@/utils/variables/styles";
+import ClockIcon from "@/assets/icons/clock-icon";
+import StatsIcon from "@/assets/icons/stats-icon";
+import PolicyIcon from "@/assets/icons/policy-icon";
+import PhoneIcon from "@/assets/icons/phone-icon";
+import OrderIcon from "@/assets/icons/order-icon";
+import EditIcon from "@/assets/icons/edit-icon";
+import BusinessCardIcon from "@/assets/icons/business-card-icon";
+import RevenueIcon from "@/assets/icons/revenue-icon";
+import BellIcon from "@/assets/icons/bell-icon";
+import LanguageIcon from "@/assets/icons/language-icon";
+import InfoIcon from "@/assets/icons/info-icon";
 
 const { width } = Dimensions.get('window');
 
@@ -16,38 +28,37 @@ const SECTIONS = [
   {
     title: 'Profile & Contact',
     items: [
-      { id: '1-1', title: 'Lab Public Profile', icon: '🏢', route: Routes.LabProfileScreen, color: '#F0F9FF', iconColor: '#0EA5E9' },
-      { id: '1-2', title: 'Edit Lab Details', icon: '📝', route: Routes.EditLabProfileScreen, color: '#F5F3FF', iconColor: '#8B5CF6' },
-      { id: '1-3', title: 'Contact Information', icon: '📞', route: Routes.EditContactScreen, color: '#ECFDF5', iconColor: '#10B981' },
+      { id: '1-2', title: 'Edit Lab Details', icon: <BusinessCardIcon />, route: Routes.EditLabProfileScreen, color: '#F8FAFC', iconColor: '#64748B' },
+      { id: '1-3', title: 'Contact Information', icon: <PhoneIcon />, route: Routes.EditContactScreen, color: '#F8FAFC', iconColor: '#64748B' },
     ]
   },
   {
     title: 'Operations',
     items: [
-      { id: '2-1', title: 'Operating Hours', icon: '⏰', route: Routes.OperatingHoursScreen, color: '#FFF7ED', iconColor: '#F59E0B' },
-      { id: '2-2', title: 'Inventory Analytics', icon: '📊', route: Routes.InventoryAnalyticsScreen, color: '#FDF2F8', iconColor: '#EC4899' },
-      { id: '2-3', title: 'Service Agreements', icon: '⚖️', route: Routes.ServiceAgreementsScreen, color: '#F8FAFC', iconColor: '#64748B' },
+      { id: '2-1', title: 'Operating Hours', icon: <ClockIcon />, route: Routes.OperatingHoursScreen, color: '#F8FAFC', iconColor: '#64748B' },
+      { id: '2-2', title: 'Inventory Analytics', icon: <StatsIcon />, route: Routes.InventoryAnalyticsScreen, color: '#F8FAFC', iconColor: '#64748B' },
+      { id: '2-3', title: 'Service Agreements', icon: <PolicyIcon />, route: Routes.ServiceAgreementsScreen, color: '#F8FAFC', iconColor: '#64748B' },
     ]
   },
   {
     title: 'Financials & Plan',
     items: [
-      { id: '3-1', title: 'Payout History', icon: '💰', route: Routes.PayoutHistoryScreen, color: '#F0FDF4', iconColor: '#22C55E' },
-      { id: '3-2', title: 'Tax Documents', icon: '📄', route: Routes.TaxDocumentsScreen, color: '#FEF2F2', iconColor: '#EF4444' },
-      { id: '3-3', title: 'Pro Plan Status', icon: '🚀', route: Routes.ProPlanStatusScreen, color: '#FFFBEB', iconColor: '#D97706' },
+      { id: '3-1', title: 'Payout History', icon: <RevenueIcon />, route: Routes.PayoutHistoryScreen, color: '#F8FAFC', iconColor: '#64748B' },
+      { id: '3-2', title: 'Tax Documents', icon: <StatsIcon />, route: Routes.TaxDocumentsScreen, color: '#F8FAFC', iconColor: '#64748B' },
+      { id: '3-3', title: 'Pro Plan Status', icon: <PolicyIcon />, route: Routes.ProPlanStatusScreen, color: '#F8FAFC', iconColor: '#64748B' },
     ]
   },
   {
     title: 'Preferences',
     items: [
-      { id: '4-1', title: 'Notification Settings', icon: '🔔', route: Routes.BusinessNotificationsScreen, color: '#EFF6FF', iconColor: '#3B82F6' },
-      { id: '4-2', title: 'Language', icon: '🌐', route: Routes.BusinessLanguageScreen, color: '#F5F3FF', iconColor: '#8B5CF6' },
+      { id: '4-1', title: 'Notification Settings', icon: <BellIcon />, route: Routes.BusinessNotificationsScreen, color: '#F8FAFC', iconColor: '#64748B' },
+      { id: '4-2', title: 'Language', icon: <LanguageIcon />, route: Routes.BusinessLanguageScreen, color: '#F8FAFC', iconColor: '#64748B' },
     ]
   },
   {
     title: 'Support',
     items: [
-      { id: '5-1', title: 'Business Support', icon: '🎧', route: Routes.BusinessSupportScreen, color: '#F0FDFA', iconColor: '#14B8A6' },
+      { id: '5-1', title: 'Business Support', icon: <InfoIcon />, route: Routes.BusinessSupportScreen, color: '#F8FAFC', iconColor: '#64748B' },
     ]
   }
 ];
@@ -100,8 +111,8 @@ export default function BusinessM5Navigation() {
 
   if (isLoading && !isRefreshing) {
     return (
-      <ScreenWrapper style={{ backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#8B5CF6" />
+      <ScreenWrapper style={{ backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="small" color="#8B5CF6" />
       </ScreenWrapper>
     );
   }
@@ -111,88 +122,96 @@ export default function BusinessM5Navigation() {
   const wilayaName = business?.wilaya?.name || 'Location';
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
+    <ScreenWrapper style={{ backgroundColor: '#FFF' }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 40 }}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#8B5CF6']} />}
+        contentContainerStyle={{ paddingBottom: 60 }}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#8B5CF6']} tintColor="#8B5CF6" />}
       >
-        {/* Modern Header / Profile Card */}
-        <View style={{ backgroundColor: '#FFF', borderBottomLeftRadius: 40, borderBottomRightRadius: 40, paddingBottom: 32, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.05, shadowRadius: 20, elevation: 5 }}>
-          <View style={{ backgroundColor: '#111', padding: 24, paddingTop: 60, borderBottomLeftRadius: 40, borderBottomRightRadius: 40 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                <View style={{ width: 64, height: 64, borderRadius: 24, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', shadowColor: '#FFF', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10 }}>
-                  <Text style={{ fontSize: 32 }}>🔬</Text>
-                  <View style={{ position: 'absolute', bottom: -2, right: -2, width: 20, height: 20, borderRadius: 10, backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#111' }}>
-                    <Text style={{ fontSize: 8, color: '#FFF' }}>✓</Text>
-                  </View>
-                </View>
-                <View>
-                  <Text style={{ fontSize: 20, fontWeight: '900', color: '#FFF' }}>{businessName}</Text>
-                  <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>{categoryName} • {wilayaName}</Text>
-                </View>
-              </View>
-              <View style={{ backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={{ color: '#F59E0B', fontSize: 12 }}>★</Text>
-                <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 14 }}>4.9</Text>
-              </View>
+        {/* Futuristic Minimal Header */}
+        <View style={{ paddingHorizontal: paddingHorizontal, paddingTop: 40, paddingBottom: 24 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#8B5CF6', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8 }}>Laboratory Hub</Text>
+              <Text style={{ fontSize: 32, fontWeight: '900', color: '#111', letterSpacing: -0.5 }}>{businessName}</Text>
+              <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '500', marginTop: 4 }}>{categoryName} • {wilayaName}</Text>
             </View>
-
-            <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginVertical: 24 }} />
-
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <View>
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFF' }}>Store Availability</Text>
-                <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: '600' }}>Receive new orders instantly</Text>
+            <View style={{ width: 80, height: 80, borderRadius: 28, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9' }}>
+              <Text style={{ fontSize: 40 }}>🔬</Text>
+              <View style={{ position: 'absolute', top: -4, right: -4, width: 24, height: 24, borderRadius: 12, backgroundColor: '#8B5CF6', justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#FFF' }}>
+                <Text style={{ fontSize: 10, color: '#FFF', fontWeight: '900' }}>P</Text>
               </View>
-              <Switch
-                value={isAvailable}
-                onValueChange={setIsAvailable}
-                trackColor={{ false: 'rgba(255,255,255,0.1)', true: '#8B5CF6' }}
-                thumbColor="#FFF"
-              />
             </View>
           </View>
 
-          {/* Quick StatsRow */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: -20, paddingHorizontal: 20 }}>
-            {[
-              { label: 'Orders', val: stats?.active_orders || '0', color: '#8B5CF6' },
-              { label: 'Products', val: stats?.products || '0', color: '#10B981' },
-              { label: 'Followers', val: stats?.followers || '0', color: '#3B82F6' },
-              { label: 'Earnings', val: `${stats?.earnings || 0}`, color: '#F59E0B' }
-            ].map((stat, i) => (
-              <View key={i} style={{ backgroundColor: '#FFF', paddingVertical: 12, paddingHorizontal: 16, borderRadius: 20, alignItems: 'center', minWidth: 80, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 4 }}>
-                <Text style={{ fontSize: 16, fontWeight: '900', color: '#111' }}>{stat.val}</Text>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', marginTop: 2 }}>{stat.label}</Text>
+          {/* Clean Stats Row */}
+          <View style={{ backgroundColor: '#F8FAFC', borderRadius: 28, padding: 24, borderWidth: 1, borderColor: '#F1F5F9' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              {[
+                { label: 'Orders', val: stats?.active_orders || '0' },
+                { label: 'Products', val: stats?.products || '0' },
+                { label: 'Followers', val: stats?.followers || '0' }
+              ].map((stat, i) => (
+                <View key={i} style={{ alignItems: 'center' }}>
+                  <Text style={{ fontSize: 20, fontWeight: '900', color: '#111' }}>{stat.val}</Text>
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', marginTop: 6, letterSpacing: 0.5 }}>{stat.label}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* <View style={{ height: 1, backgroundColor: '#E2E8F0', opacity: 0.5, marginBottom: 20 }} /> */}
+
+            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1 }}>Total Net Earnings</Text>
               </View>
-            ))}
+              <Text style={{ fontSize: 22, fontWeight: '900', color: '#10B981' }}>{stats?.earnings?.toLocaleString() || 0} DA</Text>
+            </View> */}
           </View>
         </View>
 
-        <View style={{ padding: 20, paddingTop: 10 }}>
+        {/* Availability Toggle - Glass Style */}
+        <View style={{ marginHorizontal: paddingHorizontal, marginBottom: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9' }}>
+          <View>
+            <Text style={{ fontSize: 15, fontWeight: '800', color: '#111' }}>Operational Status</Text>
+            <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500', marginTop: 2 }}>{isAvailable ? 'Currently accepting new orders' : 'Currently closed for orders'}</Text>
+          </View>
+          <Switch
+            value={isAvailable}
+            onValueChange={setIsAvailable}
+            trackColor={{ false: '#F1F5F9', true: '#8B5CF6' }}
+            thumbColor="#FFF"
+          />
+        </View>
+
+        {/* Section List - Minimalist */}
+        <View style={{ paddingHorizontal: paddingHorizontal }}>
           {SECTIONS.map((section, sIdx) => (
-            <View key={sIdx} style={{ marginBottom: 28 }}>
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 12, marginLeft: 4 }}>
+            <View key={sIdx} style={{ marginBottom: 20 }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 12, marginLeft: 4 }}>
                 {section.title}
               </Text>
-              <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2, borderWidth: 1, borderColor: '#F1F5F9' }}>
+              <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 8, borderWidth: 1, borderColor: '#F8FAFC', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.02, shadowRadius: 8, elevation: 2 }}>
                 {section.items.map((item, idx) => (
                   <TouchableOpacity
                     key={item.id}
-                    style={[{ flexDirection: 'row', alignItems: 'center', padding: 12 }, idx < section.items.length - 1 && { borderBottomWidth: 1, borderBottomColor: '#F8FAFC' }]}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingVertical: 12,
+                      paddingHorizontal: 12,
+                      borderBottomWidth: idx === section.items.length - 1 ? 0 : 1,
+                      borderBottomColor: '#F8FAFC'
+                    }}
                     onPress={() => item.route && navigation.navigate(item.route)}
                   >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 14 }}>
-                      <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: item.color, justifyContent: 'center', alignItems: 'center' }}>
-                        <Text style={{ fontSize: 18 }}>{item.icon}</Text>
-                      </View>
-                      <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B' }}>{item.title}</Text>
+                    <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', marginRight: 16 }}>
+                      {item.icon}
                     </View>
-                    <View style={{ opacity: 0.3 }}>
-                      <ArrowIcon size={18} color="#64748B" />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: '#111' }}>{item.title}</Text>
                     </View>
+                    <ArrowIcon size={14} color="#CBD5E1" />
                   </TouchableOpacity>
                 ))}
               </View>
@@ -202,30 +221,25 @@ export default function BusinessM5Navigation() {
           <TouchableOpacity
             onPress={handleLogout}
             style={{
-              height: 60,
-              borderRadius: 20,
+              height: 56,
+              borderRadius: 18,
               backgroundColor: '#FEF2F2',
-              borderWidth: 1,
-              borderColor: '#FEE2E2',
               flexDirection: 'row',
               justifyContent: 'center',
               alignItems: 'center',
-              gap: 12,
+              gap: 10,
               marginTop: 10,
-              marginBottom: 32
+              marginBottom: 40
             }}
           >
-            <Text style={{ fontSize: 20 }}>🚪</Text>
-            <Text style={{ color: '#EF4444', fontWeight: '800', fontSize: 16 }}>Logout Account</Text>
+            <Text style={{ color: '#EF4444', fontWeight: '800', fontSize: 15 }}>Log out current session</Text>
           </TouchableOpacity>
 
-          <View style={{ alignItems: 'center', opacity: 0.5, marginBottom: 20 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#8B5CF6' }} />
-              <Text style={{ fontSize: 12, color: '#64748B', fontWeight: '800' }}>LabLink Business Premium</Text>
-              <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#8B5CF6' }} />
-            </View>
-            <Text style={{ fontSize: 10, color: '#94A3B8', fontWeight: '600', marginTop: 4 }}>v2.4.0 • Built with Passion</Text>
+          {/* Futuristic Footer */}
+          <View style={{ alignItems: 'center', marginBottom: 20 }}>
+            <View style={{ width: 40, height: 1, backgroundColor: '#F1F5F9', marginBottom: 16 }} />
+            <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '700', letterSpacing: 1 }}>LABLINK FOR BUSINESS</Text>
+            <Text style={{ fontSize: 9, color: '#94A3B8', fontWeight: '500', marginTop: 4 }}>VERSION 2.4.0 • PRODUCTION ENVIROMENT</Text>
           </View>
         </View>
       </ScrollView>

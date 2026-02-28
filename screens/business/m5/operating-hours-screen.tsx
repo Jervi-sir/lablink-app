@@ -7,6 +7,7 @@ import ArrowIcon from "@/assets/icons/arrow-icon";
 import { useState, useEffect, useCallback } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 const DEFAULT_HOURS = [
   { day: 'Monday', enabled: true, open: '08:00', close: '17:00' },
@@ -75,8 +76,8 @@ export default function OperatingHoursScreen() {
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
-      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>Operating Hours</Text>
@@ -89,7 +90,7 @@ export default function OperatingHoursScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: paddingHorizontal }}>
         <View style={{ backgroundColor: '#F5F3FF', padding: 16, borderRadius: 20, marginBottom: 24 }}>
           <Text style={{ fontSize: 13, color: '#8B5CF6', fontWeight: '600', lineHeight: 20 }}>Set your lab's weekly schedule. This affects when orders can be processed and when customers see you as 'Open'.</Text>
         </View>

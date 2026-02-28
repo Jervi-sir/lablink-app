@@ -1,6 +1,7 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
+import { paddingHorizontal } from "@/utils/variables/styles";
 import { View, ScrollView } from "react-native";
 
 const RECENT_ORDERS = [
@@ -12,7 +13,7 @@ export default function StatsScreen() {
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       {/* User Profil Bar */}
-      <View style={{ height: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F0F2F5' }}>
+      <View style={{ height: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: paddingHorizontal }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <View style={{ width: 36, height: 36, backgroundColor: '#D9D9D9', borderRadius: 18 }} />
           <View>
@@ -25,7 +26,7 @@ export default function StatsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 40 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: paddingHorizontal, gap: 20, paddingBottom: 40 }}>
 
         {/* Total Revenue Card */}
         <View style={{ backgroundColor: '#FFF', borderRadius: 16, padding: 24, gap: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 }}>

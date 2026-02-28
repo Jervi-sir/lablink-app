@@ -7,6 +7,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 const { width } = Dimensions.get('window');
 
@@ -125,12 +126,11 @@ export default function EditCreateProductScreen() {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        backgroundColor: '#FFF',
+        paddingHorizontal: paddingHorizontal,
         borderBottomWidth: 1,
         borderBottomColor: '#F1F5F9',
       }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>{isEdit ? 'Edit Product' : 'Add New Product'}</Text>
@@ -146,7 +146,7 @@ export default function EditCreateProductScreen() {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 20 }}
+          contentContainerStyle={{ padding: 20, paddingHorizontal: paddingHorizontal }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Icon Preview */}

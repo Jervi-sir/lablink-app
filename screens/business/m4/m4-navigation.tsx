@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
@@ -8,6 +8,7 @@ import { Routes } from "@/utils/helpers/routes";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { useAuthStore } from "@/zustand/auth-store";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 const { width } = Dimensions.get('window');
 
@@ -18,6 +19,7 @@ export default function BusinessM4Navigation() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const isFirstRender = useRef(true);
 
   const fetchConversations = useCallback(async (shouldRefresh: boolean = false) => {
     if (!shouldRefresh && !searchQuery) setIsLoading(true);
@@ -36,10 +38,14 @@ export default function BusinessM4Navigation() {
 
   useEffect(() => {
     fetchConversations();
-  }, [fetchConversations]);
+  }, []);
 
   // Debounced search
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       fetchConversations();
     }, 500);
@@ -115,31 +121,6 @@ export default function BusinessM4Navigation() {
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#FFF' }}>
-      {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 16, marginBottom: 8 }}>
-        <View>
-          <Text style={{ fontSize: 24, fontWeight: '800', color: '#111' }}>Communications</Text>
-          <Text style={{ fontSize: 14, color: '#6B7280', fontWeight: '500', marginTop: 2 }}>Active research inquiries</Text>
-        </View>
-        <TouchableOpacity style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: '#F5F3FF', justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontSize: 20 }}>💬</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Search Bar */}
-      <View style={{ paddingHorizontal: 20, paddingVertical: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 16, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#F1F5F9' }}>
-          <Text style={{ fontSize: 16, marginRight: 10 }}>🔍</Text>
-          <TextInput
-            style={{ flex: 1, fontSize: 15, fontWeight: '600', color: '#111' }}
-            placeholder="Search researchers or messages..."
-            placeholderTextColor="#94A3B8"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-      </View>
-
       {isLoading && !isRefreshing ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#8B5CF6" />
@@ -154,7 +135,11 @@ export default function BusinessM4Navigation() {
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#8B5CF6']} />
           }
-          ListHeaderComponent={<Text style={{ fontSize: 12, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1, paddingHorizontal: 20, marginVertical: 16 }}>All Conversations</Text>}
+          ListHeaderComponent={(
+            <View style={{ paddingHorizontal: paddingHorizontal, paddingVertical: 16, paddingTop: 24 }}>
+              <Text style={{ fontSize: 14, fontWeight: 700, color: '#111', textTransform: 'uppercase', letterSpacing: 1 }}>All Conversations</Text>
+            </View>
+          )}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', paddingVertical: 60 }}>
               <Text style={{ fontSize: 48, marginBottom: 16 }}>💬</Text>

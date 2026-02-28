@@ -35,7 +35,7 @@ import DataUsageScreen from "./screens/student/m5/privacy-security/data-usage-sc
 import FAQScreen from "./screens/student/m5/help-support/faq-screen";
 import ContactSupportScreen from "./screens/student/m5/help-support/contact-support-screen";
 import TermsOfServiceScreen from "./screens/student/m5/help-support/terms-of-service-screen";
-import BusinessProductDetailScreen from "./screens/business/m2/product-detail-screen";
+import BusinessProductDetailScreen from "./screens/business/m2/business-product-detail-screen";
 import EditCreateProductScreen from "./screens/business/m2/edit-create-product-screen";
 import BusinessOrderDetailScreen from "./screens/business/m3/business-order-detail-screen";
 import BusinessInvoiceScreen from "./screens/business/m3/invoice-screen";
@@ -49,7 +49,7 @@ import TaxDocumentsScreen from "./screens/business/m5/tax-documents-screen";
 import ProPlanStatusScreen from "./screens/business/m5/pro-plan-status-screen";
 import BusinessSupportScreen from "./screens/business/m5/business-support-screen";
 import ServiceAgreementsScreen from "./screens/business/m5/service-agreements-screen";
-import EditContactScreen from "./screens/business/m5/edit-contact-screen";
+import EditContactScreen from "./screens/business/m5/lab-profile/edit-contact-screen";
 import BusinessNotificationsScreen from "./screens/business/m5/settings/notifications-screen";
 import BusinessLanguageScreen from "./screens/business/m5/settings/language-screen";
 import { useEffect } from "react";

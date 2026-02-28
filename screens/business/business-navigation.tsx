@@ -1,11 +1,6 @@
 import { Dimensions, Platform, View } from "react-native";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Routes } from "@/utils/helpers/routes";
-import M1Icon from "@/assets/icons/menu/m1-icon";
-import M2Icon from "@/assets/icons/menu/m2-icon";
-import M3Icon from "@/assets/icons/menu/m3-icon";
-import M4Icon from "@/assets/icons/menu/m4-icon";
-import M5Icon from "@/assets/icons/menu/m5-icon";
 import TouchableOpacity from "@/components/touchable-opacity";
 import { useNavigationState } from "@react-navigation/native";
 import Text from "@/components/text";
@@ -14,14 +9,19 @@ import BusinessM2Navigation from "./m2/m2-navigation";
 import BusinessM3Navigation from "./m3/m3-navigation";
 import BusinessM4Navigation from "./m4/m4-navigation";
 import BusinessM5Navigation from "./m5/m5-navigation";
+import M1BusinessIcon from "@/assets/icons/menu/business/m1-business-icon";
+import M2BusinessIcon from "@/assets/icons/menu/business/m2-business-icon";
+import M3BusinessIcon from "@/assets/icons/menu/business/m3-business-icon";
+import M4BusinessIcon from "@/assets/icons/menu/business/m4-business-icon";
+import M5BusinessIcon from "@/assets/icons/menu/business/m5-business-icon";
 
 function useTabScreens() {
   return [
-    { key: 'M1', label: 'Dashboard', routeName: Routes.M1, component: BusinessM1Navigation, icon: M1Icon },
-    { key: 'M2', label: 'Inventory', routeName: Routes.M2, component: BusinessM2Navigation, icon: M2Icon },
-    { key: 'M3', label: 'Orders', routeName: Routes.M3, component: BusinessM3Navigation, icon: M3Icon },
-    { key: 'M4', label: 'Inbox', routeName: Routes.M4, component: BusinessM4Navigation, icon: M4Icon },
-    { key: 'M5', label: 'Profile', routeName: Routes.M5, component: BusinessM5Navigation, icon: M5Icon },
+    { key: 'M1', label: 'Dashboard', routeName: Routes.M1, component: BusinessM1Navigation, icon: M1BusinessIcon },
+    { key: 'M2', label: 'Inventory', routeName: Routes.M2, component: BusinessM2Navigation, icon: M2BusinessIcon },
+    { key: 'M3', label: 'Orders', routeName: Routes.M3, component: BusinessM3Navigation, icon: M3BusinessIcon },
+    { key: 'M4', label: 'Inbox', routeName: Routes.M4, component: BusinessM4Navigation, icon: M4BusinessIcon },
+    { key: 'M5', label: 'Profile', routeName: Routes.M5, component: BusinessM5Navigation, icon: M5BusinessIcon },
   ];
 }
 

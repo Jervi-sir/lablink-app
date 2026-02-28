@@ -4,11 +4,12 @@ import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView, TextInput, FlatList, Dimensions, ActivityIndicator, RefreshControl, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
-
-const { width } = Dimensions.get('window');
+import PlusIcon from "@/assets/icons/plus-icon";
+import { paddingHorizontal } from "@/utils/variables/styles";
+import SearchIcon from "@/assets/icons/search-icon";
 
 export default function BusinessM2Navigation() {
   const navigation = useNavigation<any>();
@@ -19,6 +20,7 @@ export default function BusinessM2Navigation() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [nextPage, setNextPage] = useState<number | null>(1);
+  const isFirstRender = useRef(true);
 
   const TABS = ['All', 'Active', 'Out of Stock', 'Draft'];
 
@@ -57,6 +59,10 @@ export default function BusinessM2Navigation() {
 
   // Debounced search
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const timer = setTimeout(() => {
       fetchInventory(1);
     }, 500);
@@ -252,15 +258,31 @@ export default function BusinessM2Navigation() {
       {/* 1. Header Section */}
       <View style={{
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingTop: 16,
-        marginBottom: 20,
+        paddingHorizontal: paddingHorizontal,
+        paddingTop: 8,
+        marginBottom: 16,
+        gap: 12,
       }}>
-        <View>
-          <Text style={{ fontSize: 24, fontWeight: '800', color: '#111' }}>Inventory</Text>
-          <Text style={{ fontSize: 14, color: '#6B7280', marginTop: 2, fontWeight: '500' }}>Manage your products and stock</Text>
+        <View style={{
+          flex: 1, gap: 8,
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: '#FFF',
+          borderRadius: 14,
+          paddingHorizontal: 16,
+          height: 48,
+          borderWidth: 1,
+          borderColor: '#E2E8F0',
+        }}>
+          <SearchIcon />
+          <TextInput
+            style={{ flex: 1, fontSize: 14, fontWeight: '600', color: '#111' }}
+            placeholder="Search products..."
+            placeholderTextColor="#94A3B8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </View>
         <TouchableOpacity
           style={{
@@ -278,37 +300,17 @@ export default function BusinessM2Navigation() {
           }}
           onPress={() => navigation.navigate(Routes.EditCreateProductScreen)}
         >
-          <Text style={{ color: '#FFF', fontSize: 28, fontWeight: '300' }}>+</Text>
+          <PlusIcon color="#F5F5F5" />
         </TouchableOpacity>
       </View>
 
       {/* 2. Search & Filters */}
-      <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-        <View style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: '#FFF',
-          borderRadius: 14,
-          paddingHorizontal: 16,
-          height: 48,
-          borderWidth: 1,
-          borderColor: '#E2E8F0',
-          marginBottom: 16,
-        }}>
-          <Text style={{ marginRight: 10, fontSize: 16 }}>🔍</Text>
-          <TextInput
-            style={{ flex: 1, fontSize: 15, fontWeight: '600', color: '#111' }}
-            placeholder="Search products..."
-            placeholderTextColor="#94A3B8"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
+      <View style={{ marginBottom: 4 }}>
 
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 10, paddingBottom: 4 }}
+          contentContainerStyle={{ gap: 10, paddingBottom: 4, paddingHorizontal: paddingHorizontal }}
         >
           {TABS.map(tab => (
             <TouchableOpacity
@@ -337,7 +339,7 @@ export default function BusinessM2Navigation() {
           data={products}
           renderItem={renderProductItem}
           keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingHorizontal: paddingHorizontal, paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#8B5CF6']} />

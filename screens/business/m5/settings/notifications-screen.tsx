@@ -14,6 +14,7 @@ import {
 import * as Notifications from 'expo-notifications';
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 type NotificationSettings = {
   enabled: boolean;
@@ -101,8 +102,8 @@ export default function BusinessNotificationsScreen() {
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
-      <View style={{ height: 60, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Notifications</Text>
@@ -114,7 +115,7 @@ export default function BusinessNotificationsScreen() {
           <ActivityIndicator size="large" color="#8B5CF6" />
         </View>
       ) : (
-        <View style={{ padding: 20 }}>
+        <View style={{ padding: paddingHorizontal }}>
           {/* Push Notification Status */}
           <View style={{ backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2 }}>
             <Text style={{ fontSize: 13, fontWeight: '700', color: '#94A3B8', letterSpacing: 0.5, marginBottom: 12, textTransform: 'uppercase' }}>Push Notifications</Text>

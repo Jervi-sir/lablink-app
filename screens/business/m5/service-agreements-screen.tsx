@@ -4,22 +4,23 @@ import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 export default function ServiceAgreementsScreen() {
   const navigation = useNavigation<any>();
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
-      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>Service Agreement</Text>
         <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20 }}>
-        <View style={{ backgroundColor: '#FFF', padding: 24, borderRadius: 28, borderWidth: 1, borderColor: '#F1F5F9' }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: paddingHorizontal }}>
+        <View style={{ backgroundColor: '#FFF', padding: 16, borderRadius: 18, borderWidth: 1, borderColor: '#F1F5F9' }}>
           <Text style={{ fontSize: 20, fontWeight: '900', color: '#111' }}>Partner Terms of Use</Text>
           <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '700', marginTop: 4 }}>Last Updated: Jan 2024</Text>
           <View style={{ height: 1.5, backgroundColor: '#F8FAFC', marginVertical: 20 }} />

@@ -8,6 +8,10 @@ import ArrowIcon from "@/assets/icons/arrow-icon";
 import { Routes } from "@/utils/helpers/routes";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import StatsIcon from "@/assets/icons/stats-icon";
+import InfoIcon from "@/assets/icons/info-icon";
+import SpecsIcon from "@/assets/icons/specs-icon";
+import { paddingHorizontal } from "@/utils/variables/styles";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -16,9 +20,9 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 const { width } = Dimensions.get('window');
 
 const SECTIONS = [
-  { id: 'stats', title: 'Performance Stats', icon: '📊' },
-  { id: 'specs', title: 'Specifications', icon: '⚙️' },
-  { id: 'desc', title: 'Description', icon: 'ℹ️' },
+  { id: 'stats', title: 'Performance Stats', icon: <StatsIcon /> },
+  { id: 'specs', title: 'Specifications', icon: <SpecsIcon /> },
+  { id: 'desc', title: 'Description', icon: <InfoIcon /> },
 ];
 
 export default function BusinessProductDetailScreen() {
@@ -180,12 +184,11 @@ export default function BusinessProductDetailScreen() {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        backgroundColor: '#FFF',
+        paddingHorizontal: paddingHorizontal,
         borderBottomWidth: 1,
         borderBottomColor: '#F1F5F9',
       }}>
-        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8F9FB', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>Inventory Detail</Text>
@@ -199,18 +202,18 @@ export default function BusinessProductDetailScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 150 }}
+        contentContainerStyle={{ paddingBottom: 150, paddingHorizontal: paddingHorizontal }}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       >
         {/* Product Image Stage */}
-        <View style={{ padding: 20, alignItems: 'center' }}>
+        <View style={{ paddingVertical: 20, alignItems: 'center' }}>
           <View style={{ width: width - 40, height: width - 40, backgroundColor: '#FFF', borderRadius: 32, justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.04, shadowRadius: 15, elevation: 3 }}>
             <Text style={{ fontSize: 80 }}>{product.category?.code === 'Reagent' ? '🧪' : '🔬'}</Text>
           </View>
         </View>
 
         {/* Vital Info */}
-        <View style={{ padding: 20, gap: 8 }}>
+        <View style={{ paddingVertical: 20, gap: 8 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontSize: 12, fontWeight: '800', color: '#8B5CF6', textTransform: 'uppercase' }}>{product.category?.code || 'Equipment'}</Text>
             <View style={[
@@ -228,7 +231,7 @@ export default function BusinessProductDetailScreen() {
         </View>
 
         {/* Management Sections */}
-        <View style={{ paddingHorizontal: 20, gap: 12, marginBottom: 32 }}>
+        <View style={{ gap: 12, marginBottom: 32 }}>
           {SECTIONS.map((section) => {
             const isExpanded = expandedId === section.id;
             return (
@@ -259,7 +262,7 @@ export default function BusinessProductDetailScreen() {
         </View>
 
         {/* Delete Action */}
-        <View style={{ paddingHorizontal: 20 }}>
+        <View style={{}}>
           <TouchableOpacity
             style={{ backgroundColor: '#FEF2F2', height: 52, borderRadius: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#FEE2E2' }}
             onPress={deleteProduct}
@@ -270,7 +273,7 @@ export default function BusinessProductDetailScreen() {
       </ScrollView>
 
       {/* Bottom Business Actions */}
-      <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#FFF', padding: 20, paddingBottom: Platform.OS === 'ios' ? 34 : 20, flexDirection: 'row', gap: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
+      <View style={{ paddingHorizontal: paddingHorizontal, position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#FFF', paddingVertical: 20, paddingBottom: Platform.OS === 'ios' ? 34 : 20, flexDirection: 'row', gap: 12, borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
         <TouchableOpacity style={{ flex: 2, backgroundColor: '#8B5CF6', height: 56, borderRadius: 16, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '800' }}>Promote Listing</Text>
         </TouchableOpacity>
