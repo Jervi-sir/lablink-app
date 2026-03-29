@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, ScrollView } from "react-native";
+import React, { useRef, useState } from "react";
+import { View, ScrollView, TextInput } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenWrapper } from "../../../components/screen-wrapper";
 import Text from "../../../components/text";
@@ -17,6 +17,7 @@ export default function StudentLoginScreen() {
   const [email, setEmail] = useState("gacembekhira@gmail.com");
   const [password, setPassword] = useState("password");
   const [loading, setLoading] = useState(false);
+  const passwordInputRef = useRef<TextInput>(null);
 
   const auth = useAuthStore((s) => s.auth);
   const setAuth = useAuthStore((s) => s.setAuth);
@@ -74,14 +75,18 @@ export default function StudentLoginScreen() {
               kind="email"
               containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
               autoCapitalize="none"
+              onSubmitEditing={() => passwordInputRef.current?.focus()}
+              returnKeyType="next"
             />
 
             <GlobalInput
+              ref={passwordInputRef}
               label="Password"
               placeholder="••••••••"
               value={password}
               onChangeText={setPassword}
               kind="password"
+              returnKeyType="done"
               containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
             />
 
@@ -112,4 +117,3 @@ export default function StudentLoginScreen() {
     </ScreenWrapper>
   );
 }
-

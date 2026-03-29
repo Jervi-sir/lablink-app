@@ -5,7 +5,7 @@ import { View, Alert, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { useState, useEffect } from "react";
-import { OptionWithSwitch } from "../../../student/components/options/option-with-switch";
+import { OptionWithSwitch } from "../../../../components/options/option-with-switch";
 import {
   registerForPushNotificationsAsync,
   sendPushTokenToServer,

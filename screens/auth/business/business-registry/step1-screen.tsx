@@ -1,13 +1,13 @@
 import { TopHeader1 } from "@/components/headers/top-header-1";
 import { ScreenWrapper } from "@/components/screen-wrapper";
-import { ScrollView, View, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
+import { ScrollView, View, ActivityIndicator, TextInput } from "react-native";
 import { BusinessRegistryProgress } from "./components/business-registry-progress";
 import Text from "@/components/text";
 import GlobalInput from "@/components/inputs/global-input";
 import { Button1 } from "@/components/buttons/button-1";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { useBusinessRegistry } from "./context/business-registry-context";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiPublic } from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { SheetManager } from "react-native-actions-sheet";
@@ -16,11 +16,25 @@ import { Wilaya } from "@/utils/types";
 
 export default function Step1Screen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { formData, setField } = useBusinessRegistry();
   const [labCategories, setLabCategories] = useState<any[]>([]);
   const [businessCategories, setBusinessCategories] = useState<any[]>([]);
   const [wilayas, setWilayas] = useState<Wilaya[]>([]);
   const [loading, setLoading] = useState(false);
+  const addressInputRef = useRef<TextInput>(null);
+
+  const focusAddressInput = () => {
+    setTimeout(() => {
+      addressInputRef.current?.focus();
+    }, 250);
+  };
+
+  const openWilayaSheetAfterSelect = () => {
+    setTimeout(() => {
+      handleOpenWilayaSheet(true);
+    }, 250);
+  };
 
   useEffect(() => {
     fetchTaxonomies();
@@ -35,6 +49,12 @@ export default function Step1Screen() {
       setLabCategories(response.laboratory_categories || []);
       setBusinessCategories(response.business_categories || []);
       setWilayas(response.wilayas || []);
+
+      // Auto-select business category based on route param
+      const businessType = route.params?.type;
+      if (businessType) {
+        setField('businessCategory', businessType);
+      }
     } catch (error) {
       console.error("Fetch taxonomies error:", error);
     } finally {
@@ -42,7 +62,7 @@ export default function Step1Screen() {
     }
   };
 
-  const handleOpenLabSheet = () => {
+  const handleOpenLabSheet = (goToNext = false) => {
     SheetManager.show('taxonomy-selector-sheet', {
       payload: {
         title: "Select Laboratory Type",
@@ -51,25 +71,16 @@ export default function Step1Screen() {
         onSelect: (item) => {
           setField('laboratoryCategoryId', item.id);
           setField('type', item.code);
+
+          if (goToNext) {
+            openWilayaSheetAfterSelect();
+          }
         }
       }
     });
   };
 
-  const handleOpenBusinessSheet = () => {
-    SheetManager.show('taxonomy-selector-sheet', {
-      payload: {
-        title: "Select Business Category",
-        items: businessCategories,
-        selectedId: formData.businessCategoryId,
-        onSelect: (item) => {
-          setField('businessCategoryId', item.id);
-        }
-      }
-    });
-  };
-
-  const handleOpenWilayaSheet = () => {
+  const handleOpenWilayaSheet = (goToNext = false) => {
     SheetManager.show('taxonomy-selector-sheet', {
       payload: {
         title: "Select Wilaya",
@@ -77,12 +88,15 @@ export default function Step1Screen() {
         selectedId: formData.wilayaId,
         onSelect: (item) => {
           setField('wilayaId', item.id);
+
+          if (goToNext) {
+            focusAddressInput();
+          }
         }
       }
     });
   };
 
-  const selectedBusinessCategory = businessCategories.find(c => c.id === formData.businessCategoryId)?.code || '';
   const selectedWilayaData = wilayas.find(w => w.id === formData.wilayaId);
   const selectedWilaya = selectedWilayaData ? (selectedWilayaData.code ? `${selectedWilayaData.number} - ${selectedWilayaData.code}` : selectedWilayaData.code) : '';
 
@@ -117,6 +131,8 @@ export default function Step1Screen() {
                 placeholder="e.g. Advanced Bio-Research Lab"
                 value={formData.name}
                 onChangeText={(v) => setField('name', v)}
+                onSubmitEditing={() => handleOpenLabSheet(true)}
+                returnKeyType="next"
                 containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
               />
 
@@ -138,23 +154,6 @@ export default function Step1Screen() {
                 </View>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleOpenBusinessSheet} activeOpacity={0.7}>
-                <View pointerEvents="none">
-                  <GlobalInput
-                    label="Business Category"
-                    placeholder="Select business category"
-                    value={selectedBusinessCategory}
-                    containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
-                    right={
-                      loading ? (
-                        <ActivityIndicator size="small" color="#8B5CF6" />
-                      ) : (
-                        <View style={{ width: 10, height: 10, borderBottomWidth: 2, borderRightWidth: 2, borderColor: '#6B7280', transform: [{ rotate: '45deg' }], marginBottom: 4 }} />
-                      )
-                    }
-                  />
-                </View>
-              </TouchableOpacity>
 
               <TouchableOpacity onPress={handleOpenWilayaSheet} activeOpacity={0.7}>
                 <View pointerEvents="none">
@@ -175,37 +174,15 @@ export default function Step1Screen() {
               </TouchableOpacity>
 
               <GlobalInput
+                ref={addressInputRef}
                 label="Physical Address"
                 placeholder="Enter laboratory full address"
                 value={formData.address}
                 onChangeText={(v) => setField('address', v)}
+                returnKeyType="done"
                 containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
               />
 
-              <GlobalInput
-                label="Contact Person Name"
-                placeholder="Enter full name"
-                value={formData.contactName}
-                onChangeText={(v) => setField('contactName', v)}
-                containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
-              />
-              <GlobalInput
-                label="Business Email"
-                placeholder="contact@labname.com"
-                value={formData.email}
-                onChangeText={(v) => setField('email', v)}
-                containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <GlobalInput
-                label="Password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChangeText={(v) => setField('password', v)}
-                kind="password"
-                containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
-              />
             </View>
           </View>
 
@@ -214,7 +191,13 @@ export default function Step1Screen() {
               text="Continue"
               onPress={() => navigation.navigate("BusinessStep2")}
               style={{ height: 56, backgroundColor: '#8B5CF6', borderRadius: 12 }}
-              disabled={!formData.name || !formData.email || !formData.password || !formData.laboratoryCategoryId || !formData.businessCategoryId || !formData.wilayaId || !formData.address}
+              disabled={
+                !formData.name
+                || !formData.laboratoryCategoryId
+                || !formData.businessCategory
+                || !formData.wilayaId
+                || !formData.address
+              }
             />
           </View>
         </ScrollView>

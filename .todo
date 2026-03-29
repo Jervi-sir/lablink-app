@@ -1,50 +1,19 @@
-- boot screen @done
-- auth screen @done
-  - continue as student @done
-  - show the registry screen as student @done
-  - show login screen as student @done
-  - go to navigation students @done
-    - m1: home screen @done
-      - show the product @done
-      - show the business @done
-    - m2: search screen @done
-      - show the product @done
-      - show the business @done
-    - m3: my orders @done
-      - show this order @done
-    - m4: conversations @done
-      - show this conversation @done
-      - edit conversation @done
-    - m5: profile screen @done
-      - edit my profile @done
-      - show the saved products @done
-      - show the following businesses @done
-  - ----- @done
-  - continue as business @done
-  - show the registry screen as business @done
-    - step 1 @done
-    - step 2 @done
-    - step 3 @done
-  - show login screen as business @done
-  - go to navigation business @done
-    - m1: dashboard stats @done
-    - m2: list my products @done
-      - show products @done
-        - show its stats @done
-    - m3: list upcoming orders @done
-      - show the order @done
-      - show the product @done
-      - show the student @done
-    - m4: conversations @done
-    - m5: my profile screen @done
-      - edit my profile @done
-      - edit my contacts @done
+- in student M1 should be for the products @done
+- in student M2 should be for businesses @done
+- Show price only in the wholesalers @done
+- m1 show the suppliers products not the labs @done
+- m1 list the labs @done
+- m1 list the wholesales @done
+- Cart @done
+    - available in labs @done
+    - student will gather but only inside the lab not many labs @done
+    - student will send an estimation request to the lab @done
+    - student will list his requested estimations @done
+- 
+- for lab role, can see the products of the wholesalers @done
+- list the contracts (students and labs)
+- labs can use the camera only for taking pictures @done
+- rating for all the delivery
+- 
 
-- student
-  - login api
-  - register api
-  - boot screen me api redirect to student navigation
-  - -
-  - m1: 
-    - featured labs api
-    - trending products api
+- in student the Orders, make it shows multipe products

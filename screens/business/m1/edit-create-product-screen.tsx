@@ -9,6 +9,9 @@ import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute, BASE_URL } from "@/utils/api/api";
 import { paddingHorizontal } from "@/utils/variables/styles";
 import * as ImagePicker from "expo-image-picker";
+import { useAuthStore } from "@/zustand/auth-store";
+import { SheetManager } from "react-native-actions-sheet";
+
 
 const { width } = Dimensions.get('window');
 
@@ -17,6 +20,8 @@ export default function EditCreateProductScreen() {
   const route = useRoute<any>();
   const initialProduct = route.params?.product;
   const isEdit = initialProduct !== undefined;
+  const { auth } = useAuthStore();
+
 
   const [form, setForm] = useState({
     id: initialProduct?.id || null,
@@ -96,19 +101,60 @@ export default function EditCreateProductScreen() {
     }
 
     const remaining = 10 - totalImages;
+    const isLaboratory = auth?.businessProfile?.category?.code?.toLowerCase() === 'laboratory';
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
-      selectionLimit: remaining,
-      quality: 0.8,
-      aspect: [1, 1],
-    });
+    const handleLibraryPick = async () => {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: true,
+        selectionLimit: remaining,
+        quality: 0.8,
+        aspect: [1, 1],
+      });
 
-    if (!result.canceled && result.assets) {
-      setNewImages(prev => [...prev, ...result.assets]);
+      if (!result.canceled && result.assets) {
+        setNewImages(prev => [...prev, ...result.assets]);
+      }
+    };
+
+    const handleCameraPick = async () => {
+      // Permission request
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert("Permission Denied", "Camera permission is required to take photos.");
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        aspect: [1, 1],
+      });
+
+      if (!result.canceled && result.assets) {
+        setNewImages(prev => [...prev, ...result.assets]);
+      }
+    };
+
+    if (isLaboratory) {
+      await handleCameraPick();
+    } else {
+      SheetManager.show('image-picker-sheet', {
+        payload: {
+          onSelect: async (option) => {
+            if (option === 'camera') {
+              await handleCameraPick();
+              SheetManager.hide('image-picker-sheet');
+            } else {
+              await handleLibraryPick();
+              SheetManager.hide('image-picker-sheet');
+            }
+          }
+        }
+      });
     }
   };
+
 
   const removeNewImage = (index: number) => {
     setNewImages(prev => prev.filter((_, i) => i !== index));
@@ -443,8 +489,8 @@ export default function EditCreateProductScreen() {
           {/* 2. Pricing */}
           <SectionHeader title={isService ? 'Pricing' : 'Inventory & Pricing'} />
           <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, gap: 16, marginBottom: 24, borderWidth: 1, borderColor: '#F1F5F9' }}>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <View style={{ gap: 8, flex: 2 }}>
+            <View style={{ gap: 8 }}>
+              <View style={{ gap: 8 }}>
                 <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>
                   Price (DA) *
                 </Text>
@@ -460,37 +506,41 @@ export default function EditCreateProductScreen() {
                     onChangeText={handlePriceChange}
                   />
                 </View>
+                {!isService && (
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <View style={{ gap: 8, flex: 1.5 }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Stock *</Text>
+                      <TextInput
+                        style={{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }}
+                        placeholder="0"
+                        keyboardType="numeric"
+                        value={form.stock}
+                        onChangeText={handleStockChange}
+                      />
+                    </View>
+                    <View style={{ gap: 8, flex: 1 }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Unit</Text>
+                      <TextInput
+                        style={{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 10, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 13, fontWeight: '600', color: '#111', textAlign: 'center' }}
+                        placeholder="pc"
+                        value={form.unit}
+                        onChangeText={(v) => updateForm('unit', v)}
+                      />
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              <View style={{ paddingTop: 8 }}>
                 {form.price ? (
-                  <Text style={{ fontSize: 11, color: '#64748B', marginLeft: 4 }}>
+                  <Text style={{ fontSize: 11, color: '#64748B', textAlign: 'center' }}>
                     {parseFloat(form.price).toLocaleString('fr-DZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA
                     {isService ? ' / session' : form.offer_type === 'Rent' ? ' / day' : ' / ' + (form.unit || 'piece')}
                   </Text>
                 ) : null}
               </View>
-              {!isService && (
-                <>
-                  <View style={{ gap: 8, flex: 1.5 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Stock *</Text>
-                    <TextInput
-                      style={{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }}
-                      placeholder="0"
-                      keyboardType="numeric"
-                      value={form.stock}
-                      onChangeText={handleStockChange}
-                    />
-                  </View>
-                  <View style={{ gap: 8, flex: 1 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Unit</Text>
-                    <TextInput
-                      style={{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 10, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 13, fontWeight: '600', color: '#111', textAlign: 'center' }}
-                      placeholder="pc"
-                      value={form.unit}
-                      onChangeText={(v) => updateForm('unit', v)}
-                    />
-                  </View>
-                </>
-              )}
             </View>
+
             {isService && (
               <View style={{ gap: 8 }}>
                 <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Pricing Model</Text>

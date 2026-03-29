@@ -1,5 +1,6 @@
 /* --------- Auth --------- */
 
+import { BusinessCategory } from "./business";
 import { Department, Role } from "./taxonomy";
 
 export interface User {
@@ -31,5 +32,6 @@ export interface BusinessAuth {
   logo?: string;
   studentCardId: string;
   departmentId: number;
+  category?: BusinessCategory;
   department?: Department;
 }

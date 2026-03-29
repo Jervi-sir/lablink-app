@@ -2,23 +2,21 @@ import { View, ScrollView, Dimensions, StyleSheet } from "react-native";
 import { ScreenWrapper } from "../../components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { useState, useCallback } from "react";
+import { useState, type ReactNode } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
-import { Svg, Path, Rect, Circle, Defs, LinearGradient, Stop } from "react-native-svg";
+import { Svg, Path, Circle, Defs, LinearGradient, Stop } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
-  interpolateColor,
-  useDerivedValue
 } from "react-native-reanimated";
 
 const { width } = Dimensions.get("window");
 
 const StudentIcon = ({ color }: { color: string }) => (
-  <Svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+  <Svg width="22" height="22" viewBox="0 0 24 24" fill="none">
     <Path d="M12 2L2 7L12 12L22 7L12 2Z" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     <Path d="M2 17L12 22L22 17" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     <Path d="M2 12L12 17L22 12" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -26,7 +24,7 @@ const StudentIcon = ({ color }: { color: string }) => (
 );
 
 const BusinessIcon = ({ color }: { color: string }) => (
-  <Svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+  <Svg width="22" height="22" viewBox="0 0 24 24" fill="none">
     <Path d="M3 21H21" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     <Path d="M3 7V21" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     <Path d="M11 3V21" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -41,9 +39,9 @@ const BusinessIcon = ({ color }: { color: string }) => (
 
 export default function AuthSelectorScreen() {
   const navigation = useNavigation<any>();
-  const [selectedRole, setSelectedRole] = useState<'student' | 'business' | null>(null);
+  const [selectedRole, setSelectedRole] = useState<'student' | 'laboratory' | 'supplier' | null>(null);
 
-  const handleRoleSelect = (role: 'student' | 'business') => {
+  const handleRoleSelect = (role: 'student' | 'laboratory' | 'supplier') => {
     setSelectedRole(role);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   };
@@ -52,8 +50,12 @@ export default function AuthSelectorScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     if (selectedRole === 'student') {
       navigation.navigate(Routes.StudentRegisterScreen);
-    } else if (selectedRole === 'business') {
-      navigation.navigate('business-registry');
+    } else if (selectedRole === 'laboratory' || selectedRole === 'supplier') {
+      const type = selectedRole === 'laboratory' ? 'laboratory' : 'supplier';
+      navigation.navigate('business-registry', {
+        screen: 'BusinessStep1',
+        params: { type }
+      });
     }
   };
 
@@ -61,7 +63,7 @@ export default function AuthSelectorScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (selectedRole === 'student') {
       navigation.navigate(Routes.StudentLoginScreen);
-    } else if (selectedRole === 'business') {
+    } else if (selectedRole === 'laboratory' || selectedRole === 'supplier') {
       navigation.navigate(Routes.BusinessLoginScreen);
     } else {
       // Default to student login if none selected? Or show options?
@@ -69,6 +71,20 @@ export default function AuthSelectorScreen() {
       navigation.navigate(Routes.StudentLoginScreen);
     }
   };
+
+  const selectedAccentColor =
+    selectedRole === 'student' ? '#137FEC' : selectedRole ? '#8B5CF6' : '#137FEC';
+
+  const selectedRoleLabel =
+    selectedRole === 'student'
+      ? 'Student / Researcher'
+      : selectedRole === 'laboratory'
+        ? 'Laboratory'
+        : selectedRole === 'supplier'
+          ? 'Supplier'
+          : '...';
+
+  const loginButtonLabel = selectedRole ? `Login as ${selectedRoleLabel}` : 'Login';
 
   const footerAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -85,7 +101,7 @@ export default function AuthSelectorScreen() {
           <Circle cx="400" cy="0" r="200" fill="url(#grad)" opacity="0.4" />
           <Defs>
             <LinearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <Stop offset="0%" stopColor={selectedRole === 'business' ? '#8B5CF6' : '#137FEC'} stopOpacity="0.2" />
+              <Stop offset="0%" stopColor={selectedAccentColor} stopOpacity="0.2" />
               <Stop offset="100%" stopColor="#F8F9FB" stopOpacity="0" />
             </LinearGradient>
           </Defs>
@@ -120,7 +136,6 @@ export default function AuthSelectorScreen() {
             <SelectableCard
               id="student"
               title="Student / Researcher"
-              description="Find verified labs, book specialized equipment, and source materials for your research."
               icon={<StudentIcon color={selectedRole === 'student' ? '#137FEC' : '#64748B'} />}
               isSelected={selectedRole === 'student'}
               onPress={() => handleRoleSelect('student')}
@@ -129,12 +144,21 @@ export default function AuthSelectorScreen() {
             />
 
             <SelectableCard
-              id="business"
-              title="Laboratory / Supplier"
-              description="List your facility services, manage equipment bookings, and connect with academic talent."
-              icon={<BusinessIcon color={selectedRole === 'business' ? '#8B5CF6' : '#64748B'} />}
-              isSelected={selectedRole === 'business'}
-              onPress={() => handleRoleSelect('business')}
+              id="laboratory"
+              title="Laboratory"
+              icon={<BusinessIcon color={selectedRole === 'laboratory' ? '#8B5CF6' : '#64748B'} />}
+              isSelected={selectedRole === 'laboratory'}
+              onPress={() => handleRoleSelect('laboratory')}
+              accentColor="#8B5CF6"
+              lightAccent="#F5F3FF"
+            />
+
+            <SelectableCard
+              id="supplier"
+              title="Supplier"
+              icon={<BusinessIcon color={selectedRole === 'supplier' ? '#8B5CF6' : '#64748B'} />}
+              isSelected={selectedRole === 'supplier'}
+              onPress={() => handleRoleSelect('supplier')}
               accentColor="#8B5CF6"
               lightAccent="#F5F3FF"
             />
@@ -147,20 +171,28 @@ export default function AuthSelectorScreen() {
             onPress={handleContinue}
             style={[
               styles.continueButton,
-              { backgroundColor: selectedRole === 'business' ? '#8B5CF6' : '#137FEC' },
+              { backgroundColor: selectedRole ? selectedAccentColor : '#CBD5E1' },
               !selectedRole && { backgroundColor: '#CBD5E1' }
             ]}
             disabled={!selectedRole}
           >
-            <Text style={styles.continueButtonText}>Continue as {selectedRole ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) : '...'}</Text>
+            <Text style={styles.continueButtonText}>Continue as {selectedRoleLabel}</Text>
           </TouchableOpacity>
 
+          <Text style={styles.helperText}>Already have an account?</Text>
+
           <TouchableOpacity
-            style={styles.loginLink}
+            style={[
+              styles.secondaryButton,
+              {
+                borderColor: selectedRole ? selectedAccentColor : '#137FEC',
+                backgroundColor: '#FFFFFF',
+              },
+            ]}
             onPress={handleLogin}
           >
-            <Text style={styles.loginText}>
-              Already have an account? <Text style={[styles.loginTextPrimary, { color: selectedRole === 'business' ? '#8B5CF6' : '#137FEC' }]}>Login</Text>
+            <Text style={[styles.secondaryButtonText, { color: selectedRole ? selectedAccentColor : '#137FEC' }]}>
+              {loginButtonLabel}
             </Text>
           </TouchableOpacity>
         </Animated.View>
@@ -172,8 +204,8 @@ export default function AuthSelectorScreen() {
 interface SelectableCardProps {
   id: string;
   title: string;
-  description: string;
-  icon: React.ReactNode;
+  description?: string | null;
+  icon: ReactNode;
   isSelected: boolean;
   onPress: () => void;
   accentColor: string;
@@ -198,22 +230,17 @@ function SelectableCard({ title, description, icon, isSelected, onPress, accentC
 
   return (
     <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
-      <Animated.View style={[styles.card, animatedStyle]}>
+      <Animated.View style={[styles.card, { alignItems: 'center' }, animatedStyle]}>
         <View style={[styles.iconContainer, { backgroundColor: isSelected ? lightAccent : '#F1F5F9' }]}>
           {icon}
         </View>
 
-        <View style={{ flex: 1, gap: 4 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={styles.cardTitle}>{title}</Text>
-            <Animated.View style={[styles.checkmark, { backgroundColor: accentColor }, checkmarkOpacity]}>
-              <Svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                <Path d="M1 4L3.5 6.5L9 1" stroke="#FFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </Animated.View>
-          </View>
-          <Text style={styles.cardDescription}>{description}</Text>
-        </View>
+        <Text style={styles.cardTitle}>{title}</Text>
+        <Animated.View style={[styles.checkmark, { marginLeft: 'auto', backgroundColor: accentColor }, checkmarkOpacity]}>
+          <Svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+            <Path d="M1 4L3.5 6.5L9 1" stroke="#FFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </Svg>
+        </Animated.View>
       </Animated.View>
     </TouchableOpacity>
   );
@@ -259,7 +286,8 @@ const styles = StyleSheet.create({
   },
   card: {
     flexDirection: 'row',
-    padding: 24,
+    alignItems: 'center',
+    padding: 16,
     borderRadius: 20,
     gap: 16,
     shadowColor: "#000",
@@ -268,8 +296,8 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   iconContainer: {
-    width: 60,
-    height: 60,
+    width: 40,
+    height: 40,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
@@ -315,16 +343,22 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.5,
   },
-  loginLink: {
+  secondaryButton: {
+    height: 56,
+    borderRadius: 18,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 8,
+    borderWidth: 2,
   },
-  loginText: {
-    fontSize: 15,
+  secondaryButtonText: {
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  helperText: {
+    textAlign: 'center',
+    fontSize: 14,
     color: '#64748B',
     fontWeight: '600',
-  },
-  loginTextPrimary: {
-    fontWeight: '800',
   },
 });

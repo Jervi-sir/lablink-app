@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, Dimensions, Platform, LayoutAnimation, UIManager, ActivityIndicator, RefreshControl, Share, Image, FlatList } from "react-native";
+import { View, ScrollView, Dimensions, Platform, LayoutAnimation, UIManager, ActivityIndicator, RefreshControl, Share, Image, FlatList, Alert } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { Routes } from "@/utils/helpers/routes";
@@ -10,6 +10,8 @@ import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import ShareIcon from "@/assets/icons/share-icon";
 import SaveIcon from "@/assets/icons/save-icon";
+import { useLabCartStore } from "@/zustand/lab-cart-store";
+import { useAuthStore } from "@/zustand/auth-store";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -27,7 +29,7 @@ const SECTIONS = [
 export default function ProductScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { product: navProduct } = route.params || {};
+  const { product: navProduct, labCartMode = false, lab: routeLab } = route.params || {};
 
   const [product, setProduct] = useState<any>(navProduct || null);
   const [loading, setLoading] = useState(true);
@@ -38,7 +40,72 @@ export default function ProductScreen() {
   const [savingToggle, setSavingToggle] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
+  const carts = useLabCartStore((state) => state.carts);
+  const upsertItem = useLabCartStore((state) => state.upsertItem);
+  const { auth, authType } = useAuthStore();
+ 
+  const isBusiness = authType === 'business';
+  const isLaboratory = auth?.businessProfile?.category?.code === 'laboratory';
+  const showOrderNow = isBusiness && isLaboratory;
+ 
   const productId = navProduct?.id;
+  const currentLab = routeLab || product?.business || navProduct?.business;
+  const productOwnerCategory = product?.category?.code || product?.business?.category?.code || currentLab?.category?.code || 'laboratory';
+  const isSupplierProduct = productOwnerCategory === 'supplier';
+  
+  const effectiveLabCartMode = labCartMode && !isSupplierProduct;
+
+  const currentCart = carts[Number(currentLab?.id)];
+  const cartEntry = currentCart?.items.find((item) => item.productId === Number(productId));
+
+  const labName = product?.business?.name || 'Unknown Lab';
+  const productPrice = typeof product?.price === 'number' ? `${product.price.toLocaleString()} DA` : product?.price || '0 DA';
+  const productPriceValue = typeof product?.price === 'number' ? product.price : parseFloat(String(product?.price || '0').replace(/[^0-9.]/g, '')) || 0;
+  const isInStock = product?.isAvailable && product?.stock > 0;
+
+  const saveToLabCart = useCallback(() => {
+    if (!currentLab || !productId || !product) {
+      return;
+    }
+
+    const targetBusiness = {
+      id: Number(currentLab.id),
+      name: currentLab.name || labName,
+      logo: currentLab.logo || null,
+    };
+
+    const commit = () => {
+      upsertItem(targetBusiness, {
+        productId: Number(productId),
+        businessId: Number(targetBusiness.id),
+        name: product.name,
+        productType: product.productType || product.product_type || 'product',
+        unit: product.unit || null,
+        price: productPriceValue,
+        quantity,
+        imageUrl: product.images?.find((image: any) => image.isMain)?.url || product.images?.[0]?.url || null,
+      });
+
+      Alert.alert('Lab cart updated', `${product.name} is ready in your ${targetBusiness.name} request.`);
+    };
+
+    if (!currentCart) {
+      Alert.alert(
+        'Cart does not exist',
+        `A cart for ${targetBusiness.name} does not exist yet. Please press Create to continue.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Create', 
+            onPress: commit 
+          }
+        ]
+      );
+      return;
+    }
+
+    commit();
+  }, [currentCart, currentLab, labName, product, productId, productPriceValue, quantity, upsertItem]);
 
   const fetchProduct = useCallback(async () => {
     if (!productId) return;
@@ -79,6 +146,12 @@ export default function ProductScreen() {
   useEffect(() => {
     fetchProduct();
   }, [fetchProduct]);
+
+  useEffect(() => {
+    if (effectiveLabCartMode && cartEntry?.quantity) {
+      setQuantity(cartEntry.quantity);
+    }
+  }, [cartEntry?.quantity, effectiveLabCartMode]);
 
   const toggleSection = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -234,9 +307,6 @@ export default function ProductScreen() {
     );
   }
 
-  const labName = product.business?.name || 'Unknown Lab';
-  const productPrice = typeof product.price === 'number' ? `${product.price.toLocaleString()} DA` : product.price || '0 DA';
-  const isInStock = product.isAvailable && product.stock > 0;
 
   const handleShare = async () => {
     try {
@@ -458,16 +528,41 @@ export default function ProductScreen() {
           <Text style={{ fontSize: 16, fontWeight: '700', color: '#111', width: 30, textAlign: 'center' }}>{quantity}</Text>
           <TouchableOpacity style={{ width: 40, height: 44, justifyContent: 'center', alignItems: 'center' }} onPress={incrementQty}><Text style={{ fontSize: 20, fontWeight: '600', color: '#111' }}>+</Text></TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={{ flex: 1, backgroundColor: isInStock ? '#137FEC' : '#94A3B8', borderRadius: 12, justifyContent: 'center', alignItems: 'center' }}
-          activeOpacity={0.8}
-          disabled={!isInStock}
-          onPress={() => navigation.navigate(Routes.CheckoutScreen, { product, quantity })}
-        >
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>
-            {isInStock ? 'Request Proposal' : 'Unavailable'}
-          </Text>
-        </TouchableOpacity>
+
+        {effectiveLabCartMode ? (
+          <>
+            <TouchableOpacity
+              style={{ paddingHorizontal: 16, backgroundColor: '#E2E8F0', borderRadius: 12, justifyContent: 'center', alignItems: 'center' }}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate(Routes.LabEstimationScreen, { businessId: currentLab?.id })}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#334155' }}>View Cart{cartEntry ? ` (${cartEntry.quantity})` : ''}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ flex: 1, backgroundColor: isInStock ? '#137FEC' : '#94A3B8', borderRadius: 12, justifyContent: 'center', alignItems: 'center' }}
+              activeOpacity={0.8}
+              disabled={!isInStock}
+              onPress={saveToLabCart}
+            >
+              <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>
+                {isInStock ? (cartEntry ? 'Update Lab Cart' : 'Add to Lab Cart') : 'Unavailable'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <TouchableOpacity
+            style={{ flex: 1, backgroundColor: isInStock ? '#137FEC' : '#94A3B8', borderRadius: 12, justifyContent: 'center', alignItems: 'center' }}
+            activeOpacity={0.8}
+            disabled={!isInStock}
+            onPress={() => navigation.navigate(Routes.CheckoutScreen, { product, quantity })}
+          >
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>
+              {isInStock 
+                ? (isSupplierProduct ? (showOrderNow ? 'Order Now' : 'Place Order') : 'Request Proposal') 
+                : 'Unavailable'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ScreenWrapper>
   );

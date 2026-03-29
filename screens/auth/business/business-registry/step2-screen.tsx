@@ -1,13 +1,13 @@
 import { TopHeader1 } from "@/components/headers/top-header-1";
 import { ScreenWrapper } from "@/components/screen-wrapper";
-import { ScrollView, View, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { ScrollView, View, TouchableOpacity, ActivityIndicator, Alert, TextInput } from "react-native";
 import { BusinessRegistryProgress } from "./components/business-registry-progress";
 import Text from "@/components/text";
 import GlobalInput from "@/components/inputs/global-input";
 import { Button1 } from "@/components/buttons/button-1";
 import { useNavigation } from "@react-navigation/native";
 import { useBusinessRegistry } from "./context/business-registry-context";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import * as DocumentPicker from "expo-document-picker";
 import { apiPublic } from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
@@ -18,6 +18,7 @@ export default function Step2Screen() {
   const [pickStatus, setPickStatus] = useState<'idle' | 'picked' | 'uploading' | 'uploaded' | 'error'>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFile, setSelectedFile] = useState<any>(null);
+  const nifInputRef = useRef<TextInput>(null);
 
   const handlePickFile = async () => {
     try {
@@ -117,13 +118,17 @@ export default function Step2Screen() {
                 placeholder="REG-000000000"
                 value={formData.registrationNo}
                 onChangeText={(v) => setField('registrationNo', v)}
+                onSubmitEditing={() => nifInputRef.current?.focus()}
+                returnKeyType="next"
                 containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
               />
               <GlobalInput
+                ref={nifInputRef}
                 label="Tax Identification Number (NIF)"
                 placeholder="123 456 789 000"
                 value={formData.nif}
                 onChangeText={(v) => setField('nif', v)}
+                returnKeyType="done"
                 containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
               />
             </View>

@@ -2,17 +2,19 @@ import Text from "@/components/text";
 import { View, StyleSheet } from "react-native";
 
 interface Props {
-  step: 1 | 2 | 3;
+  step: 1 | 2 | 3 | 4;
   percentageOverride?: string;
 }
 
 export const BusinessRegistryProgress = ({ step, percentageOverride }: Props) => {
-  const percentage = percentageOverride || (step === 1 ? '33%' : step === 2 ? '66%' : '100%');
+  const percentage =
+    percentageOverride ||
+    (step === 1 ? '25%' : step === 2 ? '50%' : step === 3 ? '75%' : '100%');
 
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <Text style={styles.stepText}>Step {step} of 3</Text>
+        <Text style={styles.stepText}>Step {step} of 4</Text>
         <Text style={styles.percentageText}>{percentage} Completed</Text>
       </View>
       <View style={styles.progressBarBg}>

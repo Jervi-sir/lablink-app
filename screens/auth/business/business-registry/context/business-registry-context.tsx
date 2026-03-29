@@ -11,7 +11,7 @@ export interface BusinessRegistryData {
   description: string;
   specializations: string[];
   laboratoryCategoryId: number | null;
-  businessCategoryId: number | null;
+  businessCategory: string;
   wilayaId: number | null;
   address: string;
   logo?: string;
@@ -25,17 +25,17 @@ interface BusinessRegistryContextType {
 }
 
 const initialData: BusinessRegistryData = {
-  name: 'Bizz',
+  name: '',
   type: '',
-  contactName: 'jerv',
-  email: 'bizz@gmail.com',
-  password: 'password',
-  registrationNo: '1234',
-  nif: '1234',
-  description: '1234',
+  contactName: '',
+  email: '',
+  password: '',
+  registrationNo: '',
+  nif: '',
+  description: '',
   specializations: [],
   laboratoryCategoryId: null,
-  businessCategoryId: null,
+  businessCategory: '',
   wilayaId: null,
   address: '',
 };
@@ -61,7 +61,7 @@ export const BusinessRegistryProvider = ({ children }: { children: ReactNode }) 
       description: '',
       specializations: [],
       laboratoryCategoryId: null,
-      businessCategoryId: null,
+      businessCategory: '',
       wilayaId: null,
       address: '',
     });

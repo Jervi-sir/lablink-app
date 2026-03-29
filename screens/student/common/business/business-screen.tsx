@@ -1,14 +1,15 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, FlatList, Dimensions, ActivityIndicator, RefreshControl, Image } from "react-native";
+import { View, FlatList, Dimensions, ActivityIndicator, RefreshControl, Image, Alert } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { Routes } from "@/utils/helpers/routes";
-import { ProductCard1 } from "../../components/cards/product-card-1";
+import { ProductCard1 } from "@/components/cards/product-card-1";
 import { useState, useEffect, useCallback } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import { useLabCartStore } from "@/zustand/lab-cart-store";
 
 const { width } = Dimensions.get('window');
 
@@ -32,6 +33,18 @@ export default function BusinessScreen() {
   const [togglingFollow, setTogglingFollow] = useState(false);
   const [togglingSave, setTogglingSave] = useState(false);
   const [savingProductId, setSavingProductId] = useState<string | null>(null);
+
+  const carts = useLabCartStore((state) => state.carts);
+  const upsertItem = useLabCartStore((state) => state.upsertItem);
+  const clearCart = useLabCartStore((state) => state.clearCart);
+
+  const currentCart = carts[Number(businessId)];
+  const cartItems = Array.isArray(currentCart?.items) ? currentCart.items : [];
+
+  const isSupplier = business?.category?.code === 'supplier' || business?.business_category_code === 'supplier';
+  const isCartForThisLab = !!currentCart && !isSupplier;
+  const cartItemCount = isCartForThisLab ? cartItems.reduce((total: number, item: any) => total + (item.quantity || 0), 0) : 0;
+  const cartEstimatedTotal = isCartForThisLab ? cartItems.reduce((total: number, item: any) => total + (item.price || 0) * (item.quantity || 0), 0) : 0;
 
   const fetchBusiness = useCallback(async () => {
     if (!businessId) return;
@@ -128,6 +141,53 @@ export default function BusinessScreen() {
     fetchBusiness();
   }, [fetchBusiness]);
 
+  const addProductToCart = useCallback((item: any) => {
+    if (!businessId || !business) {
+      return;
+    }
+
+    const targetBusiness = {
+      id: Number(businessId),
+      name: business.name || labName || 'Laboratory',
+      logo: business.logo || null,
+    };
+
+    const commit = () => {
+      upsertItem(targetBusiness, {
+        productId: Number(item.id),
+        businessId: Number(businessId),
+        name: item.name,
+        productType: item.productType || item.product_type || 'product',
+        unit: item.unit || null,
+        price: typeof item.price === 'number' ? item.price : parseFloat(String(item.price || 0)) || 0,
+        quantity: 1,
+        imageUrl: item.images?.find((image: any) => image.isMain)?.url || item.images?.[0]?.url || null,
+      });
+    };
+
+    if (!currentCart) {
+      Alert.alert(
+        'Cart does not exist',
+        `A cart for ${targetBusiness.name} does not exist yet. Please press Create to continue.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Create',
+            onPress: commit
+          }
+        ]
+      );
+      return;
+    }
+
+    if (isSupplier) {
+      navigation.navigate(Routes.CheckoutScreen, { product: item, quantity: 1 });
+      return;
+    }
+
+    commit();
+  }, [business, businessId, currentCart, isSupplier, labName, upsertItem]);
+
   const displayName = business?.name || labName || 'Laboratory';
 
   if (loading) {
@@ -210,6 +270,14 @@ export default function BusinessScreen() {
       </View>
 
       {/* About Section */}
+      <View style={{ marginTop: 20, backgroundColor: '#0F172A', borderRadius: 22, padding: 18 }}>
+        <Text style={{ fontSize: 12, fontWeight: '800', color: '#93C5FD', textTransform: 'uppercase' }}>Cart Mode</Text>
+        <Text style={{ marginTop: 8, fontSize: 18, fontWeight: '900', color: '#FFF' }}>Build one estimation request for this lab.</Text>
+        <Text style={{ marginTop: 6, fontSize: 13, lineHeight: 20, color: '#CBD5E1', fontWeight: '600' }}>
+          Add products or services you are interested in, review the cart, then send the request directly to {displayName}.
+        </Text>
+      </View>
+
       {business.description && (
         <View style={{ marginTop: 24 }}>
           <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>About Facility</Text>
@@ -299,7 +367,7 @@ export default function BusinessScreen() {
       {/* Products Header */}
       <View style={{ marginTop: 24, marginBottom: 16 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Available Equipment</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Available Products & Services</Text>
           <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8' }}>{products.length} items</Text>
         </View>
       </View>
@@ -313,8 +381,15 @@ export default function BusinessScreen() {
         lab: item.business?.name || business.name || 'Lab',
         price: typeof item.price === 'number' ? `${item.price.toLocaleString()} DA` : item.price || '0 DA',
       }}
-      onPress={() => navigation.navigate(Routes.ProductScreen, { product: item })}
+      onPress={() => navigation.navigate(Routes.ProductScreen, {
+        product: item,
+        labCartMode: !isSupplier,
+        lab: business,
+      })}
       onToggleSave={() => toggleSaveProduct(item.id.toString())}
+      actionLabel={isSupplier ? null : (cartItems.some((cartItem: any) => cartItem.productId === Number(item.id) && cartItem.businessId === Number(businessId)) ? 'Added' : 'Add')}
+      onActionPress={() => addProductToCart(item)}
+      actionDisabled={!isSupplier && cartItems.some((cartItem: any) => cartItem.productId === Number(item.id) && cartItem.businessId === Number(businessId))}
       isSaving={savingProductId === item.id.toString()}
       style={{ marginBottom: 16 }}
     />
@@ -348,7 +423,7 @@ export default function BusinessScreen() {
         numColumns={2}
         ListHeaderComponent={renderHeader}
         columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 20 }}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: isCartForThisLab ? 140 : 40 }}
         showsVerticalScrollIndicator={false}
         onEndReached={fetchMoreProducts}
         onEndReachedThreshold={0.5}
@@ -370,6 +445,24 @@ export default function BusinessScreen() {
           ) : null
         }
       />
+
+      {isCartForThisLab && cartItems.length > 0 ? (
+        <View style={{ position: 'absolute', left: 16, right: 16, bottom: 18, backgroundColor: '#0F172A', borderRadius: 22, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.18, shadowRadius: 18, elevation: 10 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flex: 1, paddingRight: 12 }}>
+              <Text style={{ fontSize: 12, fontWeight: '800', color: '#93C5FD', textTransform: 'uppercase' }}>Active Lab Cart</Text>
+              <Text style={{ marginTop: 4, fontSize: 16, fontWeight: '900', color: '#FFF' }}>{cartItemCount} selected item{cartItemCount !== 1 ? 's' : ''}</Text>
+              <Text style={{ marginTop: 4, fontSize: 13, color: '#CBD5E1', fontWeight: '600' }}>Estimated total {cartEstimatedTotal.toLocaleString()} DA</Text>
+            </View>
+            <TouchableOpacity
+              style={{ height: 48, paddingHorizontal: 18, borderRadius: 14, backgroundColor: '#10B981', justifyContent: 'center', alignItems: 'center' }}
+              onPress={() => navigation.navigate(Routes.LabEstimationScreen, { businessId })}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '900', color: '#FFF' }}>Finalize</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : null}
     </ScreenWrapper>
   );
 }

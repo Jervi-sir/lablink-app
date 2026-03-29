@@ -11,17 +11,20 @@ import StudentLoginScreen from "./screens/auth/student/student-login-screen";
 import StudentRegisterScreen from "./screens/auth/student/student-register-screen";
 import BusinessLoginScreen from "./screens/auth/business/business-login-screen";
 import BusinessRegistryNavigation from "./screens/auth/business/business-registry/business-registry-navigation";
-import ProductScreen from "./screens/student/common/product/product-screen";
+import ProductScreen from "./screens/shared/product/product-screen";
 import BusinessScreen from "./screens/student/common/business/business-screen";
 import FilterScreen from "./screens/student/common/filter-screen";
 import LabProductsScreen from "./screens/student/common/business/lab-products-screen";
-import CheckoutScreen from "./screens/student/common/checkout/checkout-screen";
+import LabEstimationScreen from "./screens/student/common/business/lab-estimation-screen";
+import CheckoutScreen from "./screens/shared/checkout/checkout-screen";
 import OrderDetailScreen from "./screens/student/common/order-detail-screen";
 import ChatDetailScreen from "./screens/student/common/chat-detail-screen";
+import EstimationDetailScreen from "./screens/student/common/estimation-detail-screen";
 import FeaturedLabsScreen from "./screens/student/common/business/featured-labs-screen";
 import StudentSavedProductsScreen from "./screens/student/m5/saved-followed/saved-products-screen";
 import StudentSavedBusinessesScreen from "./screens/student/m5/saved-followed/saved-businesses-screen";
 import StudentFollowedBusinessesScreen from "./screens/student/m5/saved-followed/followed-businesses-screen";
+import StudentM2Navigation from "./screens/student/m2/m2-navigation";
 import EditProfileScreen from "./screens/student/m5/edit-profile/edit-profile-screen";
 import NotificationsScreen from "./screens/student/m5/settings/notifications-screen";
 import LanguageScreen from "./screens/student/m5/settings/language-screen";
@@ -36,7 +39,7 @@ import FAQScreen from "./screens/student/m5/help-support/faq-screen";
 import ContactSupportScreen from "./screens/student/m5/help-support/contact-support-screen";
 import TermsOfServiceScreen from "./screens/student/m5/help-support/terms-of-service-screen";
 import BusinessProductDetailScreen from "./screens/business/common/business-product-detail-screen";
-import EditCreateProductScreen from "./screens/business/m2/edit-create-product-screen";
+import EditCreateProductScreen from "./screens/business/m1/edit-create-product-screen";
 import BusinessOrderDetailScreen from "./screens/business/m3/business-order-detail-screen";
 import BusinessInvoiceScreen from "./screens/business/m3/invoice-screen";
 import BusinessStudentProfileScreen from "./screens/business/common/student-profile-screen";
@@ -52,6 +55,8 @@ import ServiceAgreementsScreen from "./screens/business/m5/service-agreements-sc
 import EditContactScreen from "./screens/business/m5/lab-profile/edit-contact-screen";
 import BusinessNotificationsScreen from "./screens/business/m5/settings/notifications-screen";
 import BusinessLanguageScreen from "./screens/business/m5/settings/language-screen";
+import LabOrdersScreen from "./screens/business/m1/lab-orders-screen";
+import EstimationReviewScreen from "./screens/business/m3/estimation-review-screen";
 import { useEffect } from "react";
 import {
   addNotificationReceivedListener,
@@ -136,10 +141,13 @@ const Navigation = () => {
         { name: Routes.BusinessScreen, component: BusinessScreen },
         { name: Routes.FilterScreen, component: FilterScreen },
         { name: Routes.LabProductsScreen, component: LabProductsScreen },
+        { name: Routes.LabEstimationScreen, component: LabEstimationScreen },
         { name: Routes.CheckoutScreen, component: CheckoutScreen },
         { name: Routes.OrderDetailScreen, component: OrderDetailScreen },
+        { name: Routes.EstimationDetailScreen, component: EstimationDetailScreen },
         { name: Routes.ChatDetailScreen, component: ChatDetailScreen },
         { name: Routes.FeaturedLabsScreen, component: FeaturedLabsScreen },
+        { name: Routes.StudentSearchScreen, component: StudentM2Navigation },
         { name: Routes.StudentSavedProductsScreen, component: StudentSavedProductsScreen },
         { name: Routes.StudentSavedBusinessesScreen, component: StudentSavedBusinessesScreen },
         { name: Routes.StudentFollowedBusinessesScreen, component: StudentFollowedBusinessesScreen },
@@ -164,6 +172,7 @@ const Navigation = () => {
         { name: Routes.EditLabProfileScreen, component: EditLabProfileScreen },
         { name: Routes.LabProfileScreen, component: LabProfileScreen },
         { name: Routes.InventoryAnalyticsScreen, component: InventoryAnalyticsScreen },
+        { name: Routes.LabOrdersScreen, component: LabOrdersScreen },
         { name: Routes.OperatingHoursScreen, component: OperatingHoursScreen },
         { name: Routes.PayoutHistoryScreen, component: PayoutHistoryScreen },
         { name: Routes.TaxDocumentsScreen, component: TaxDocumentsScreen },
@@ -173,6 +182,7 @@ const Navigation = () => {
         { name: Routes.EditContactScreen, component: EditContactScreen },
         { name: Routes.BusinessNotificationsScreen, component: BusinessNotificationsScreen },
         { name: Routes.BusinessLanguageScreen, component: BusinessLanguageScreen },
+        { name: Routes.EstimationReviewScreen, component: EstimationReviewScreen },
 
         /**-- m1 --*/
 

@@ -4,6 +4,9 @@ import { Wilaya } from "./taxonomy";
 export interface BusinessCategory {
   id: number;
   code: string;
+  en?: string | null;
+  fr?: string | null;
+  ar?: string | null;
 }
 export interface LaboratoryCategory {
   id: number;
@@ -25,7 +28,6 @@ export interface Business {
   laboratoryCategoryId?: number | null;
   wilayaId: number;
   wilaya?: Wilaya;
-  businessCategory?: BusinessCategory;
   laboratoryCategory?: LaboratoryCategory;
   createdAt: string;
 }

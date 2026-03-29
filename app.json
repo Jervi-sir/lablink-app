@@ -42,6 +42,12 @@
         "projectId": "f9b5bc3d-b46f-463b-911f-73eb54bba2e7"
       }
     },
-    "owner": "jervi"
+    "owner": "jervi",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f9b5bc3d-b46f-463b-911f-73eb54bba2e7"
+    }
   }
 }

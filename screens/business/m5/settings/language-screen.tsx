@@ -5,7 +5,7 @@ import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { useState } from "react";
-import { OptionWithDot } from "../../../student/components/options/option-with-dot";
+import { OptionWithDot } from "../../../../components/options/option-with-dot";
 import { paddingHorizontal } from "@/utils/variables/styles";
 
 const LANGUAGES = [

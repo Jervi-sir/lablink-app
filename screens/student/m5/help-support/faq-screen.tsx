@@ -6,7 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { useState } from "react";
 
-import { OptionSettings2 } from "../../components/options/option-settings-2";
+import { OptionSettings2 } from "../../../../components/options/option-settings-2";
 import { paddingHorizontal } from "@/utils/variables/styles";
 
 const FAQS = [

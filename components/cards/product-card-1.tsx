@@ -20,6 +20,9 @@ interface ProductCard1Props {
   onPress?: () => void;
   onToggleSave?: () => void;
   isSaving?: boolean;
+  actionLabel?: string;
+  onActionPress?: () => void;
+  actionDisabled?: boolean;
   width?: number;
   style?: ViewStyle;
 }
@@ -29,6 +32,9 @@ export const ProductCard1: React.FC<ProductCard1Props> = ({
   onPress,
   onToggleSave,
   isSaving = false,
+  actionLabel,
+  onActionPress,
+  actionDisabled = false,
   width = DEFAULT_COLUMN_WIDTH,
   style
 }) => {
@@ -103,6 +109,25 @@ export const ProductCard1: React.FC<ProductCard1Props> = ({
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
           <Text style={{ fontSize: 14, color: '#137FEC', fontWeight: '800' }}>{product.price}</Text>
         </View>
+        {actionLabel ? (
+          <TouchableOpacity
+            onPress={(e) => {
+              e.stopPropagation?.();
+              onActionPress?.();
+            }}
+            disabled={actionDisabled}
+            style={{
+              marginTop: 8,
+              height: 38,
+              borderRadius: 10,
+              backgroundColor: actionDisabled ? '#DBEAFE' : '#137FEC',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFF' }}>{actionLabel}</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
     </TouchableOpacity>
   );

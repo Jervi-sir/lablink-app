@@ -10,7 +10,11 @@ interface SearchInputProps {
   placeholder?: string;
   onSubmitEditing?: () => void;
   onClear?: () => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
   style?: ViewStyle;
+  onPress?: () => void;
+  editable?: boolean;
 }
 
 export const SearchInput: React.FC<SearchInputProps> = ({
@@ -19,7 +23,11 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   placeholder = "Search for equipment or labs...",
   onSubmitEditing,
   onClear,
-  style
+  onFocus,
+  onBlur,
+  style,
+  onPress,
+  editable = true,
 }) => {
   const isSearching = value.length > 0;
 
@@ -31,7 +39,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
     }
   };
 
-  return (
+  const content = (
     <View
       style={[{
         flex: 1,
@@ -57,8 +65,12 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         value={value}
         onChangeText={onChangeText}
         onSubmitEditing={onSubmitEditing}
+        onFocus={onFocus}
+        onBlur={onBlur}
         autoCapitalize="none"
         autoCorrect={false}
+        onPressIn={onPress}
+        editable={editable}
       />
       {isSearching && (
         <TouchableOpacity onPress={handleClear} activeOpacity={1}>
@@ -67,4 +79,14 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       )}
     </View>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.95}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
 };

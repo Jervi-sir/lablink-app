@@ -1,5 +1,8 @@
-export const SERVER_IP = 'lablink.jervi.dev'
-export const SERVER_URL = 'https://lablink.jervi.dev'
+// export const SERVER_IP = 'lablink.jervi.dev'
+// export const SERVER_URL = 'https://lablink.jervi.dev'
+export const SERVER_IP = '192.168.1.109'
+export const SERVER_URL = 'http://192.168.1.109:8000'
+
 export const BASE_URL = SERVER_URL + '/api/'
 
 export const UPLOAD_URL = 'https://uploads.octaprize.com/'
@@ -43,6 +46,7 @@ export const ApiRoutes = {
     toggleFollow: 'businesses/:id/toggle-follow',
     toggleSave: 'businesses/:id/toggle-save',
     featuredLabs: 'businesses/featured-labs',
+    featuredSuppliers: 'businesses/featured-suppliers',
     topLabs: 'businesses/top-labs',
     uploadLogo: 'businesses/:id/logo',
     uploadCertificate: 'businesses/:id/certificate',
@@ -62,12 +66,23 @@ export const ApiRoutes = {
     setMainImage: 'product-images/:id/set-main',
   },
   search: 'search',
+  searchProducts: 'search/products',
+  searchBusinesses: 'search/businesses',
+  searchLaboratory: 'search/laboratory',
+  searchLaboratoryRandom: 'search/laboratory/random',
   orders: {
     index: 'orders',
     store: 'orders',
     show: 'orders/:id',
     businessOrders: 'business/orders',
+    laboratoryOrders: 'laboratory/orders',
     updateStatus: 'orders/:id/status',
+  },
+  estimationRequests: {
+    index: 'estimation-requests',
+    store: 'estimation-requests',
+    show: 'estimation-requests/:id',
+    businessIndex: 'business/estimation-requests',
   },
   conversations: {
     index: 'conversations',

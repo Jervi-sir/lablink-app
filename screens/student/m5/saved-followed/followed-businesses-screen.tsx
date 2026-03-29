@@ -5,7 +5,7 @@ import { View, FlatList, ActivityIndicator, RefreshControl } from "react-native"
 import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 import { Routes } from "@/utils/helpers/routes";
-import { BusinessCard2 } from "../../components/cards/business-card-2";
+import { BusinessCard2 } from "../../../../components/cards/business-card-2";
 import { useState, useEffect, useCallback } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";

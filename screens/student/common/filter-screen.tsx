@@ -1,340 +1,330 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, ScrollView, TextInput, PanResponder } from "react-native";
-import React, { useState, useRef, useEffect } from "react";
-import Svg, { Path } from "react-native-svg";
-import { Button1 } from "@/components/buttons/button-1";
+import api from "@/utils/api/axios-instance";
+import { ApiRoutes, buildRoute } from "@/utils/api/api";
+import type { Wilaya } from "@/utils/types";
+import {
+  defaultStudentCatalogFilters,
+  STUDENT_CATALOG_MAX_PRICE,
+  useStudentCatalogStore,
+} from "@/zustand/student-catalog-store";
+import {
+  defaultStudentBusinessFilters,
+  useStudentBusinessSearchStore,
+} from "@/zustand/student-business-search-store";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { useEffect, useMemo, useState } from "react";
+import { ScrollView, TextInput, View } from "react-native";
+import { SheetManager } from "react-native-actions-sheet";
+import type { TaxonomyItem } from "@/action-sheets/taxonomy-selector-sheet";
 
-// Constants for slider
-const MIN_PRICE_LIMIT = 0;
-const MAX_PRICE_LIMIT = 100000;
+const SAFETY_LEVELS = [1, 2, 3, 4, 5];
 
-// Icons
-const BellIcon = ({ size = 24, color = "#111" }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
-      fill={color}
-    />
-  </Svg>
-);
+const PRODUCT_SORT_OPTIONS = [
+  { label: "Newest", value: "recent" },
+  { label: "Price: Low to High", value: "price_asc" },
+  { label: "Price: High to Low", value: "price_desc" },
+] as const;
 
-const InstitutionIcon = ({ size = 24, color = "#111" }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"
-      fill={color}
-    />
-    <Path
-      d="M5 13.18v4l7 3.82 7-3.82v-4L12 17l-7-3.82z"
-      fill={color}
-    />
-  </Svg>
-);
-
-const BuildingIcon = ({ size = 24, color = "#111" }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"
-      fill={color}
-    />
-  </Svg>
-);
-
-const CheckIcon = ({ size = 16, color = "#FFF" }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z"
-      fill={color}
-    />
-  </Svg>
-);
-
-interface RangeSliderProps {
-  min: number;
-  max: number;
-  minPrice: number;
-  maxPrice: number;
-  onValuesChange: (min: number, max: number) => void;
-}
-
-const RangeSlider = ({ min, max, minPrice, maxPrice, onValuesChange }: RangeSliderProps) => {
-  const [width, setWidth] = useState(0);
-
-  const getPositionFromValue = (value: number) => {
-    if (width === 0) return 0;
-    return ((value - min) / (max - min)) * width;
-  };
-
-  const getValueFromPosition = (position: number) => {
-    const val = (position / width) * (max - min) + min;
-    return Math.max(min, Math.min(max, Math.round(val / 100) * 100));
-  };
-
-  const initialMinPrice = useRef(0);
-  const initialMaxPrice = useRef(0);
-  const minPriceRef = useRef(minPrice);
-  const maxPriceRef = useRef(maxPrice);
-
-  useEffect(() => {
-    minPriceRef.current = minPrice;
-    maxPriceRef.current = maxPrice;
-  }, [minPrice, maxPrice]);
-
-  const leftThumbPanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        initialMinPrice.current = minPriceRef.current;
-      },
-      onPanResponderMove: (_, gestureState) => {
-        const newPos = getPositionFromValue(initialMinPrice.current) + gestureState.dx;
-        const newVal = getValueFromPosition(newPos);
-        if (newVal < maxPriceRef.current) {
-          onValuesChange(newVal, maxPriceRef.current);
-        }
-      },
-    })
-  ).current;
-
-  const rightThumbPanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        initialMaxPrice.current = maxPriceRef.current;
-      },
-      onPanResponderMove: (_, gestureState) => {
-        const newPos = getPositionFromValue(initialMaxPrice.current) + gestureState.dx;
-        const newVal = getValueFromPosition(newPos);
-        if (newVal > minPriceRef.current) {
-          onValuesChange(minPriceRef.current, newVal);
-        }
-      },
-    })
-  ).current;
-
-  const leftPos = getPositionFromValue(minPrice);
-  const rightPos = getPositionFromValue(maxPrice);
-
-  return (
-    <View
-      style={{ height: 40, justifyContent: 'center', marginBottom: 8 }}
-      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-    >
-      <View style={{ height: 4, backgroundColor: '#E1E4E8', borderRadius: 2, position: 'relative' }}>
-        <View
-          style={[
-            { position: 'absolute', height: 4, backgroundColor: '#137FEC' },
-            { left: leftPos, width: rightPos - leftPos }
-          ]}
-        />
-        <View
-          {...leftThumbPanResponder.panHandlers}
-          style={[{ position: 'absolute', width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFF', borderWidth: 2, borderColor: '#137FEC', top: -8, marginLeft: -10 }, { left: leftPos }]}
-        />
-        <View
-          {...rightThumbPanResponder.panHandlers}
-          style={[{ position: 'absolute', width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFF', borderWidth: 2, borderColor: '#137FEC', top: -8, marginLeft: -10 }, { left: rightPos }]}
-        />
-      </View>
-    </View>
-  );
-};
+const BUSINESS_SORT_OPTIONS = [
+  { label: "Featured First", value: "featured" },
+  { label: "Newest", value: "recent" },
+  { label: "A to Z", value: "name" },
+] as const;
 
 export default function FilterScreen() {
-  const [selectedCategory, setSelectedCategory] = useState("Chemicals");
-  const [labType, setLabType] = useState<"university" | "commercial">("university");
-  const [safetyLevels, setSafetyLevels] = useState<string[]>(["Non-Hazardous"]);
-  const [minPrice, setMinPrice] = useState(1500);
-  const [maxPrice, setMaxPrice] = useState(15000);
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const mode: 'products' | 'businesses' = route.params?.mode === 'businesses' ? 'businesses' : 'products';
 
-  const categories = ["Chemicals", "Equipment", "Kits", "Glass"];
-  const safetyOptions = ["Non-Hazardous", "Hazardous", "Contagious", "Glass"];
+  const savedProductFilters = useStudentCatalogStore((state) => state.filters);
+  const setProductFilters = useStudentCatalogStore((state) => state.setFilters);
+  const resetProductFilters = useStudentCatalogStore((state) => state.resetFilters);
 
-  const toggleSafetyLevel = (level: string) => {
-    if (safetyLevels.includes(level)) {
-      setSafetyLevels(safetyLevels.filter(l => l !== level));
-    } else {
-      setSafetyLevels([...safetyLevels, level]);
+  const savedBusinessFilters = useStudentBusinessSearchStore((state) => state.filters);
+  const setBusinessFilters = useStudentBusinessSearchStore((state) => state.setFilters);
+  const resetBusinessFilters = useStudentBusinessSearchStore((state) => state.resetFilters);
+
+  const [categories, setCategories] = useState<any[]>([]);
+  const [wilayas, setWilayas] = useState<Wilaya[]>([]);
+  const [productFilters, setLocalProductFilters] = useState(savedProductFilters);
+  const [businessFilters, setLocalBusinessFilters] = useState(savedBusinessFilters);
+
+  useEffect(() => {
+    setLocalProductFilters(savedProductFilters);
+  }, [savedProductFilters]);
+
+  useEffect(() => {
+    setLocalBusinessFilters(savedBusinessFilters);
+  }, [savedBusinessFilters]);
+
+  useEffect(() => {
+    const loadTaxonomies = async () => {
+      try {
+        const types = mode === 'products' ? 'product_categories,wilayas' : 'wilayas';
+        const response = await api.get(buildRoute(ApiRoutes.taxonomies), {
+          params: { types },
+        });
+
+        setCategories(response?.product_categories || []);
+        setWilayas(response?.wilayas || []);
+      } catch (error) {
+        console.error('Error loading filter taxonomies:', error);
+      }
+    };
+
+    loadTaxonomies();
+  }, [mode]);
+
+  const selectedProductWilaya = wilayas.find((wilaya) => wilaya.id === productFilters.wilayaId);
+  const selectedBusinessWilaya = wilayas.find((wilaya) => wilaya.id === businessFilters.wilayaId);
+
+  const productSummary = useMemo(() => {
+    const parts: string[] = [];
+
+    if (productFilters.productType !== 'all') parts.push(productFilters.productType === 'product' ? 'Products' : 'Services');
+    if (selectedProductWilaya) parts.push(selectedProductWilaya.en || selectedProductWilaya.code);
+    if (productFilters.categoryIds.length > 0) parts.push(`${productFilters.categoryIds.length} categories`);
+    if (productFilters.safetyLevels.length > 0) parts.push(`${productFilters.safetyLevels.length} safety levels`);
+    if (productFilters.minPrice > 0 || productFilters.maxPrice < STUDENT_CATALOG_MAX_PRICE) {
+      parts.push(`${productFilters.minPrice.toLocaleString()}-${productFilters.maxPrice.toLocaleString()} DA`);
     }
+
+    return parts;
+  }, [productFilters, selectedProductWilaya]);
+
+  const businessSummary = useMemo(() => {
+    const parts: string[] = [];
+
+    if (businessFilters.businessType !== 'all') {
+      parts.push(businessFilters.businessType === 'laboratory' ? 'Laboratories' : 'Suppliers');
+    }
+    if (selectedBusinessWilaya) parts.push(selectedBusinessWilaya.en || selectedBusinessWilaya.code);
+    if (businessFilters.sortBy !== 'featured') parts.push(businessFilters.sortBy === 'recent' ? 'Newest' : 'A to Z');
+
+    return parts;
+  }, [businessFilters, selectedBusinessWilaya]);
+
+  const openWilayaSheet = (currentId: number | null, onSelect: (item: Wilaya) => void) => {
+    SheetManager.show('taxonomy-selector-sheet', {
+      payload: {
+        title: 'Select Wilaya',
+        items: wilayas,
+        selectedId: currentId,
+        onSelect: (item: TaxonomyItem) => onSelect(item as Wilaya),
+      },
+    });
   };
 
-  return (
-    <ScreenWrapper style={{ backgroundColor: '#F7F9FC' }}>
-      <View style={{ paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#EEE', marginBottom: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#E1E4E8' }} />
-          <View>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#111' }}>Username</Text>
-            <Text style={{ fontSize: 12, color: '#6B7280' }}>Email</Text>
+  const renderSummary = (items: string[]) => items.length > 0 ? (
+    <View style={{ backgroundColor: '#0F172A', borderRadius: 20, padding: 18 }}>
+      <Text style={{ fontSize: 12, fontWeight: '800', color: '#93C5FD', textTransform: 'uppercase' }}>Active Filters</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 12, gap: 8 }}>
+        {items.map((item) => (
+          <View key={item} style={{ backgroundColor: '#1E293B', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFF' }}>{item}</Text>
           </View>
-        </View>
-        <TouchableOpacity style={{ padding: 4 }}>
-          <BellIcon size={24} color="#111" />
+        ))}
+      </View>
+    </View>
+  ) : null;
+
+  const renderWilayaBlock = (selectedWilaya: Wilaya | undefined, onPress: () => void, onClear: () => void) => (
+    <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+      <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Wilaya</Text>
+      <TouchableOpacity
+        onPress={onPress}
+        style={{ marginTop: 16, height: 52, borderRadius: 14, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+      >
+        <Text style={{ fontSize: 14, fontWeight: '700', color: selectedWilaya ? '#0F172A' : '#94A3B8' }}>
+          {selectedWilaya ? `${selectedWilaya.number} - ${selectedWilaya.code}` : 'Select wilaya'}
+        </Text>
+        <Text style={{ fontSize: 18, color: '#64748B' }}>⌄</Text>
+      </TouchableOpacity>
+      {selectedWilaya ? (
+        <TouchableOpacity onPress={onClear} style={{ marginTop: 10, alignSelf: 'flex-start' }}>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: '#137FEC' }}>Clear wilaya</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+
+  return (
+    <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
+      <View style={{ height: 60, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' }}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: '#475569' }}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={{ fontSize: 17, fontWeight: '900', color: '#0F172A' }}>{mode === 'products' ? 'Filter Products' : 'Filter Businesses'}</Text>
+        <TouchableOpacity
+          onPress={() => {
+            if (mode === 'products') {
+              resetProductFilters();
+            } else {
+              resetBusinessFilters();
+            }
+            navigation.goBack();
+          }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '700', color: '#137FEC' }}>Reset</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-        {/* Category Section */}
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#111', marginBottom: 12 }}>Category</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-            {categories.map((cat) => (
-              <TouchableOpacity
-                key={cat}
-                style={[
-                  { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: '#F0F2F5', borderWidth: 1, borderColor: '#E1E4E8', marginRight: 8 },
-                  selectedCategory === cat && { backgroundColor: '#E7F2FD', borderColor: '#137FEC' }
-                ]}
-                onPress={() => setSelectedCategory(cat)}
-              >
-                <Text style={[
-                  { fontSize: 13, fontWeight: '500', color: '#4B5563' },
-                  selectedCategory === cat && { color: '#137FEC' }
-                ]}>
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 140 }}>
+        {mode === 'products' ? (
+          <>
+            {renderSummary(productSummary)}
 
-        {/* Price Range Section */}
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#111', marginBottom: 12 }}>Price Range</Text>
-          <RangeSlider
-            min={MIN_PRICE_LIMIT}
-            max={MAX_PRICE_LIMIT}
-            minPrice={minPrice}
-            maxPrice={maxPrice}
-            onValuesChange={(min, max) => {
-              setMinPrice(min);
-              setMaxPrice(max);
-            }}
-          />
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F2F5', borderRadius: 8, paddingHorizontal: 12, height: 44 }}>
-              <Text style={{ fontSize: 12, color: '#9CA3AF', marginRight: 4 }}>DA</Text>
-              <TextInput
-                style={{ flex: 1, fontSize: 14, fontWeight: '700', color: '#111' }}
-                value={minPrice.toString()}
-                onChangeText={(val) => {
-                  const num = Math.max(MIN_PRICE_LIMIT, Math.min(MAX_PRICE_LIMIT, parseInt(val) || 0));
-                  setMinPrice(Math.min(num, maxPrice));
-                }}
-                keyboardType="numeric"
-              />
+            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Type</Text>
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                {[{ label: 'All', value: 'all' }, { label: 'Products', value: 'product' }, { label: 'Services', value: 'service' }].map((option) => {
+                  const isActive = productFilters.productType === option.value;
+                  return (
+                    <TouchableOpacity key={option.value} onPress={() => setLocalProductFilters((current) => ({ ...current, productType: option.value as any }))} style={{ flex: 1, height: 42, borderRadius: 14, justifyContent: 'center', alignItems: 'center', backgroundColor: isActive ? '#137FEC' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: isActive ? '#FFF' : '#475569' }}>{option.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F2F5', borderRadius: 8, paddingHorizontal: 12, height: 44 }}>
-              <Text style={{ fontSize: 12, color: '#9CA3AF', marginRight: 4 }}>DA</Text>
-              <TextInput
-                style={{ flex: 1, fontSize: 14, fontWeight: '700', color: '#111' }}
-                value={maxPrice.toString()}
-                onChangeText={(val) => {
-                  const num = Math.max(MIN_PRICE_LIMIT, Math.min(MAX_PRICE_LIMIT, parseInt(val) || 0));
-                  setMaxPrice(Math.max(num, minPrice));
-                }}
-                keyboardType="numeric"
-              />
-            </View>
-          </View>
-        </View>
 
+            {renderWilayaBlock(
+              selectedProductWilaya,
+              () => openWilayaSheet(productFilters.wilayaId, (item) => setLocalProductFilters((current) => ({ ...current, wilayaId: item.id }))),
+              () => setLocalProductFilters((current) => ({ ...current, wilayaId: null }))
+            )}
 
-        {/* Lab Type Section */}
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#111', marginBottom: 12 }}>Lab Type</Text>
-          <TouchableOpacity
-            style={[
-              { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E1E4E8', borderRadius: 12, padding: 16, marginBottom: 12 },
-              labType === 'university' && { borderColor: '#137FEC', backgroundColor: '#F8FBFF' }
-            ]}
-            onPress={() => setLabType('university')}
-          >
-            <View style={[
-              { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-              labType === 'university' && { backgroundColor: '#137FEC', borderColor: '#137FEC' }
-            ]}>
-              {labType === 'university' && <CheckIcon size={12} />}
+            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Categories</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 16, gap: 10 }}>
+                {categories.map((category) => {
+                  const isActive = productFilters.categoryIds.includes(category.id);
+                  return (
+                    <TouchableOpacity key={category.id} onPress={() => setLocalProductFilters((current) => ({ ...current, categoryIds: isActive ? current.categoryIds.filter((id) => id !== category.id) : [...current.categoryIds, category.id] }))} style={{ paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, backgroundColor: isActive ? '#DBEAFE' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: isActive ? '#137FEC' : '#475569' }}>{category.en || category.code}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
-            <View style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-              <InstitutionIcon size={24} color="#111" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#111' }}>University Lab</Text>
-              <Text style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>Verified academic institutions</Text>
-            </View>
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E1E4E8', borderRadius: 12, padding: 16, marginBottom: 12 },
-              labType === 'commercial' && { borderColor: '#137FEC', backgroundColor: '#F8FBFF' }
-            ]}
-            onPress={() => setLabType('commercial')}
-          >
-            <View style={[
-              { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-              labType === 'commercial' && { backgroundColor: '#137FEC', borderColor: '#137FEC' }
-            ]}>
-              {labType === 'commercial' && <CheckIcon size={12} />}
+            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Price Range</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', marginBottom: 8 }}>Min</Text>
+                  <TextInput style={{ height: 48, borderRadius: 14, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 14, color: '#0F172A', fontWeight: '700' }} keyboardType="numeric" value={String(productFilters.minPrice)} onChangeText={(value) => {
+                    const parsed = Math.max(0, Math.min(STUDENT_CATALOG_MAX_PRICE, parseInt(value || '0', 10) || 0));
+                    setLocalProductFilters((current) => ({ ...current, minPrice: Math.min(parsed, current.maxPrice) }));
+                  }} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', marginBottom: 8 }}>Max</Text>
+                  <TextInput style={{ height: 48, borderRadius: 14, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 14, color: '#0F172A', fontWeight: '700' }} keyboardType="numeric" value={String(productFilters.maxPrice)} onChangeText={(value) => {
+                    const parsed = Math.max(0, Math.min(STUDENT_CATALOG_MAX_PRICE, parseInt(value || '0', 10) || 0));
+                    setLocalProductFilters((current) => ({ ...current, maxPrice: Math.max(parsed, current.minPrice) }));
+                  }} />
+                </View>
+              </View>
             </View>
-            <View style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-              <BuildingIcon size={24} color="#111" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#111' }}>Commercial Lab</Text>
-              <Text style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>Private research facilities</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
 
-        {/* Safety Level Section */}
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#111', marginBottom: 12 }}>Safety Level</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            {safetyOptions.map((opt) => (
-              <TouchableOpacity
-                key={opt}
-                style={[
-                  { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, backgroundColor: '#F0F2F5', borderWidth: 1, borderColor: '#E1E4E8', marginRight: 8, marginBottom: 8 },
-                  safetyLevels.includes(opt) && { backgroundColor: '#E7F2FD', borderColor: '#137FEC' }
-                ]}
-                onPress={() => toggleSafetyLevel(opt)}
-              >
-                <Text style={[
-                  { fontSize: 13, fontWeight: '500', color: '#4B5563' },
-                  safetyLevels.includes(opt) && { color: '#137FEC' }
-                ]}>
-                  {opt}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Safety Level</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 16, gap: 10 }}>
+                {SAFETY_LEVELS.map((level) => {
+                  const isActive = productFilters.safetyLevels.includes(level);
+                  return (
+                    <TouchableOpacity key={level} onPress={() => setLocalProductFilters((current) => ({ ...current, safetyLevels: isActive ? current.safetyLevels.filter((item) => item !== level) : [...current.safetyLevels, level] }))} style={{ width: 52, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center', backgroundColor: isActive ? '#DBEAFE' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: isActive ? '#137FEC' : '#475569' }}>{level}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Sort By</Text>
+              <View style={{ marginTop: 16, gap: 10 }}>
+                {PRODUCT_SORT_OPTIONS.map((option) => {
+                  const isActive = productFilters.sortBy === option.value;
+                  return (
+                    <TouchableOpacity key={option.value} onPress={() => setLocalProductFilters((current) => ({ ...current, sortBy: option.value }))} style={{ height: 48, borderRadius: 14, justifyContent: 'center', paddingHorizontal: 16, backgroundColor: isActive ? '#EFF6FF' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: isActive ? '#137FEC' : '#475569' }}>{option.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </>
+        ) : (
+          <>
+            {renderSummary(businessSummary)}
+
+            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Business Type</Text>
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                {[{ label: 'All', value: 'all' }, { label: 'Labs', value: 'laboratory' }, { label: 'Suppliers', value: 'supplier' }].map((option) => {
+                  const isActive = businessFilters.businessType === option.value;
+                  return (
+                    <TouchableOpacity key={option.value} onPress={() => setLocalBusinessFilters((current) => ({ ...current, businessType: option.value as any }))} style={{ flex: 1, height: 42, borderRadius: 14, justifyContent: 'center', alignItems: 'center', backgroundColor: isActive ? '#137FEC' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: isActive ? '#FFF' : '#475569' }}>{option.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            {renderWilayaBlock(
+              selectedBusinessWilaya,
+              () => openWilayaSheet(businessFilters.wilayaId, (item) => setLocalBusinessFilters((current) => ({ ...current, wilayaId: item.id }))),
+              () => setLocalBusinessFilters((current) => ({ ...current, wilayaId: null }))
+            )}
+
+            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Sort By</Text>
+              <View style={{ marginTop: 16, gap: 10 }}>
+                {BUSINESS_SORT_OPTIONS.map((option) => {
+                  const isActive = businessFilters.sortBy === option.value;
+                  return (
+                    <TouchableOpacity key={option.value} onPress={() => setLocalBusinessFilters((current) => ({ ...current, sortBy: option.value }))} style={{ height: 48, borderRadius: 14, justifyContent: 'center', paddingHorizontal: 16, backgroundColor: isActive ? '#EFF6FF' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: isActive ? '#137FEC' : '#475569' }}>{option.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </>
+        )}
       </ScrollView>
 
-      {/* Footer Buttons */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 16, backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: '#EEE', gap: 12 }}>
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#FFF', borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingHorizontal: 20, paddingVertical: 16 }}>
         <TouchableOpacity
-          style={{ paddingHorizontal: 12, paddingVertical: 12 }}
+          style={{ height: 54, borderRadius: 16, backgroundColor: '#137FEC', justifyContent: 'center', alignItems: 'center' }}
           onPress={() => {
-            setSelectedCategory("");
-            setLabType("university");
-            setSafetyLevels([]);
-            setMinPrice(MIN_PRICE_LIMIT);
-            setMaxPrice(MAX_PRICE_LIMIT);
+            if (mode === 'products') {
+              setProductFilters(productFilters);
+            } else {
+              setBusinessFilters(businessFilters);
+            }
+            navigation.goBack();
           }}
         >
-          <Text style={{ fontSize: 15, fontWeight: '600', color: '#6B7280' }}>Clear All</Text>
+          <Text style={{ fontSize: 15, fontWeight: '900', color: '#FFF' }}>Apply Filters</Text>
         </TouchableOpacity>
-        <Button1
-          text="Apply Filters"
-          style={{ flex: 1, height: 48 }}
-          textStyle={{ fontSize: 15, fontWeight: '700' }}
-          onPress={() => console.log('Filters applied')}
-        />
+        <TouchableOpacity
+          style={{ marginTop: 12, height: 46, borderRadius: 14, justifyContent: 'center', alignItems: 'center' }}
+          onPress={() => {
+            if (mode === 'products') {
+              setLocalProductFilters(defaultStudentCatalogFilters);
+            } else {
+              setLocalBusinessFilters(defaultStudentBusinessFilters);
+            }
+          }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '700', color: '#64748B' }}>Clear local changes</Text>
+        </TouchableOpacity>
       </View>
     </ScreenWrapper>
   );

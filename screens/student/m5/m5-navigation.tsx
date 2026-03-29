@@ -4,7 +4,7 @@ import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView, Dimensions, Platform, ActivityIndicator, RefreshControl, Animated } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
-import { OptionSettings } from "../components/options/option-settings";
+import { OptionSettings } from "../../../components/options/option-settings";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { SheetManager } from "react-native-actions-sheet";
 import api from "@/utils/api/axios-instance";

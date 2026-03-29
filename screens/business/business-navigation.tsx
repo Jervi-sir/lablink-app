@@ -14,11 +14,12 @@ import M2BusinessIcon from "@/assets/icons/menu/business/m2-business-icon";
 import M3BusinessIcon from "@/assets/icons/menu/business/m3-business-icon";
 import M4BusinessIcon from "@/assets/icons/menu/business/m4-business-icon";
 import M5BusinessIcon from "@/assets/icons/menu/business/m5-business-icon";
+import { useAuthStore } from "@/zustand/auth-store";
 
 function useTabScreens() {
   return [
-    { key: 'M1', label: 'Dashboard', routeName: Routes.M1, component: BusinessM1Navigation, icon: M1BusinessIcon },
-    { key: 'M2', label: 'Inventory', routeName: Routes.M2, component: BusinessM2Navigation, icon: M2BusinessIcon },
+    { key: 'M1', label: 'Inventory', routeName: Routes.M1, component: BusinessM1Navigation, icon: M1BusinessIcon },
+    { key: 'M2', label: 'Search', routeName: Routes.M2, component: BusinessM2Navigation, icon: M2BusinessIcon },
     { key: 'M3', label: 'Orders', routeName: Routes.M3, component: BusinessM3Navigation, icon: M3BusinessIcon },
     { key: 'M4', label: 'Inbox', routeName: Routes.M4, component: BusinessM4Navigation, icon: M4BusinessIcon },
     { key: 'M5', label: 'Profile', routeName: Routes.M5, component: BusinessM5Navigation, icon: M5BusinessIcon },
@@ -28,8 +29,16 @@ function useTabScreens() {
 const Tab = createBottomTabNavigator();
 
 export default function BusinessNavigation() {
-  const tabs = useTabScreens();
+  const auth = useAuthStore((s) => s.auth);
+  const businessCategory = auth?.businessProfile?.category?.code || 'supplier';
   const height = Platform.OS === 'ios' ? 77 : 58;
+
+  const activeTabs = useTabScreens().filter(tab => {
+    if (tab.key === 'M2' && businessCategory === 'supplier') {
+        return false;
+    }
+    return true;
+  });
 
   return (
     <Tab.Navigator
@@ -51,7 +60,7 @@ export default function BusinessNavigation() {
         };
       }}
     >
-      {tabs.map((tab) => (
+      {activeTabs.map((tab) => (
         <Tab.Screen
           key={tab.key}
           name={tab.routeName}
@@ -62,7 +71,7 @@ export default function BusinessNavigation() {
             tabBarButton: (buttonProps: any) => {
               const { delayLongPress, ...rest } = buttonProps;
               const safeDelay = delayLongPress === null ? undefined : delayLongPress;
-              return <CustomTabButton {...rest} delayLongPress={safeDelay} tab={tab} height={height} />;
+              return <CustomTabButton {...rest} delayLongPress={safeDelay} tab={tab} height={height} tabsCount={activeTabs.length} />;
             },
             tabBarIcon: () => null,
             tabBarStyle: {
@@ -86,8 +95,9 @@ const CustomTabButton: React.FC<
   React.ComponentProps<typeof TouchableOpacity> & {
     tab: TabDef;
     height: number;
+    tabsCount: number;
   }
-> = ({ tab, height, ...props }) => {
+> = ({ tab, height, tabsCount, ...props }) => {
   const state = useNavigationState((state) => state);
 
   // Handling for potentially nested navigators or multiple routes
@@ -116,7 +126,7 @@ const CustomTabButton: React.FC<
           paddingTop: 10,
           alignItems: 'center',
           height,
-          width: width / 5,
+          width: width / tabsCount,
         }}
       >
         <View style={{ width: 24, height: 24, marginBottom: 1 }}>

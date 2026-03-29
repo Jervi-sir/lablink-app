@@ -13,8 +13,8 @@ import { useAuthStore } from "@/zustand/auth-store";
 
 export default function BusinessLoginScreen() {
   const navigation = useNavigation<any>();
-  const [email, setEmail] = useState("bizz@gmail.com");
-  const [password, setPassword] = useState("password");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { setAuth, setAuthToken } = useAuthStore();
 
@@ -102,8 +102,11 @@ export default function BusinessLoginScreen() {
         <View style={{ padding: 20, paddingBottom: 40, alignItems: 'center' }}>
           <TouchableOpacity
             onPress={() => {
-              // Navigate to business registry
-              navigation.navigate('business-registry');
+              // Navigate to business registry with default type lab
+              navigation.navigate('business-registry', {
+                screen: 'BusinessStep1',
+                params: { type: 'lab' }
+              });
             }}
             style={{ padding: 10 }}
           >

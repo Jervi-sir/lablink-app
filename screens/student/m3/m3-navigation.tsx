@@ -1,46 +1,58 @@
 import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View, FlatList, Dimensions, ActivityIndicator, RefreshControl, TextInput } from "react-native";
+import { View, FlatList, ActivityIndicator, RefreshControl, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useState, useEffect, useCallback } from "react";
 import { Routes } from "@/utils/helpers/routes";
-import { OrderCard1 } from "../components/cards/order-card-1";
-import { ButtonTag } from "../components/buttons/button-tag";
+import { OrderCard1 } from "../../../components/cards/order-card-1";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
-import { SearchInput } from "../components/inputs/search-input";
 import { paddingHorizontal } from "@/utils/variables/styles";
+import { useLabCartStore } from "@/zustand/lab-cart-store";
+import moment from "moment";
+import { Image } from "react-native";
 
-const { width } = Dimensions.get('window');
+const VIEW_TABS = ['Orders', 'Estimations', 'Cart'] as const;
 
-const TABS = ['All', 'In Progress', 'Completed'];
+const getStatusColor = (status: unknown) => {
+  if (typeof status !== 'string') {
+    return '#64748B';
+  }
 
-const getStatusColor = (status: string) => {
-  switch (status?.toLowerCase()) {
+  switch (status.toLowerCase()) {
     case 'pending': return '#F59E0B';
     case 'confirmed': return '#137FEC';
     case 'shipped': return '#8B5CF6';
     case 'delivered': return '#10B981';
+    case 'completed': return '#10B981';
+    case 'quoted': return '#137FEC';
+    case 'reviewed': return '#8B5CF6';
     case 'cancelled': return '#EF4444';
     default: return '#64748B';
   }
 };
 
-const capitalize = (s: string) => s?.charAt(0).toUpperCase() + s?.slice(1);
+const capitalize = (value: unknown) => {
+  if (typeof value !== 'string' || value.length === 0) {
+    return 'Unknown';
+  }
+
+  return value.charAt(0).toUpperCase() + value.slice(1);
+};
 
 export default function StudentM3Navigation() {
   const navigation = useNavigation<any>();
-  const [activeTab, setActiveTab] = useState('All');
-  const [orders, setOrders] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<(typeof VIEW_TABS)[number]>('Orders');
+  const carts = useLabCartStore((state) => state.carts);
+  const [items, setItems] = useState<any[]>([]);
   const [nextPage, setNextPage] = useState<number | null>(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [search, setSearch] = useState('');
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
-  const fetchOrders = useCallback(async (page: number | null, refreshing = false) => {
+  const fetchItems = useCallback(async (page: number | null, refreshing = false) => {
+    if (activeTab === 'Cart') return;
     if (page === null) return;
 
     if (refreshing) setIsRefreshing(true);
@@ -48,48 +60,43 @@ export default function StudentM3Navigation() {
     else setIsLoadingMore(true);
 
     try {
-      let statusParam = undefined;
-      if (activeTab === 'In Progress') statusParam = 'pending';
-      else if (activeTab === 'Completed') statusParam = 'delivered';
+      const route = activeTab === 'Orders'
+        ? ApiRoutes.orders.index
+        : ApiRoutes.estimationRequests.index;
 
-      const response: any = await api.get(ApiRoutes.orders.index, {
+      const response: any = await api.get(route, {
         params: {
           page,
-          status: statusParam,
-          q: search || undefined
         }
       });
 
-      const newOrders = response.data || [];
+      const newItems = response.data || [];
       if (refreshing || page === 1) {
-        setOrders(newOrders);
+        setItems(newItems);
       } else {
-        setOrders(prev => [...prev, ...newOrders]);
+        setItems(prev => [...prev, ...newItems]);
       }
       setNextPage(response.next_page);
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      console.error(`Error fetching ${activeTab?.toLowerCase()}:`, error);
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
       setIsRefreshing(false);
     }
-  }, [activeTab, search]);
+  }, [activeTab]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchOrders(1);
-    }, search ? 500 : 0);
-    return () => clearTimeout(timer);
-  }, [search, activeTab]);
+    fetchItems(1);
+  }, [activeTab, fetchItems]);
 
   const onRefresh = () => {
-    fetchOrders(1, true);
+    fetchItems(1, true);
   };
 
   const loadMore = () => {
     if (!isLoadingMore && nextPage) {
-      fetchOrders(nextPage);
+      fetchItems(nextPage);
     }
   };
 
@@ -108,44 +115,104 @@ export default function StudentM3Navigation() {
     original: item,
   });
 
+  const formatEstimationData = (item: any) => ({
+    id: item.code,
+    date: new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    status: capitalize(item.status) || 'Unknown',
+    statusColor: getStatusColor(item.status),
+    lab: item.business?.name || 'Laboratory',
+    product: item.items?.[0]?.productName
+      ? item.items[0].productName + (item.items.length > 1 ? ` (+${item.items.length - 1} more)` : '')
+      : `${item.itemCount || 0} selected item${item.itemCount === 1 ? '' : 's'}`,
+    price: item.estimatedTotal ? `${Number(item.estimatedTotal).toLocaleString()} DA` : 'Awaiting estimate',
+    original: item,
+  });
+
   const renderOrder = ({ item }: { item: any }) => (
     <OrderCard1
-      item={formatOrderData(item)}
-      onPress={() => navigateToDetail(item)}
+      item={activeTab === 'Orders' ? formatOrderData(item) : formatEstimationData(item)}
+      onPress={() => {
+        if (activeTab === 'Orders') {
+          navigateToDetail(item);
+          return;
+        }
+
+        navigation.navigate(Routes.EstimationDetailScreen, { estimation: item });
+      }}
     />
   );
 
+  const renderCart = ({ item }: { item: any }) => {
+    const business = item.business;
+    const itemsCount = item.items.length;
+    const total = item.items.reduce((acc: number, curr: any) => acc + (curr.price * curr.quantity), 0);
+    const date = moment(item.updatedAt).fromNow();
+
+    return (
+      <TouchableOpacity
+        onPress={() => navigation.navigate(Routes.LabEstimationScreen, { businessId: business.id })}
+        style={{ backgroundColor: '#FFF', borderRadius: 24, marginBottom: 16, padding: 16, borderWidth: 1, borderColor: '#F1F5F9', shadowColor: "#000", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.04, shadowRadius: 12, elevation: 2 }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9' }}>
+            {business.logo ? (
+              <Image source={{ uri: business.logo }} style={{ width: '100%', height: '100%', borderRadius: 12 }} />
+            ) : (
+              <Text style={{ fontSize: 20 }}>🏢</Text>
+            )}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#111' }}>{business.name}</Text>
+            <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '600', marginTop: 2 }}>{date} • {itemsCount} items</Text>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: '#137FEC' }}>{total.toLocaleString()} DA</Text>
+            <View style={{ marginTop: 4, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: '#EFF6FF', borderRadius: 6 }}>
+              <Text style={{ fontSize: 10, fontWeight: '800', color: '#137FEC' }}>DRAFT</Text>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
-      {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal, paddingVertical: 8 }}>
-        <SearchInput
-          value={''}
-          onChangeText={() => { }}
-          placeholder="Search product"
-        />
+      <View style={{ flexDirection: 'row', paddingHorizontal: paddingHorizontal, paddingBottom: 16, paddingTop: 10, gap: 10 }}>
+        {VIEW_TABS.map(tab => {
+          const isActive = activeTab === tab;
+
+          return (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setActiveTab(tab)}
+              style={{
+                flex: 1,
+                height: 44,
+                borderRadius: 14,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: isActive ? '#137FEC' : '#FFF',
+                borderWidth: 1,
+                borderColor: isActive ? '#137FEC' : '#E2E8F0',
+              }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '800', color: isActive ? '#FFF' : '#475569' }}>{tab}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
-      {/* Tabs */}
-      <View style={{ flexDirection: 'row', paddingHorizontal: paddingHorizontal, paddingBottom: 8, gap: 8 }}>
-        {TABS.map(tab => (
-          <ButtonTag
-            key={tab}
-            label={tab}
-            isActive={activeTab === tab}
-            onPress={() => setActiveTab(tab)}
-          />
-        ))}
-      </View>
-      {isLoading && orders.length === 0 ? (
+
+      {isLoading && items.length === 0 ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#137FEC" />
         </View>
       ) : (
         <FlatList
-          data={orders}
-          renderItem={renderOrder}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={{ padding: paddingHorizontal, paddingTop: 0 }}
+          data={activeTab === 'Cart' ? Object.values(carts) : items}
+          renderItem={activeTab === 'Cart' ? renderCart : renderOrder}
+          keyExtractor={item => (activeTab === 'Cart' ? item.business.id.toString() : item.id.toString())}
+          contentContainerStyle={{ padding: paddingHorizontal, paddingTop: 0, paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
@@ -159,7 +226,9 @@ export default function StudentM3Navigation() {
           }
           ListEmptyComponent={
             <View style={{ alignItems: 'center', marginTop: 100 }}>
-              <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '600' }}>{search ? 'No results matching search' : 'No orders found'}</Text>
+              <Text style={{ fontSize: 16, color: '#64748B', fontWeight: '600' }}>
+                {activeTab === 'Orders' ? 'No orders found' : activeTab === 'Estimations' ? 'No estimation requests found' : 'Your cart is empty'}
+              </Text>
             </View>
           }
         />

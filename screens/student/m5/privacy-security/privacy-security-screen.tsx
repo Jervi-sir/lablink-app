@@ -6,7 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import ArrowIcon from "@/assets/icons/arrow-icon";
 
 import { Routes } from "@/utils/helpers/routes";
-import { OptionSettings } from "../../components/options/option-settings";
+import { OptionSettings } from "../../../../components/options/option-settings";
 import { paddingHorizontal } from "@/utils/variables/styles";
 
 export default function PrivacySecurityScreen() {

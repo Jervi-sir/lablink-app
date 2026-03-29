@@ -1,6 +1,6 @@
 import React from "react";
 import { View, FlatList, Dimensions } from "react-native";
-import { LabCard1 } from "../cards/lab-card-1";
+import { LabCard1 } from "@/components/cards/lab-card-1";
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 48) / 2;

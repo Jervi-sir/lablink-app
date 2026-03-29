@@ -5,7 +5,7 @@ import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
 import ArrowIcon from "@/assets/icons/arrow-icon";
-import { BusinessCard2 } from "../../components/cards/business-card-2";
+import { BusinessCard2 } from "../../../../components/cards/business-card-2";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { Routes } from "@/utils/helpers/routes";

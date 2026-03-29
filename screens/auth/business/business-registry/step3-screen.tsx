@@ -1,27 +1,63 @@
 import { TopHeader1 } from "@/components/headers/top-header-1";
 import { ScreenWrapper } from "@/components/screen-wrapper";
-import { ScrollView, View, TouchableOpacity, Alert, Image, ActivityIndicator } from "react-native";
+import { ScrollView, View, TouchableOpacity, Alert, Image, ActivityIndicator, TextInput } from "react-native";
 import { BusinessRegistryProgress } from "./components/business-registry-progress";
 import Text from "@/components/text";
 import GlobalInput from "@/components/inputs/global-input";
 import { Button1 } from "@/components/buttons/button-1";
 import { useNavigation } from "@react-navigation/native";
-import { Routes } from "@/utils/helpers/routes";
 import { useBusinessRegistry } from "./context/business-registry-context";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { apiPublic } from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
-import { useAuthStore } from "@/zustand/auth-store";
 import * as ImagePicker from "expo-image-picker";
 
 const SPECIALIZATIONS = ['Organic Chemistry', 'Bioengineering', 'Genomics', 'PCR Analysis'];
 
 export default function Step3Screen() {
   const navigation = useNavigation<any>();
-  const { formData, setField, resetForm } = useBusinessRegistry();
-  const [loading, setLoading] = useState(false);
+  const { formData, setField } = useBusinessRegistry();
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const { setAuth, setAuthToken } = useAuthStore();
+  const [specializationInput, setSpecializationInput] = useState("");
+  const specializationInputRef = useRef<TextInput>(null);
+
+  const addSpecialization = (value: string) => {
+    const trimmedValue = value.trim();
+
+    if (!trimmedValue) {
+      return;
+    }
+
+    const alreadySelected = formData.specializations.some(
+      (item) => item.toLowerCase() === trimmedValue.toLowerCase()
+    );
+
+    if (alreadySelected) {
+      setSpecializationInput("");
+      return;
+    }
+
+    setField("specializations", [...formData.specializations, trimmedValue]);
+    setSpecializationInput("");
+  };
+
+  const removeSpecialization = (value: string) => {
+    setField(
+      "specializations",
+      formData.specializations.filter((item) => item !== value)
+    );
+  };
+
+  const filteredSuggestions = SPECIALIZATIONS.filter((item) => {
+    const matchesSearch = specializationInput.trim()
+      ? item.toLowerCase().includes(specializationInput.trim().toLowerCase())
+      : true;
+    const alreadySelected = formData.specializations.some(
+      (selected) => selected.toLowerCase() === item.toLowerCase()
+    );
+
+    return matchesSearch && !alreadySelected;
+  });
 
   const handlePickLogo = async () => {
     try {
@@ -66,45 +102,6 @@ export default function Step3Screen() {
     }
   };
 
-  const handleRegister = async () => {
-    try {
-      setLoading(true);
-      const payload = {
-        email: formData.email,
-        password: formData.password,
-        name: formData.name,
-        nif: formData.nif,
-        business_registration_no: formData.registrationNo,
-        type: formData.type,
-        contact_name: formData.contactName,
-        description: formData.description,
-        specializations: formData.specializations,
-        laboratory_category_id: formData.laboratoryCategoryId,
-        business_category_id: formData.businessCategoryId,
-        wilaya_id: formData.wilayaId,
-        address: formData.address,
-        certificate: formData.certificate,
-        logo: formData.logo,
-      };
-
-      const response = await apiPublic.post(buildRoute(ApiRoutes.auth.business.register), payload);
-
-      setAuth(response.user);
-      setAuthToken(response.access_token);
-      resetForm();
-
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Routes.BusinessNavigation }],
-      });
-    } catch (error: any) {
-      console.error("Business Register Error:", error.response?.data || error.message);
-      Alert.alert("Error", error.response?.data?.message || "Something went wrong during registration.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }} statusBarStyle="dark-content">
       <TopHeader1 rightLabel={'Public Profile'} />
@@ -137,15 +134,15 @@ export default function Step3Screen() {
               activeOpacity={0.8}
               disabled={uploadingLogo}
             >
-              <View style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0', overflow: 'hidden' }}>
+              <View style={{ width: 120, height: 120, borderRadius: 100, backgroundColor: '#F3F4F6', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' }}>
                 {uploadingLogo ? (
-                  <ActivityIndicator size="large" color="#8B5CF6" />
+                  <ActivityIndicator color="#8B5CF6" />
                 ) : formData.logo ? (
-                  <Image source={{ uri: formData.logo }} style={{ width: '100%', height: '100%' }} />
+                  <Image source={{ uri: formData.logo }} style={{ width: '100%', height: '100%', borderRadius: 100 }} />
                 ) : (
                   <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
                     <Text style={{ fontSize: 40 }}>🧪</Text>
-                    <View style={{ position: 'absolute', bottom: 0, right: 0, width: 38, height: 38, borderRadius: 19, backgroundColor: '#8B5CF6', borderWidth: 3, borderColor: '#FFF', justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={{ position: 'absolute', bottom: 0, right: 0, zIndex: 999, width: 38, height: 38, borderRadius: 19, backgroundColor: '#8B5CF6', borderWidth: 3, borderColor: '#FFF', justifyContent: 'center', alignItems: 'center' }}>
                       <View style={{ width: 14, height: 10, borderWidth: 2, borderColor: '#FFF', borderRadius: 2 }} />
                     </View>
                   </View>
@@ -166,35 +163,58 @@ export default function Step3Screen() {
                 multiline
                 numberOfLines={4}
                 kind="multiline"
+                blurOnSubmit
+                onSubmitEditing={() => specializationInputRef.current?.focus()}
+                returnKeyType="next"
               />
 
               <View style={{ gap: 8 }}>
                 <Text style={{ fontSize: 15, fontWeight: '700', color: '#111', marginBottom: 8 }}>Specialization Area</Text>
                 <GlobalInput
+                  ref={specializationInputRef}
                   placeholder="Add a specialization..."
+                  value={specializationInput}
+                  onChangeText={setSpecializationInput}
+                  onSubmitEditing={() => addSpecialization(specializationInput)}
+                  returnKeyType="done"
                   containerStyle={{ borderColor: '#E2E8F0', borderRadius: 12 }}
-                  right={<View style={{ width: 20, height: 20, backgroundColor: '#8B5CF6', borderRadius: 10 }} />}
+                  right={
+                    <TouchableOpacity
+                      onPress={() => addSpecialization(specializationInput)}
+                      activeOpacity={0.8}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        backgroundColor: '#8B5CF6',
+                        borderRadius: 14,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '700', lineHeight: 20 }}>+</Text>
+                    </TouchableOpacity>
+                  }
                 />
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-                  {formData.specializations.length > 0 ? (
-                    formData.specializations.map((tag: string) => (
-                      <View key={tag} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#F5F3FF', borderRadius: 100, gap: 6 }}>
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#8B5CF6' }}>{tag}</Text>
-                        <TouchableOpacity onPress={() => setField('specializations', formData.specializations.filter(s => s !== tag))}>
-                          <Text style={{ color: '#8B5CF6', fontWeight: 'bold' }}>×</Text>
-                        </TouchableOpacity>
-                      </View>
-                    ))
-                  ) : (
-                    SPECIALIZATIONS.map((tag) => (
-                      <TouchableOpacity key={tag}
-                        style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#F9FAFB', borderRadius: 100, borderWidth: 1, borderColor: '#E2E8F0' }}
-                        onPress={() => setField('specializations', [...formData.specializations, tag])}
-                      >
-                        <Text style={{ fontSize: 12, fontWeight: '600', color: '#64748B' }}>+ {tag}</Text>
+                  {formData.specializations.map((tag: string) => (
+                    <View key={tag} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#F5F3FF', borderRadius: 100, gap: 6 }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#8B5CF6' }}>{tag}</Text>
+                      <TouchableOpacity onPress={() => removeSpecialization(tag)}>
+                        <Text style={{ color: '#8B5CF6', fontWeight: 'bold' }}>×</Text>
                       </TouchableOpacity>
-                    ))
-                  )}
+                    </View>
+                  ))}
+                </View>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+                  {filteredSuggestions.map((tag) => (
+                    <TouchableOpacity
+                      key={tag}
+                      style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#F9FAFB', borderRadius: 100, borderWidth: 1, borderColor: '#E2E8F0' }}
+                      onPress={() => addSpecialization(tag)}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: '600', color: '#64748B' }}>+ {tag}</Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
               </View>
             </View>
@@ -202,10 +222,9 @@ export default function Step3Screen() {
 
           <View style={{ marginTop: 32 }}>
             <Button1
-              text="Complete Registration"
-              onPress={handleRegister}
+              text="Continue"
+              onPress={() => navigation.navigate("BusinessStep4")}
               style={{ height: 56, backgroundColor: '#8B5CF6', borderRadius: 12 }}
-              loading={loading}
               disabled={!formData.description}
             />
           </View>
