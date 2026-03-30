@@ -10,9 +10,19 @@ import { useState, useEffect, useCallback } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { paddingHorizontal } from "@/utils/variables/styles";
+import { useLanguageStore } from "@/zustand/language-store";
+
+const translations = {
+  saved_products: { en: 'Saved Products', fr: 'Produits enregistrés', ar: 'المنتجات المحفوظة' },
+  no_saved_products: { en: 'No saved products yet.', fr: 'Pas encore de produits enregistrés.', ar: 'لا توجد منتجات محفوظة حتى الآن.' },
+  unknown_lab: { en: 'Unknown Lab', fr: 'Laboratoire inconnu', ar: 'مختبر غير معروف' },
+};
 
 export default function StudentSavedProductsScreen() {
   const navigation = useNavigation<any>();
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key][language];
+
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -45,7 +55,6 @@ export default function StudentSavedProductsScreen() {
       setSavingProductId(productId);
       const response = await api.post(buildRoute(ApiRoutes.products.toggleSave, { id: productId }));
       if (response && !response.isSaved) {
-        // Product was unsaved, remove from list
         setProducts(prev => prev.filter(p => p.id.toString() !== productId));
       }
     } catch (error) {
@@ -59,7 +68,7 @@ export default function StudentSavedProductsScreen() {
     <ProductCard1
       product={{
         ...item,
-        lab: item.business?.name || 'Unknown Lab',
+        lab: item.business?.name || t('unknown_lab'),
         price: typeof item.price === 'number' ? `${item.price.toLocaleString()} DA` : item.price || '0 DA',
         isSaved: true,
       }}
@@ -76,7 +85,7 @@ export default function StudentSavedProductsScreen() {
         <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Saved Products</Text>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>{t('saved_products')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -91,14 +100,14 @@ export default function StudentSavedProductsScreen() {
           keyExtractor={item => item.id.toString()}
           numColumns={2}
           contentContainerStyle={{ padding: paddingHorizontal, paddingBottom: 100 }}
-          columnWrapperStyle={{ justifyContent: 'space-between' }}
+          columnWrapperStyle={{ justifyContent: 'space-between', flexDirection: language === 'ar' ? 'row-reverse' : 'row' }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={['#137FEC']} />
           }
           ListEmptyComponent={
             <View style={{ flex: 1, height: 400, justifyContent: 'center', alignItems: 'center' }}>
-              <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 15 }}>No saved products yet.</Text>
+              <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 15, textAlign: 'center' }}>{t('no_saved_products')}</Text>
             </View>
           }
         />

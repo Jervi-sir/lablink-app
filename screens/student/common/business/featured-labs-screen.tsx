@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { View, FlatList, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ScreenWrapper } from "@/components/screen-wrapper";
@@ -9,15 +9,25 @@ import { BusinessCard2 } from "../../../../components/cards/business-card-2";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { Routes } from "@/utils/helpers/routes";
+import { useLanguageStore } from "@/zustand/language-store";
+
+const translations = {
+  academic_institution: { en: 'Academic Institution', fr: 'Institution académique', ar: 'مؤسسة أكاديمية' },
+  featured_labs: { en: 'Featured Laboratories', fr: 'Laboratoires à la une', ar: 'المختبرات المتميزة' },
+  no_labs_found: { en: 'No featured labs found.', fr: 'Aucun laboratoire à la une trouvé.', ar: 'لم يتم العثور على مختبرات متميزة.' },
+};
 
 export default function FeaturedLabsScreen() {
   const navigation = useNavigation<any>();
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key][language];
+
   const [labs, setLabs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const fetchLabs = async (pageNum: number) => {
+  const fetchLabs = useCallback(async (pageNum: number) => {
     if (loading || (!hasMore && pageNum > 1)) return;
 
     try {
@@ -32,7 +42,7 @@ export default function FeaturedLabsScreen() {
           ...lab,
           id: lab.id.toString(),
           logo: lab.logo || '🧬', // Fallback emoji if no logo
-          university: lab.wilaya?.name || 'Academic Institution',
+          university: lab.wilaya?.name || t('academic_institution'),
           followers: lab.followers_count || '0',
           isNew: lab.is_featured
         }));
@@ -46,7 +56,7 @@ export default function FeaturedLabsScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [hasMore, loading, t]);
 
   useEffect(() => {
     fetchLabs(1);
@@ -62,14 +72,14 @@ export default function FeaturedLabsScreen() {
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }} statusBarStyle="dark-content">
       {/* Header */}
-      <View style={{ height: 60, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+      <View style={{ height: 60, backgroundColor: '#FFF', flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
         <TouchableOpacity
           style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}
           onPress={() => navigation.goBack()}
         >
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Featured Laboratories</Text>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>{t('featured_labs')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -95,7 +105,7 @@ export default function FeaturedLabsScreen() {
         ListEmptyComponent={() => (
           !loading ? (
             <View style={{ flex: 1, paddingVertical: 100, justifyContent: 'center', alignItems: 'center' }}>
-              <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 15 }}>No featured labs found.</Text>
+              <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 15, textAlign: 'center' }}>{t('no_labs_found')}</Text>
             </View>
           ) : null
         )}

@@ -2,6 +2,7 @@ import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView, FlatList } from "react-native";
+import { useLanguageStore } from "@/zustand/language-store";
 
 const PRODUCTS = [
   { id: '1', name: 'Product name Product name Product name Product', lab: 'Lab name', price: '4000 DA' },
@@ -11,19 +12,28 @@ const PRODUCTS = [
   { id: '5', name: 'Product name Product name Product name Product', lab: 'Lab name', price: '4000 DA' },
 ];
 
+const translations = {
+  username_placeholder: { en: 'Username', fr: 'Nom d\'utilisateur', ar: 'اسم المستخدم' },
+  email_placeholder: { en: 'Email', fr: 'Email', ar: 'البريد الإلكتروني' },
+  add_btn: { en: 'Add', fr: 'Ajouter', ar: 'إضافة' },
+};
+
 export const ListProductsScreen = () => {
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key]?.[language] || key;
+
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         <View style={{ paddingHorizontal: 16, gap: 16, paddingTop: 16 }}>
 
           {/* Header */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+          <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 12, alignItems: 'center' }}>
               <View style={{ width: 44, height: 44, backgroundColor: '#D9D9D9', borderRadius: 22 }} />
-              <View>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#111111' }}>Username</Text>
-                <Text style={{ fontSize: 12, fontWeight: '500', color: '#5D6575' }}>Email</Text>
+              <View style={{ alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#111111' }}>{t('username_placeholder')}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: '#5D6575' }}>{t('email_placeholder')}</Text>
               </View>
             </View>
             <TouchableOpacity style={{ padding: 8 }}>
@@ -41,7 +51,7 @@ export const ListProductsScreen = () => {
               <View
                 key={product.id}
                 style={{
-                  flexDirection: 'row',
+                  flexDirection: language === 'ar' ? 'row-reverse' : 'row',
                   backgroundColor: '#FFF',
                   borderRadius: 16,
                   padding: 12,
@@ -60,7 +70,7 @@ export const ListProductsScreen = () => {
                 <View style={{ flex: 1, justifyContent: 'space-between' }}>
                   <View style={{ gap: 6 }}>
                     <Text
-                      style={{ fontSize: 14, fontWeight: '700', color: '#111' }}
+                      style={{ fontSize: 14, fontWeight: '700', color: '#111', textAlign: language === 'ar' ? 'right' : 'left' }}
                       numberOfLines={2}
                     >
                       {product.name}
@@ -69,7 +79,7 @@ export const ListProductsScreen = () => {
                     {/* Lab Pill */}
                     <View style={{
                       backgroundColor: '#E9F7EF',
-                      alignSelf: 'flex-start',
+                      alignSelf: language === 'ar' ? 'flex-end' : 'flex-start',
                       paddingHorizontal: 8,
                       paddingVertical: 4,
                       borderRadius: 6
@@ -81,7 +91,7 @@ export const ListProductsScreen = () => {
                   </View>
 
                   {/* Bottom Row: Price & Add Button */}
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#111' }}>
                       {product.price}
                     </Text>
@@ -93,7 +103,7 @@ export const ListProductsScreen = () => {
                       borderRadius: 8
                     }}>
                       <Text style={{ fontSize: 12, fontWeight: '700', color: '#111' }}>
-                        Add
+                        {t('add_btn')}
                       </Text>
                     </TouchableOpacity>
                   </View>

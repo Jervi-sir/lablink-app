@@ -10,21 +10,70 @@ import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { Routes } from "@/utils/helpers/routes";
 import { useAuthStore } from "@/zustand/auth-store";
+import { useLanguageStore } from "@/zustand/language-store";
 
 const { width } = Dimensions.get('window');
 
 // No step-based constants needed now
 
 
-const PAYMENT_METHODS = [
-  { id: 'bank_transfer', name: 'Bank Transfer / Order Form', icon: '🏦' },
-  { id: 'card', name: 'Credit / Debit Card', icon: '💳' },
-  { id: 'cash_at_lab', name: 'Submit Payment at Facility', icon: '🏢' },
-];
+const translations = {
+  checkout: { en: 'Checkout', fr: 'Paiement', ar: 'الدفع' },
+  delivery_location: { en: 'Delivery Location', fr: 'Lieu de livraison', ar: 'موقع التسليم' },
+  where_send: { en: 'Where should we send the equipment?', fr: 'Où devons-nous envoyer l\'équipement ?', ar: 'أين يجب أن نرسل المعدات؟' },
+  full_address: { en: 'Full Address / Campus Location *', fr: 'Adresse complète / Emplacement du campus *', ar: 'العنوان الكامل / موقع الحرم الجامعي *' },
+  address_placeholder: { en: 'e.g. Building B, Room 302...', fr: 'ex. Bâtiment B, Bureau 302...', ar: 'مثلاً المبنى ب، الغرفة 302...' },
+  department_faculty: { en: 'Department / Faculty', fr: 'Département / Faculté', ar: 'القسم / الكلية' },
+  dept_placeholder: { en: 'e.g. Biological Sciences', fr: 'ex. Sciences biologiques', ar: 'مثلاً العلوم البيولوجية' },
+  contact_phone: { en: 'Contact Phone', fr: 'Téléphone de contact', ar: 'هاتف التواصل' },
+  hazardous_materials: { en: 'Hazardous Materials', fr: 'Matières dangereuses', ar: 'مواد خطرة' },
+  hazmat_desc: { en: 'Requires specialized handling & safety documentation.', fr: 'Nécessite une manipulation spécialisée et une documentation de sécurité.', ar: 'يتطلب معالجة متخصصة ووثائق سلامة.' },
+  review_order: { en: 'Review Order', fr: 'Vérifier la commande', ar: 'مراجعة الطلب' },
+  order_summary: { en: 'Order Summary', fr: 'Résumé de la commande', ar: 'ملخص الطلب' },
+  equipment: { en: 'Equipment', fr: 'Équipement', ar: 'معدات' },
+  subtotal: { en: 'Subtotal', fr: 'Sous-total', ar: 'المجموع الفرعي' },
+  shipping_handling: { en: 'Shipping & Handling', fr: 'Expédition et manutention', ar: 'الشحن والتداول' },
+  vat: { en: 'VAT (19%)', fr: 'TVA (19%)', ar: 'ضريبة القيمة المضافة (19%)' },
+  total_amount: { en: 'Total Amount', fr: 'Montant total', ar: 'المبلغ الإجمالي' },
+  delivery_details: { en: 'Delivery Details', fr: 'Détails de livraison', ar: 'تفاصيل التسليم' },
+  edit: { en: 'Edit', fr: 'Modifier', ar: 'تعديل' },
+  address: { en: 'Address', fr: 'Adresse', ar: 'العنوان' },
+  dept: { en: 'Dept.', fr: 'Dépt.', ar: 'القسم' },
+  phone: { en: 'Phone', fr: 'Tél.', ar: 'الهاتف' },
+  hazmat_handling: { en: 'Hazardous Materials Handling', fr: 'Manipulation de matières dangereuses', ar: 'معالجة المواد الخطرة' },
+  payment: { en: 'Payment', fr: 'Paiement', ar: 'الدفع' },
+  pay_on_delivery: { en: 'Pay on delivery', fr: 'Payer à la livraison', ar: 'الدفع عند الاستلام' },
+  terms_safety: { en: 'Terms & Safety', fr: 'Conditions et sécurité', ar: 'الشروط والسلامة' },
+  terms_desc: { en: 'By submitting, you agree to the laboratory\'s handling policies and safety protocols.', fr: 'En soumettant, vous acceptez les politiques de manipulation et les protocoles de sécurité du laboratoire.', ar: 'من خلال الإرسال، فإنك توافق على سياسات المعالجة وبروتوكولات السلامة الخاصة بالمختبر.' },
+  placing_order: { en: 'Placing Order...', fr: 'Commande en cours...', ar: 'جاري تقديم الطلب...' },
+  confirm_place_order: { en: 'Confirm & Place Order', fr: 'Confirmer et passer la commande', ar: 'تأكيد وتقديم الطلب' },
+  missing_address: { en: 'Missing Address', fr: 'Adresse manquante', ar: 'العنوان مفقود' },
+  missing_address_desc: { en: 'Please enter a delivery address before submitting.', fr: 'Veuillez saisir une adresse de livraison avant de soumettre.', ar: 'يرجى إدخال عنوان التسليم قبل التقديم.' },
+  order_failed: { en: 'Order Failed', fr: 'Échec de la commande', ar: 'فشل الطلب' },
+  something_went_wrong: { en: 'Something went wrong. Please try again.', fr: 'Quelque chose s\'est mal passé. Veuillez réessayer.', ar: 'حدث خطأ ما. يرجى المحاولة مرة أخرى.' },
+  order_code: { en: 'Order Code', fr: 'Code de commande', ar: 'رمز الطلب' },
+  continue_searching: { en: 'Continue Searching', fr: 'Continuer la recherche', ar: 'متابعة البحث' },
+  order_placed_title: { en: '{type} Placed!', fr: '{type} effectuée !', ar: 'تم تقديم {type}!' },
+  order_success_desc: { en: 'Your order has been registered successfully. The supplier will process it shortly.', fr: 'Votre commande a été enregistrée avec succès. Le fournisseur la traitera prochainement.', ar: 'تم تسجيل طلبك بنجاح. سيقوم المورد بمعالجته قريباً.' },
+  estimation_success_desc: { en: 'Your proposal request has been submitted successfully. You\'ll be notified once it\'s confirmed.', fr: 'Votre demande de proposition a été soumise avec succès. Vous serez informé une fois qu\'elle sera confirmée.', ar: 'تم تقديم طلب المقترح بنجاح. سيتم إخطارك بمجرد تأكيده. ' },
+  order_label: { en: 'Order', fr: 'Commande', ar: 'طلب' },
+  estimation_label: { en: 'Estimation Request', fr: 'Demande d\'estimation', ar: 'طلب تقدير' },
+  total_label: { en: 'Total', fr: 'Total', ar: 'الإجمالي' },
+};
 
 export default function CheckoutScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations, params?: Record<string, string>) => {
+    let text = translations[key]?.[language] || key;
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        text = text.replace(`{${k}}`, v);
+      });
+    }
+    return text;
+  };
   const { product, quantity = 1 } = route.params || {};
 
   const [isReviewMode, setIsReviewMode] = useState(false);
@@ -37,7 +86,7 @@ export default function CheckoutScreen() {
 
   const productOwnerCategory = product?.business?.category?.code;
   const isSupplierProduct = productOwnerCategory === 'supplier';
-  const typeLabel = isSupplierProduct ? 'Order' : 'Estimation Request';
+  const typeLabel = isSupplierProduct ? t('order_label') : t('estimation_label');
 
   // Form States
   const [address, setAddress] = useState("");
@@ -60,7 +109,7 @@ export default function CheckoutScreen() {
     if (submitting) return;
 
     if (!address.trim()) {
-      Alert.alert('Missing Address', 'Please enter a delivery address before submitting.');
+      Alert.alert(t('missing_address'), t('missing_address_desc'));
       setIsReviewMode(false);
       return;
     }
@@ -93,8 +142,8 @@ export default function CheckoutScreen() {
       const message =
         error?.response?.data?.message
         || error?.message
-        || 'Something went wrong. Please try again.';
-      Alert.alert('Order Failed', message);
+        || t('something_went_wrong');
+      Alert.alert(t('order_failed'), message);
     } finally {
       setSubmitting(false);
     }
@@ -115,12 +164,12 @@ export default function CheckoutScreen() {
           </View>
 
           <Text style={{ fontSize: 24, fontWeight: '900', color: '#111', textAlign: 'center' }}>
-            {typeLabel} Placed!
+            {t('order_placed_title', { type: typeLabel })}
           </Text>
           <Text style={{ fontSize: 15, fontWeight: '600', color: '#64748B', textAlign: 'center', marginTop: 8, lineHeight: 22 }}>
             {isSupplierProduct
-              ? "Your order has been registered successfully. The supplier will process it shortly."
-              : "Your proposal request has been submitted successfully. You'll be notified once it's confirmed."
+              ? t('order_success_desc')
+              : t('estimation_success_desc')
             }
           </Text>
 
@@ -132,13 +181,13 @@ export default function CheckoutScreen() {
               borderWidth: 1, borderColor: '#F1F5F9',
               shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 8, elevation: 2,
             }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8' }}>Order Code</Text>
+              <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8' }}>{t('order_code')}</Text>
                 <Text style={{ fontSize: 15, fontWeight: '800', color: '#137FEC', letterSpacing: 1 }}>{placedOrder.code}</Text>
               </View>
               {placedOrder.total_price && (
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8' }}>Total</Text>
+                <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8' }}>{t('total_label')}</Text>
                   <Text style={{ fontSize: 15, fontWeight: '800', color: '#111' }}>{formatPrice(parseFloat(placedOrder.total_price))}</Text>
                 </View>
               )}
@@ -156,7 +205,7 @@ export default function CheckoutScreen() {
                 navigation.goBack();
               }}
             >
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF' }}>Continue Searching</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF' }}>{t('continue_searching')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -171,34 +220,34 @@ export default function CheckoutScreen() {
   const renderDeliveryStep = () => (
     <View style={{ padding: 20, gap: 20 }}>
       <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#F1F5F9', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 8, elevation: 2 }}>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Delivery Location</Text>
-        <Text style={{ fontSize: 13, color: '#64748B', marginTop: 4, fontWeight: '500' }}>Where should we send the equipment?</Text>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('delivery_location')}</Text>
+        <Text style={{ fontSize: 13, color: '#64748B', marginTop: 4, fontWeight: '500', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('where_send')}</Text>
 
         <View style={{ marginTop: 20, gap: 16 }}>
           <View style={{ gap: 6 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748B', marginLeft: 4 }}>Full Address / Campus Location *</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0, textAlign: language === 'ar' ? 'right' : 'left' }}>{t('full_address')}</Text>
             <TextInput
-              style={{ height: 52, backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, fontSize: 15, color: '#1E293B', borderWidth: 1, borderColor: address.trim() ? '#137FEC' : '#E2E8F0' }}
-              placeholder="e.g. Building B, Room 302..."
+              style={{ height: 52, backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, fontSize: 15, color: '#1E293B', borderWidth: 1, borderColor: address.trim() ? '#137FEC' : '#E2E8F0', textAlign: language === 'ar' ? 'right' : 'left' }}
+              placeholder={t('address_placeholder')}
               value={address}
               onChangeText={setAddress}
               placeholderTextColor="#94A3B8"
             />
           </View>
           <View style={{ gap: 6 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748B', marginLeft: 4 }}>Department / Faculty</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0, textAlign: language === 'ar' ? 'right' : 'left' }}>{t('department_faculty')}</Text>
             <TextInput
-              style={{ height: 52, backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, fontSize: 15, color: '#1E293B', borderWidth: 1, borderColor: '#E2E8F0' }}
-              placeholder="e.g. Biological Sciences"
+              style={{ height: 52, backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, fontSize: 15, color: '#1E293B', borderWidth: 1, borderColor: '#E2E8F0', textAlign: language === 'ar' ? 'right' : 'left' }}
+              placeholder={t('dept_placeholder')}
               value={department}
               onChangeText={setDepartment}
               placeholderTextColor="#94A3B8"
             />
           </View>
           <View style={{ gap: 6 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748B', marginLeft: 4 }}>Contact Phone</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0, textAlign: language === 'ar' ? 'right' : 'left' }}>{t('contact_phone')}</Text>
             <TextInput
-              style={{ height: 52, backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, fontSize: 15, color: '#1E293B', borderWidth: 1, borderColor: '#E2E8F0' }}
+              style={{ height: 52, backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, fontSize: 15, color: '#1E293B', borderWidth: 1, borderColor: '#E2E8F0', textAlign: language === 'ar' ? 'right' : 'left' }}
               placeholder="+213 --- -- -- --"
               keyboardType="phone-pad"
               value={phone}
@@ -210,13 +259,13 @@ export default function CheckoutScreen() {
       </View>
 
       <View style={{ backgroundColor: '#FEF2F2', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: '#FEE2E2' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 12 }}>
           <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' }}>
             <Text style={{ fontSize: 20 }}>☢️</Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 15, fontWeight: '800', color: '#991B1B' }}>Hazardous Materials</Text>
-            <Text style={{ fontSize: 12, color: '#B91C1C', marginTop: 2, fontWeight: '500' }}>Requires specialized handling & safety documentation.</Text>
+          <View style={{ flex: 1, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+            <Text style={{ fontSize: 15, fontWeight: '800', color: '#991B1B' }}>{t('hazardous_materials')}</Text>
+            <Text style={{ fontSize: 12, color: '#B91C1C', marginTop: 2, fontWeight: '500', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('hazmat_desc')}</Text>
           </View>
           <Switch
             value={isHazmat}
@@ -235,7 +284,7 @@ export default function CheckoutScreen() {
         onPress={() => canProceedDelivery && setIsReviewMode(true)}
         disabled={!canProceedDelivery}
       >
-        <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFF' }}>Review Order</Text>
+        <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFF' }}>{t('review_order')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -250,14 +299,14 @@ export default function CheckoutScreen() {
       <View style={{ padding: 20, gap: 20 }}>
         {/* Order Item */}
         <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#F1F5F9', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 8, elevation: 2 }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Order Summary</Text>
-          <View style={{ flexDirection: 'row', marginTop: 16, gap: 12, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('order_summary')}</Text>
+          <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', marginTop: 16, gap: 12, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
             <View style={{ width: 80, height: 80, borderRadius: 16, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' }}>
               <Text style={{ fontSize: 28 }}>🔬</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 16, fontWeight: '800', color: '#1E293B' }} numberOfLines={2}>{product?.name || "Equipment"}</Text>
-              <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '600' }}>{labName}</Text>
+            <View style={{ flex: 1, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }} numberOfLines={2}>{product?.name || t('equipment')}</Text>
+              <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '600', textAlign: language === 'ar' ? 'right' : 'left' }}>{labName}</Text>
               <Text style={{ fontSize: 13, color: '#137FEC', fontWeight: '700', marginTop: 4 }}>Qty: {quantity}</Text>
             </View>
             <Text style={{ fontSize: 15, fontWeight: '800', color: '#1E293B' }}>{formatPrice(productPrice)}</Text>
@@ -265,20 +314,20 @@ export default function CheckoutScreen() {
 
           {/* Pricing Breakdown */}
           <View style={{ marginTop: 20, gap: 12 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>Subtotal</Text>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>{t('subtotal')}</Text>
               <Text style={{ fontSize: 14, color: '#1E293B', fontWeight: '700' }}>{formatPrice(subtotal)}</Text>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>Shipping & Handling</Text>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>{t('shipping_handling')}</Text>
               <Text style={{ fontSize: 14, color: '#1E293B', fontWeight: '700' }}>{formatPrice(shippingFee)}</Text>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>VAT (19%)</Text>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>{t('vat')}</Text>
               <Text style={{ fontSize: 14, color: '#1E293B', fontWeight: '700' }}>{formatPrice(tax)}</Text>
             </View>
-            <View style={{ marginTop: 12, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#F1F5F9', flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Total Amount</Text>
+            <View style={{ marginTop: 12, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#F1F5F9', flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>{t('total_amount')}</Text>
               <Text style={{ fontSize: 20, fontWeight: '900', color: '#111' }}>{formatPrice(total)}</Text>
             </View>
           </View>
@@ -286,33 +335,33 @@ export default function CheckoutScreen() {
 
         {/* Delivery Details */}
         <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#F1F5F9', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 8, elevation: 2 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Delivery Details</Text>
+          <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>{t('delivery_details')}</Text>
             <TouchableOpacity onPress={() => setIsReviewMode(false)}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#137FEC' }}>Edit</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#137FEC' }}>{t('edit')}</Text>
             </TouchableOpacity>
           </View>
           <View style={{ marginTop: 16, gap: 10 }}>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8', width: 80 }}>Address</Text>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#1E293B', flex: 1 }}>{address}</Text>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 8 }}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8', width: 80, textAlign: language === 'ar' ? 'right' : 'left' }}>{t('address')}</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#1E293B', flex: 1, textAlign: language === 'ar' ? 'right' : 'left' }}>{address}</Text>
             </View>
             {department ? (
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8', width: 80 }}>Dept.</Text>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#1E293B', flex: 1 }}>{department}</Text>
+              <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 8 }}>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8', width: 80, textAlign: language === 'ar' ? 'right' : 'left' }}>{t('dept')}</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#1E293B', flex: 1, textAlign: language === 'ar' ? 'right' : 'left' }}>{department}</Text>
               </View>
             ) : null}
             {phone ? (
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8', width: 80 }}>Phone</Text>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#1E293B', flex: 1 }}>{phone}</Text>
+              <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 8 }}>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8', width: 80, textAlign: language === 'ar' ? 'right' : 'left' }}>{t('phone')}</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#1E293B', flex: 1, textAlign: language === 'ar' ? 'right' : 'left' }}>{phone}</Text>
               </View>
             ) : null}
             {isHazmat && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+              <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
                 <Text style={{ fontSize: 13 }}>☢️</Text>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#EF4444' }}>Hazardous Materials Handling</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#EF4444' }}>{t('hazmat_handling')}</Text>
               </View>
             )}
           </View>
@@ -320,20 +369,20 @@ export default function CheckoutScreen() {
 
         {/* Payment Method - Fixed to Payment on delivery */}
         <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#F1F5F9', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 8, elevation: 2 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Payment</Text>
+          <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>{t('payment')}</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 12, padding: 12, backgroundColor: '#F0F7FF', borderRadius: 12, borderWidth: 1, borderColor: '#DBEAFE' }}>
+          <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 12, marginTop: 12, padding: 12, backgroundColor: '#F0F7FF', borderRadius: 12, borderWidth: 1, borderColor: '#DBEAFE' }}>
             <Text style={{ fontSize: 20 }}>🏦</Text>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#137FEC' }}>Pay on delivery</Text>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#137FEC' }}>{t('pay_on_delivery')}</Text>
           </View>
         </View>
 
         {/* Terms */}
         <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#F1F5F9', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 8, elevation: 2 }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Terms & Safety</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('terms_safety')}</Text>
           <View style={{ padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12, marginTop: 12 }}>
-            <Text style={{ fontSize: 13, color: '#64748B', lineHeight: 18, fontWeight: '500', textAlign: 'center' }}>By submitting, you agree to the laboratory's handling policies and safety protocols.</Text>
+            <Text style={{ fontSize: 13, color: '#64748B', lineHeight: 18, fontWeight: '500', textAlign: 'center' }}>{t('terms_desc')}</Text>
           </View>
         </View>
 
@@ -355,10 +404,10 @@ export default function CheckoutScreen() {
           {submitting ? (
             <>
               <ActivityIndicator size="small" color="#FFF" />
-              <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFF' }}>Placing Order...</Text>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFF' }}>{t('placing_order')}</Text>
             </>
           ) : (
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFF' }}>Confirm & Place Order</Text>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFF' }}>{t('confirm_place_order')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -368,14 +417,16 @@ export default function CheckoutScreen() {
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
       {/* Header */}
-      <View style={{ height: 60, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+      <View style={{ height: 60, backgroundColor: '#FFF', flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
         <TouchableOpacity
           style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}
           onPress={() => isReviewMode ? setIsReviewMode(false) : navigation.goBack()}
         >
-          <ArrowIcon size={22} color="#111" />
+          <View style={{ transform: [{ rotate: language === 'ar' ? '180deg' : '0deg' }] }}>
+            <ArrowIcon size={22} color="#111" />
+          </View>
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Checkout</Text>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A', textAlign: 'center' }}>{t('checkout')}</Text>
         <View style={{ width: 44 }} />
       </View>
 

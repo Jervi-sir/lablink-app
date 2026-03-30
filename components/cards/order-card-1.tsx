@@ -1,8 +1,19 @@
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
 import { View, Image } from "react-native";
+import { useLanguageStore } from "@/zustand/language-store";
+
+const translations = {
+  item: { en: 'item', fr: 'article', ar: 'عنصر' },
+  items: { en: 'items', fr: 'articles', ar: 'عناصر' },
+  view_details: { en: 'View Details', fr: 'Voir les détails', ar: 'عرض التفاصيل' },
+  track_order: { en: 'Track Order', fr: 'Suivre la commande', ar: 'تتبع الطلب' },
+};
 
 export const OrderCard1 = ({ item, onPress }: { item: any, onPress: () => void }) => {
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key][language];
+
   return (
     <TouchableOpacity
       style={{ backgroundColor: '#FFF', borderRadius: 20, padding: 16, marginBottom: 8, borderWidth: 1, borderColor: '#F1F5F9' }}
@@ -69,7 +80,7 @@ export const OrderCard1 = ({ item, onPress }: { item: any, onPress: () => void }
           )}
         </View>
         <View style={{ flex: 1, justifyContent: 'center', gap: 2 }}>
-          <Text style={{ fontSize: 12, fontWeight: '700', color: '#137FEC' }}>{item.lab} • {item.totalProducts} item{item.totalProducts !== 1 ? 's' : ''}</Text>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: '#137FEC' }}>{item.lab} • {item.totalProducts} {item.totalProducts === 1 ? t('item') : t('items')}</Text>
           <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B' }} numberOfLines={1}>{item.product}</Text>
           <Text style={{ fontSize: 14, fontWeight: '800', color: '#111', marginTop: 2 }}>{item.price}</Text>
         </View>
@@ -80,11 +91,11 @@ export const OrderCard1 = ({ item, onPress }: { item: any, onPress: () => void }
           style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}
           onPress={onPress}
         >
-          <Text style={{ fontSize: 14, fontWeight: '700', color: '#475569' }}>View Details</Text>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: '#475569' }}>{t('view_details')}</Text>
         </TouchableOpacity>
         {item.status === 'In Progress' && (
           <TouchableOpacity style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: '#137FEC', justifyContent: 'center', alignItems: 'center' }} onPress={onPress}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF' }}>Track Order</Text>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFF' }}>{t('track_order')}</Text>
           </TouchableOpacity>
         )}
       </View>

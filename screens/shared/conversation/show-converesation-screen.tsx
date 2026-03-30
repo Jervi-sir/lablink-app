@@ -2,6 +2,8 @@ import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView, TextInput, StyleSheet, Dimensions } from "react-native";
+import { useLanguageStore } from "@/zustand/language-store";
+
 
 const MESSAGES = [
   {
@@ -39,24 +41,40 @@ const MESSAGES = [
   },
 ];
 
-const SUGGESTIONS = ['Check pricing', 'Request extension', 'Call Lab'];
+const SUGGESTIONS = {
+  en: ['Check pricing', 'Request extension', 'Call Lab'],
+  fr: ['Vérifier les tarifs', 'Demander une prolongation', 'Appeler le laboratoire'],
+  ar: ['تحقق من الأسعار', 'طلب تمديد', 'الاتصال بالمختبر'],
+};
+
+const translations = {
+  active_now: { en: 'Active Now', fr: 'En ligne', ar: 'نشط الآن' },
+  order_prefix: { en: 'Order', fr: 'Commande', ar: 'طلب' },
+  dna_sequencing: { en: 'DNA Sequencing - Processing', fr: 'Séquençage d’ADN - En cours', ar: 'تسلسل الحمض النووي - قيد المعالجة' },
+  today: { en: 'Today', fr: 'Aujourd\'hui', ar: 'اليوم' },
+  type_message: { en: 'Type a message...', fr: 'Écrivez un message...', ar: 'اكتب رسالة...' },
+};
 
 export default function ShowConversationScreen() {
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key]?.[language] || key;
+  const currentSuggestions = SUGGESTIONS[language] || SUGGESTIONS.en;
+
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
+      <View style={[styles.header, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.headerLeft, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
           <TouchableOpacity style={styles.backBtn}>
-            <View style={styles.backArrow} />
+            <View style={[styles.backArrow, { transform: [{ rotate: language === 'ar' ? '135deg' : '-45deg' }] }]} />
           </TouchableOpacity>
           <View style={styles.labAvatarContainer}>
             <View style={styles.labAvatar} />
-            <View style={styles.onlineStatus} />
+            <View style={[styles.onlineStatus, { right: language === 'ar' ? undefined : -2, left: language === 'ar' ? -2 : undefined }]} />
           </View>
-          <View>
+          <View style={{ alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
             <Text style={styles.labName}>BioGenetics Lab A</Text>
-            <Text style={styles.onlineText}>Active Now</Text>
+            <Text style={styles.onlineText}>{t('active_now')}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.infoBtn}>
@@ -65,28 +83,29 @@ export default function ShowConversationScreen() {
       </View>
 
       {/* Contextual Order Info */}
-      <View style={styles.orderContextBar}>
-        <View style={styles.contextLeft}>
+      <View style={[styles.orderContextBar, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
+        <View style={[styles.contextLeft, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
           <View style={styles.contextIconBox}>
             <View style={styles.flaskIcon} />
           </View>
-          <View>
-            <Text style={styles.contextTitle}>Order #4092</Text>
-            <Text style={styles.contextSub}>DNA Sequencing - Processing</Text>
+          <View style={{ alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+            <Text style={styles.contextTitle}>{t('order_prefix')} #4092</Text>
+            <Text style={styles.contextSub}>{t('dna_sequencing')}</Text>
           </View>
         </View>
-        <View style={styles.contextArrow} />
+        <View style={[styles.contextArrow, { transform: [{ rotate: language === 'ar' ? '225deg' : '45deg' }] }]} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.chatContainer}>
         {/* Date Divider */}
         <View style={styles.dateDivider}>
-          <Text style={styles.dateText}>Today</Text>
+          <Text style={styles.dateText}>{t('today')}</Text>
         </View>
 
         {MESSAGES.map((msg) => (
           <View key={msg.id} style={[
             styles.messageRow,
+            { flexDirection: language === 'ar' ? 'row-reverse' : 'row' },
             msg.isMe ? styles.myMessageRow : styles.theirMessageRow
           ]}>
             {!msg.isMe && (
@@ -97,15 +116,18 @@ export default function ShowConversationScreen() {
 
             <View style={[
               styles.bubbleContainer,
-              msg.isMe ? styles.myBubbleContainer : styles.theirBubbleContainer
+              msg.isMe ? styles.myBubbleContainer : styles.theirBubbleContainer,
+              { alignItems: msg.isMe ? (language === 'ar' ? 'flex-start' : 'flex-end') : (language === 'ar' ? 'flex-end' : 'flex-start') }
             ]}>
               <View style={[
                 styles.bubble,
-                msg.isMe ? styles.myBubble : styles.theirBubble
+                msg.isMe ? styles.myBubble : styles.theirBubble,
+                msg.isMe ? (language === 'ar' ? { borderBottomLeftRadius: 4, borderBottomRightRadius: 16 } : { borderBottomRightRadius: 4, borderBottomLeftRadius: 16 }) : (language === 'ar' ? { borderBottomRightRadius: 4, borderBottomLeftRadius: 16 } : { borderBottomLeftRadius: 4, borderBottomRightRadius: 16 })
               ]}>
                 <Text style={[
                   styles.messageText,
-                  msg.isMe ? styles.myMessageText : styles.theirMessageText
+                  msg.isMe ? styles.myMessageText : styles.theirMessageText,
+                  { textAlign: language === 'ar' ? 'right' : 'left' }
                 ]}>{msg.text}</Text>
               </View>
               <Text style={styles.timeText}>{msg.time}</Text>
@@ -117,26 +139,26 @@ export default function ShowConversationScreen() {
       {/* Input Section */}
       <View style={styles.inputSection}>
         {/* Chips */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionsScroll}>
-          {SUGGESTIONS.map((item) => (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.suggestionsScroll, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
+          {currentSuggestions.map((item) => (
             <TouchableOpacity key={item} style={styles.suggestionChip}>
               <Text style={styles.suggestionText}>{item}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
           <TouchableOpacity style={styles.attachBtn}>
             <View style={styles.paperclipIcon} />
           </TouchableOpacity>
-          <View style={styles.textInputWrapper}>
+          <View style={[styles.textInputWrapper, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
             <TextInput
-              placeholder="Type a message..."
-              style={styles.textInput}
+              placeholder={t('type_message')}
+              style={[styles.textInput, { textAlign: language === 'ar' ? 'right' : 'left' }]}
               placeholderTextColor="#A0AEC0"
             />
             <TouchableOpacity style={styles.sendBtn}>
-              <View style={styles.sendIcon} />
+              <View style={[styles.sendIcon, { transform: [{ rotate: language === 'ar' ? '180deg' : '0deg' }] }]} />
             </TouchableOpacity>
           </View>
         </View>

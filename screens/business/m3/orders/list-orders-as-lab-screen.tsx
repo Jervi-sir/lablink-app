@@ -2,14 +2,21 @@ import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView, Dimensions } from "react-native";
+import { useLanguageStore } from "@/zustand/language-store";
 
-const SUMMARY_CARDS = [
-  { id: '1', title: 'Pending', count: '5', icon: 'clock' },
-  { id: '2', title: 'To Ship', count: '5', icon: 'truck' },
-  { id: '3', title: 'Packaging', count: '2', icon: 'package' },
-];
-
-const FILTER_TABS = ['All', 'New', 'Processing', 'Completed'];
+const translations = {
+  incoming_orders: { en: 'Incoming Orders', fr: 'Commandes entrantes', ar: 'الطلبات الواردة' },
+  pending: { en: 'Pending', fr: 'En attente', ar: 'قيد الانتظار' },
+  to_ship: { en: 'To Ship', fr: 'À expédier', ar: 'للشحن' },
+  packaging: { en: 'Packaging', fr: 'Emballage', ar: 'التغليف' },
+  all: { en: 'All', fr: 'Tout', ar: 'الكل' },
+  new: { en: 'New', fr: 'Nouveau', ar: 'جديد' },
+  processing: { en: 'Processing', fr: 'En traitement', ar: 'قيد المعالجة' },
+  completed: { en: 'Completed', fr: 'Terminé', ar: 'مكتمل' },
+  view_details: { en: 'View Details', fr: 'Voir détails', ar: 'عرض التفاصيل' },
+  new_order: { en: 'New Order', fr: 'Nouvelle commande', ar: 'طلب جديد' },
+  awaiting_shipment: { en: 'Awaiting Shipment', fr: 'En attente d\'expédition', ar: 'في انتظار الشحن' },
+};
 
 const ORDERS = [
   {

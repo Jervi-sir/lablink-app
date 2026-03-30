@@ -10,12 +10,50 @@ import { useState, useEffect, useCallback } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { useLabCartStore } from "@/screens/student/zustand/lab-cart-store";
+import { useLanguageStore } from "@/zustand/language-store";
 
 const { width } = Dimensions.get('window');
+
+const translations = {
+  loading_lab: { en: 'Loading laboratory...', fr: 'Chargement du laboratoire...', ar: 'جاري تحميل المختبر...' },
+  lab_not_found: { en: 'Laboratory not found', fr: 'Laboratoire non trouvé', ar: 'المختبر غير موجود' },
+  go_back: { en: 'Go Back', fr: 'Retourner', ar: 'العودة' },
+  verified: { en: '✓ VERIFIED', fr: '✓ VÉRIFIÉ', ar: '✓ تم التحقق' },
+  products: { en: 'Products', fr: 'Produits', ar: 'المنتجات' },
+  followers: { en: 'Followers', fr: 'Abonnés', ar: 'المتابعين' },
+  location: { en: 'Location', fr: 'Emplacement', ar: 'الموقع' },
+  cart_mode: { en: 'Cart Mode', fr: 'Mode Panier', ar: 'وضع السلة' },
+  build_estimation: { en: 'Build one estimation request for this lab.', fr: "Créez une demande d'estimation pour ce laboratoire.", ar: 'أنشئ طلب تقدير لهذا المختبر.' },
+  cart_desc: { en: 'Add products or services you are interested in, review the cart, then send the request directly to', fr: 'Ajoutez les produits ou services qui vous intéressent, vérifiez le panier, puis envoyez la demande directement à', ar: 'أضف المنتجات أو الخدمات التي تهمك، راجع السلة، ثم أرسل الطلب مباشرة إلى' },
+  about_facility: { en: 'About Facility', fr: "À propos de l'établissement", ar: 'حول المنشأة' },
+  operating_license: { en: 'Operating License', fr: "Licence d'exploitation", ar: 'رخصة التشغيل' },
+  verified_certificate: { en: 'Verified Certificate', fr: 'Certificat vérifié', ar: 'شهادة معتمدة' },
+  connectivity: { en: 'Connectivity', fr: 'Connectivité', ar: 'الاتصال' },
+  following: { en: 'Following', fr: 'Abonné', ar: 'متابع' },
+  follow: { en: 'Follow', fr: "S'abonner", ar: 'متابعة' },
+  message: { en: 'Message', fr: 'Message', ar: 'مراسلة' },
+  available_products: { en: 'Available Products & Services', fr: 'Produits et services disponibles', ar: 'المنتجات والخدمات المتاحة' },
+  items: { en: 'items', fr: 'articles', ar: 'عناصر' },
+  added: { en: 'Added', fr: 'Ajouté', ar: 'تم الإضافة' },
+  add: { en: 'Add', fr: 'Ajouter', ar: 'إضافة' },
+  no_products: { en: 'No products available yet.', fr: 'Aucun produit disponible pour le moment.', ar: 'لا توجد منتجات متاحة بعد.' },
+  active_lab_cart: { en: 'Active Lab Cart', fr: 'Panier de laboratoire actif', ar: 'سلة المختبر النشطة' },
+  selected_item: { en: 'selected item', fr: 'article sélectionné', ar: 'عنصر مختار' },
+  selected_items: { en: 'selected items', fr: 'articles sélectionnés', ar: 'عناصر مختارة' },
+  estimated_total: { en: 'Estimated total', fr: 'Total estimé', ar: 'الإجمالي التقديري' },
+  finalize: { en: 'Finalize', fr: 'Finaliser', ar: 'إنهاء' },
+  cart_exists_title: { en: 'Cart does not exist', fr: 'Le panier n\'existe pas', ar: 'السلة غير موجودة' },
+  cart_exists_desc: { en: 'A cart for {name} does not exist yet. Please press Create to continue.', fr: 'Un panier pour {name} n\'existe pas encore. Veuillez appuyer sur Créer pour continuer.', ar: 'سلة {name} غير موجودة بعد. يرجى الضغط على إنشاء للمتابعة.' },
+  cancel: { en: 'Cancel', fr: 'Annuler', ar: 'إلغاء' },
+  create: { en: 'Create', fr: 'Créer', ar: 'إنشاء' },
+  unknown_lab: { en: 'Laboratory', fr: 'Laboratoire', ar: 'مختبر' },
+};
 
 export default function BusinessScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key][language];
   const { lab, labId, labName } = route.params || {};
 
   // Resolve the business ID from various navigation params
@@ -148,7 +186,7 @@ export default function BusinessScreen() {
 
     const targetBusiness = {
       id: Number(businessId),
-      name: business.name || labName || 'Laboratory',
+      name: business.name || labName || t('unknown_lab'),
       logo: business.logo || null,
     };
 
@@ -167,12 +205,12 @@ export default function BusinessScreen() {
 
     if (!currentCart) {
       Alert.alert(
-        'Cart does not exist',
-        `A cart for ${targetBusiness.name} does not exist yet. Please press Create to continue.`,
+        t('cart_exists_title'),
+        t('cart_exists_desc').replace('{name}', targetBusiness.name),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('cancel'), style: 'cancel' },
           {
-            text: 'Create',
+            text: t('create'),
             onPress: commit
           }
         ]
@@ -186,16 +224,16 @@ export default function BusinessScreen() {
     }
 
     commit();
-  }, [business, businessId, currentCart, isSupplier, labName, upsertItem]);
+  }, [business, businessId, currentCart, isSupplier, labName, upsertItem, t]);
 
-  const displayName = business?.name || labName || 'Laboratory';
+  const displayName = business?.name || labName || t('unknown_lab');
 
   if (loading) {
     return (
       <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#137FEC" />
-          <Text style={{ marginTop: 12, fontSize: 14, color: '#94A3B8', fontWeight: '500' }}>Loading laboratory...</Text>
+          <Text style={{ marginTop: 12, fontSize: 14, color: '#94A3B8', fontWeight: '500' }}>{t('loading_lab')}</Text>
         </View>
       </ScreenWrapper>
     );
@@ -205,9 +243,9 @@ export default function BusinessScreen() {
     return (
       <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
-          <Text style={{ fontSize: 18, fontWeight: '700', color: '#111', marginBottom: 8 }}>Laboratory not found</Text>
+          <Text style={{ fontSize: 18, fontWeight: '700', color: '#111', marginBottom: 8 }}>{t('lab_not_found')}</Text>
           <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20, backgroundColor: '#137FEC', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 }}>
-            <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>Go Back</Text>
+            <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>{t('go_back')}</Text>
           </TouchableOpacity>
         </View>
       </ScreenWrapper>
@@ -218,7 +256,7 @@ export default function BusinessScreen() {
     <View style={{ padding: 20 }}>
       {/* Bio & Intro Section */}
       <View style={{ backgroundColor: '#FFF', padding: 20, borderRadius: 24, borderWidth: 1, borderColor: '#F1F5F9' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+        <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 16 }}>
           <View style={{ width: 80, height: 80, borderRadius: 24, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#F1F5F9', position: 'relative', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
             {business?.logo ? (
               business.logo.startsWith('http') ? (
@@ -233,12 +271,12 @@ export default function BusinessScreen() {
             )}
             <View style={{ position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderRadius: 11, backgroundColor: '#22C55E', borderWidth: 3, borderColor: '#FFF' }} />
           </View>
-          <View style={{ flex: 1, gap: 4 }}>
-            <Text style={{ fontSize: 20, fontWeight: '800', color: '#111' }}>{business.name}</Text>
-            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+          <View style={{ flex: 1, gap: 4, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+            <Text style={{ fontSize: 20, fontWeight: '800', color: '#111', textAlign: language === 'ar' ? 'right' : 'left' }}>{business.name}</Text>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 8, flexWrap: 'wrap' }}>
               {business.isFeatured && (
                 <View style={{ backgroundColor: '#F0FDF4', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#16A34A' }}>✓ VERIFIED</Text>
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#16A34A' }}>{t('verified')}</Text>
                 </View>
               )}
               {business.labCategory && (
@@ -251,37 +289,37 @@ export default function BusinessScreen() {
         </View>
 
         {/* Stats Row */}
-        <View style={{ flexDirection: 'row', marginTop: 20, backgroundColor: '#F8FAFC', borderRadius: 16, padding: 16, alignItems: 'center' }}>
+        <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', marginTop: 20, backgroundColor: '#F8FAFC', borderRadius: 16, padding: 16, alignItems: 'center' }}>
           <View style={{ flex: 1, alignItems: 'center' }}>
             <Text style={{ fontSize: 16, fontWeight: '800', color: '#1E293B' }}>{business.productCount || 0}</Text>
-            <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600', marginTop: 2 }}>Products</Text>
+            <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600', marginTop: 2 }}>{t('products')}</Text>
           </View>
           <View style={{ width: 1, height: 16, backgroundColor: '#CBD5E1' }} />
           <View style={{ flex: 1, alignItems: 'center' }}>
             <Text style={{ fontSize: 16, fontWeight: '800', color: '#1E293B' }}>{followerCount}</Text>
-            <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600', marginTop: 2 }}>Followers</Text>
+            <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600', marginTop: 2 }}>{t('followers')}</Text>
           </View>
           <View style={{ width: 1, height: 16, backgroundColor: '#CBD5E1' }} />
           <View style={{ flex: 1, alignItems: 'center' }}>
             <Text style={{ fontSize: 16, fontWeight: '800', color: '#1E293B' }}>{business.wilaya?.name || '—'}</Text>
-            <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600', marginTop: 2 }}>Location</Text>
+            <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600', marginTop: 2 }}>{t('location')}</Text>
           </View>
         </View>
       </View>
 
       {/* About Section */}
-      <View style={{ marginTop: 20, backgroundColor: '#0F172A', borderRadius: 22, padding: 18 }}>
-        <Text style={{ fontSize: 12, fontWeight: '800', color: '#93C5FD', textTransform: 'uppercase' }}>Cart Mode</Text>
-        <Text style={{ marginTop: 8, fontSize: 18, fontWeight: '900', color: '#FFF' }}>Build one estimation request for this lab.</Text>
-        <Text style={{ marginTop: 6, fontSize: 13, lineHeight: 20, color: '#CBD5E1', fontWeight: '600' }}>
-          Add products or services you are interested in, review the cart, then send the request directly to {displayName}.
+      <View style={{ marginTop: 20, backgroundColor: '#0F172A', borderRadius: 22, padding: 18, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+        <Text style={{ fontSize: 12, fontWeight: '800', color: '#93C5FD', textTransform: 'uppercase' }}>{t('cart_mode')}</Text>
+        <Text style={{ marginTop: 8, fontSize: 18, fontWeight: '900', color: '#FFF', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('build_estimation')}</Text>
+        <Text style={{ marginTop: 6, fontSize: 13, lineHeight: 20, color: '#CBD5E1', fontWeight: '600', textAlign: language === 'ar' ? 'right' : 'left' }}>
+          {t('cart_desc')} {displayName}.
         </Text>
       </View>
 
       {business.description && (
-        <View style={{ marginTop: 24 }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>About Facility</Text>
-          <Text style={{ fontSize: 14, color: '#475569', lineHeight: 22, fontWeight: '500', marginTop: 8 }}>
+        <View style={{ marginTop: 24, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>{t('about_facility')}</Text>
+          <Text style={{ fontSize: 14, color: '#475569', lineHeight: 22, fontWeight: '500', marginTop: 8, textAlign: language === 'ar' ? 'right' : 'left' }}>
             {business.description}
           </Text>
         </View>
@@ -289,31 +327,31 @@ export default function BusinessScreen() {
 
       {/* Certificate */}
       {business.certificateUrl && (
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 16, borderRadius: 16, marginTop: 12, borderWidth: 1, borderColor: '#F1F5F9', gap: 12 }}>
+        <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', backgroundColor: '#FFF', padding: 16, borderRadius: 16, marginTop: 12, borderWidth: 1, borderColor: '#F1F5F9', gap: 12 }}>
           <View style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}><Text style={{ fontSize: 24 }}>📜</Text></View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#1E293B' }}>Operating License {business.nif ? `#${business.nif}` : ''}</Text>
-            <Text style={{ fontSize: 11, color: '#64748B' }}>Verified Certificate</Text>
+          <View style={{ flex: 1, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('operating_license')} {business.nif ? `#${business.nif}` : ''}</Text>
+            <Text style={{ fontSize: 11, color: '#64748B' }}>{t('verified_certificate')}</Text>
           </View>
         </View>
       )}
 
       {/* Connectivity */}
       {(business.address || (business.contacts && business.contacts.length > 0)) && (
-        <View style={{ marginTop: 24 }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Connectivity</Text>
-          <View style={{ marginTop: 12, gap: 12 }}>
+        <View style={{ marginTop: 24, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>{t('connectivity')}</Text>
+          <View style={{ marginTop: 12, gap: 12, width: '100%' }}>
             {business.address && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FFF', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9' }}>
+              <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 12, backgroundColor: '#FFF', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9' }}>
                 <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}><Text style={{ fontSize: 16 }}>📍</Text></View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>Location</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#1E293B' }}>{business.address}</Text>
+                <View style={{ flex: 1, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>{t('location')}</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }}>{business.address}</Text>
                 </View>
               </View>
             )}
             {business.contacts && business.contacts.map((contact: any, idx: number) => (
-              <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FFF', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9' }}>
+              <View key={idx} style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 12, backgroundColor: '#FFF', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9' }}>
                 <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
                   <Text style={{ fontSize: 16 }}>
                     {contact.platform?.code === 'phone' || contact.platform?.code === 'mobile' ? '📞' :
@@ -322,9 +360,9 @@ export default function BusinessScreen() {
                           contact.platform?.code === 'website' ? '🌐' : '🔗'}
                   </Text>
                 </View>
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
                   <Text style={{ fontSize: 10, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>{contact.platform?.code || 'Contact'}</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#1E293B' }}>{contact.content}</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }}>{contact.content}</Text>
                 </View>
               </View>
             ))}
@@ -333,7 +371,7 @@ export default function BusinessScreen() {
       )}
 
       {/* CTA Area */}
-      <View style={{ flexDirection: 'row', marginTop: 24, gap: 12 }}>
+      <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', marginTop: 24, gap: 12 }}>
         <TouchableOpacity
           onPress={toggleFollow}
           disabled={togglingFollow}
@@ -351,8 +389,8 @@ export default function BusinessScreen() {
           {togglingFollow ? (
             <ActivityIndicator size="small" color="#137FEC" />
           ) : (
-            <Text style={{ fontSize: 14, fontWeight: '700', color: isFollowed ? '#137FEC' : '#1E293B' }}>
-              {isFollowed ? 'Following' : 'Follow'}
+            <Text style={{ fontSize: 14, fontWeight: '700', color: isFollowed ? '#137FEC' : '#1E293B', textAlign: 'center' }}>
+              {isFollowed ? t('following') : t('follow')}
             </Text>
           )}
         </TouchableOpacity>
@@ -360,15 +398,15 @@ export default function BusinessScreen() {
           style={{ flex: 1, height: 50, borderRadius: 14, backgroundColor: '#137FEC', justifyContent: 'center', alignItems: 'center' }}
           onPress={() => navigation.navigate(Routes.ChatDetailScreen, { businessId: business.id, businessName: business.name })}
         >
-          <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFF' }}>Message</Text>
+          <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFF' }}>{t('message')}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Products Header */}
       <View style={{ marginTop: 24, marginBottom: 16 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Available Products & Services</Text>
-          <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8' }}>{products.length} items</Text>
+        <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('available_products')}</Text>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: '#94A3B8' }}>{products.length} {t('items')}</Text>
         </View>
       </View>
     </View>
@@ -378,7 +416,7 @@ export default function BusinessScreen() {
     <ProductCard1
       product={{
         ...item,
-        lab: item.business?.name || business.name || 'Lab',
+        lab: item.business?.name || business.name || t('unknown_lab'),
         price: typeof item.price === 'number' ? `${item.price.toLocaleString()} DA` : item.price || '0 DA',
       }}
       onPress={() => navigation.navigate(Routes.ProductScreen, {
@@ -387,7 +425,7 @@ export default function BusinessScreen() {
         lab: business,
       })}
       onToggleSave={() => toggleSaveProduct(item.id.toString())}
-      actionLabel={isSupplier ? null : (cartItems.some((cartItem: any) => cartItem.productId === Number(item.id) && cartItem.businessId === Number(businessId)) ? 'Added' : 'Add')}
+      actionLabel={isSupplier ? undefined : (cartItems.some((cartItem: any) => cartItem.productId === Number(item.id) && cartItem.businessId === Number(businessId)) ? t('added') : t('add'))}
       onActionPress={() => addProductToCart(item)}
       actionDisabled={!isSupplier && cartItems.some((cartItem: any) => cartItem.productId === Number(item.id) && cartItem.businessId === Number(businessId))}
       isSaving={savingProductId === item.id.toString()}
@@ -398,11 +436,13 @@ export default function BusinessScreen() {
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       {/* Top Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 60, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+      <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 60, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
         <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
-          <ArrowIcon size={24} color="#111" />
+          <View style={{ transform: [{ rotate: language === 'ar' ? '180deg' : '0deg' }] }}>
+            <ArrowIcon size={24} color="#111" />
+          </View>
         </TouchableOpacity>
-        <Text style={{ fontSize: 16, fontWeight: '800', color: '#111' }} numberOfLines={1}>{displayName}</Text>
+        <Text style={{ fontSize: 16, fontWeight: '800', color: '#111', maxWidth: width - 150 }} numberOfLines={1}>{displayName}</Text>
         <TouchableOpacity
           onPress={toggleSaveBusiness}
           disabled={togglingSave}
@@ -422,7 +462,7 @@ export default function BusinessScreen() {
         keyExtractor={item => item.id.toString()}
         numColumns={2}
         ListHeaderComponent={renderHeader}
-        columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 20 }}
+        columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 20, flexDirection: language === 'ar' ? 'row-reverse' : 'row' }}
         contentContainerStyle={{ paddingBottom: isCartForThisLab ? 140 : 40 }}
         showsVerticalScrollIndicator={false}
         onEndReached={fetchMoreProducts}
@@ -440,7 +480,7 @@ export default function BusinessScreen() {
         ListEmptyComponent={
           !loading ? (
             <View style={{ padding: 40, alignItems: 'center' }}>
-              <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '500' }}>No products available yet.</Text>
+              <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '500', textAlign: 'center' }}>{t('no_products')}</Text>
             </View>
           ) : null
         }
@@ -448,17 +488,17 @@ export default function BusinessScreen() {
 
       {isCartForThisLab && cartItems.length > 0 ? (
         <View style={{ position: 'absolute', left: 16, right: 16, bottom: 18, backgroundColor: '#0F172A', borderRadius: 22, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.18, shadowRadius: 18, elevation: 10 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View style={{ flex: 1, paddingRight: 12 }}>
-              <Text style={{ fontSize: 12, fontWeight: '800', color: '#93C5FD', textTransform: 'uppercase' }}>Active Lab Cart</Text>
-              <Text style={{ marginTop: 4, fontSize: 16, fontWeight: '900', color: '#FFF' }}>{cartItemCount} selected item{cartItemCount !== 1 ? 's' : ''}</Text>
-              <Text style={{ marginTop: 4, fontSize: 13, color: '#CBD5E1', fontWeight: '600' }}>Estimated total {cartEstimatedTotal.toLocaleString()} DA</Text>
+          <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flex: 1, paddingRight: language === 'ar' ? 0 : 12, paddingLeft: language === 'ar' ? 12 : 0, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+              <Text style={{ fontSize: 12, fontWeight: '800', color: '#93C5FD', textTransform: 'uppercase' }}>{t('active_lab_cart')}</Text>
+              <Text style={{ marginTop: 4, fontSize: 16, fontWeight: '900', color: '#FFF' }}>{cartItemCount} {cartItemCount !== 1 ? t('selected_items') : t('selected_item')}</Text>
+              <Text style={{ marginTop: 4, fontSize: 13, color: '#CBD5E1', fontWeight: '600' }}>{t('estimated_total')} {cartEstimatedTotal.toLocaleString()} DA</Text>
             </View>
             <TouchableOpacity
               style={{ height: 48, paddingHorizontal: 18, borderRadius: 14, backgroundColor: '#10B981', justifyContent: 'center', alignItems: 'center' }}
               onPress={() => navigation.navigate(Routes.LabEstimationScreen, { businessId })}
             >
-              <Text style={{ fontSize: 14, fontWeight: '900', color: '#FFF' }}>Finalize</Text>
+              <Text style={{ fontSize: 14, fontWeight: '900', color: '#FFF' }}>{t('finalize')}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -12,13 +12,87 @@ import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "@/zustand/auth-store";
 import { SheetManager } from "react-native-actions-sheet";
 import { useInventoryStore } from "../zustand/inventory-store";
+import { useLanguageStore } from "@/zustand/language-store";
+
 
 
 const { width } = Dimensions.get('window');
 
+const translations = {
+  edit_product: { en: 'Edit Product', fr: 'Modifier le produit', ar: 'تعديل المنتج' },
+  add_new_product: { en: 'Add New Product', fr: 'Ajouter un nouveau produit', ar: 'إضافة منتج جديد' },
+  save: { en: 'Save', fr: 'Enregistrer', ar: 'حفظ' },
+  limit_reached: { en: 'Limit Reached', fr: 'Limite atteinte', ar: 'تم الوصول إلى الحد الأقصى' },
+  upload_limit_msg: { en: 'You can upload up to 10 images per product.', fr: 'Vous pouvez télécharger jusqu\'à 10 images par produit.', ar: 'يمكنك تحميل ما يصل إلى 10 صور لكل منتج.' },
+  permission_denied: { en: 'Permission Denied', fr: 'Permission refusée', ar: 'تم رفض الإذن' },
+  camera_permission_msg: { en: 'Camera permission is required to take photos.', fr: 'La permission de l\'appareil photo est requise pour prendre des photos.', ar: 'مطلوب إذن الكاميرا لالتقاط الصور.' },
+  remove_image: { en: 'Remove Image', fr: 'Supprimer l\'image', ar: 'إزالة الصورة' },
+  delete_image_msg: { en: 'Delete this image?', fr: 'Supprimer cette image ?', ar: 'هل تريد حذف هذه الصورة؟' },
+  cancel: { en: 'Cancel', fr: 'Annuler', ar: 'إلغاء' },
+  delete: { en: 'Delete', fr: 'Supprimer', ar: 'حذف' },
+  error: { en: 'Error', fr: 'Erreur', ar: 'خطأ' },
+  upload_warning: { en: 'Product saved, but some images failed to upload.', fr: 'Produit enregistré, mais certaines images n\'ont pas pu être téléchargées.', ar: 'تم حفظ المنتج ، ولكن فشل تحميل بعض الصور.' },
+  success: { en: 'Success', fr: 'Succès', ar: 'نجاح' },
+  product_updated: { en: 'Product updated successfully', fr: 'Produit mis à jour avec succès', ar: 'تم تحديث المنتج بنجاح' },
+  product_published: { en: 'Product published successfully', fr: 'Produit publié avec succès', ar: 'تم نشر المنتج بنجاح' },
+  failed_save: { en: 'Failed to save product', fr: 'Échec de l\'enregistrement du produit', ar: 'فشل في حفظ المنتج' },
+  product_images: { en: 'Product Images', fr: 'Images du produit', ar: 'صور المنتج' },
+  add_more_photos: { en: 'Add More Photos', fr: 'Ajouter plus de photos', ar: 'إضافة المزيد من الصور' },
+  upload_photos: { en: 'Upload Product Photos', fr: 'Télécharger des photos du produit', ar: 'تحميل صور المنتج' },
+  size_limit_msg: { en: '{count}/10 • JPG, PNG, WebP up to 5MB', fr: '{count}/10 • JPG, PNG, WebP jusqu\'à 5 Mo', ar: '{count}/10 • JPG، PNG، WebP حتى 5 ميجابايت' },
+  uploading_images: { en: 'Uploading images...', fr: 'Téléchargement des images...', ar: 'جاري تحميل الصور...' },
+  product: { en: 'Product', fr: 'Produit', ar: 'منتج' },
+  service: { en: 'Service', fr: 'Service', ar: 'خدمة' },
+  basic_info: { en: 'Basic Information', fr: 'Informations de base', ar: 'معلومات أساسية' },
+  service_name: { en: 'Service Name', fr: 'Nom du service', ar: 'اسم الخدمة' },
+  product_name: { en: 'Product Name', fr: 'Nom du produit', ar: 'اسم المنتج' },
+  service_placeholder: { en: 'e.g. DNA Sequencing Analysis', fr: 'ex : Analyse de séquençage d\'ADN', ar: 'مثلاً: تحليل تسلسل الحمض النووي' },
+  product_placeholder: { en: 'e.g. Digital Microscope X1', fr: 'ex : Microscope numérique X1', ar: 'مثلاً: مجهر رقمي X1' },
+  category: { en: 'Category', fr: 'Catégorie', ar: 'الفئة' },
+  offer_type: { en: 'Offer Type', fr: 'Type d\'offre', ar: 'نوع العرض' },
+  sku_label: { en: 'SKU / Catalog Number', fr: 'SKU / Numéro de catalogue', ar: 'وحدة حفظ المخزون / رقم الكتالوج' },
+  sku_placeholder: { en: 'e.g. NB-500-D', fr: 'ex : NB-500-D', ar: 'مثلاً: NB-500-D' },
+  failed_delete_product: { en: 'Failed to delete image.', fr: 'Échec de la suppression de l\'image.', ar: 'فشل في حذف الصورة.' },
+  inventory_pricing: { en: 'Inventory & Pricing', fr: 'Inventaire et tarifs', ar: 'المخزون والتسعير' },
+  pricing: { en: 'Pricing', fr: 'Tarification', ar: 'التسعير' },
+  price_da: { en: 'Price (DA) *', fr: 'Prix (DA) *', ar: 'السعر (دج) *' },
+  stock: { en: 'Stock *', fr: 'Stock *', ar: 'المخزون *' },
+  unit: { en: 'Unit', fr: 'Unité', ar: 'الوحدة' },
+  session_suffix: { en: ' / session', fr: ' / session', ar: ' / جلسة' },
+  day_suffix: { en: ' / day', fr: ' / jour', ar: ' / يوم' },
+  piece_suffix: { en: ' / {unit}', fr: ' / {unit}', ar: ' / {unit}' },
+  pricing_model: { en: 'Pricing Model', fr: 'Modèle de tarification', ar: 'نموذج التسعير' },
+  detailed_specs: { en: 'Detailed Specifications', fr: 'Spécifications détaillées', ar: 'المواصفات التفصيلية' },
+  specs_label: { en: 'Specifications (Key: Value)', fr: 'Spécifications (Clé: Valeur)', ar: 'المواصفات (المفتاح: القيمة)' },
+  service_details_label: { en: 'Service Details (Key: Value)', fr: 'Détails du service (Clé: Valeur)', ar: 'تفاصيل الخدمة (المفتاح: القيمة)' },
+  service_desc_label: { en: 'Service Description', fr: 'Description du service', ar: 'وصف الخدمة' },
+  product_desc_label: { en: 'Product Description', fr: 'Description du produit', ar: 'وصف المنتج' },
+  status: { en: 'Status', fr: 'Statut', ar: 'الحالة' },
+  visible_to_researchers: { en: 'Visible to Researchers', fr: 'Visible pour les chercheurs', ar: 'مرئي للباحثين' },
+  currently_public: { en: 'Currently Public', fr: 'Actuellement public', ar: 'عام حالياً' },
+  currently_private: { en: 'Currently Private', fr: 'Actuellement privé', ar: 'خاص حالياً' },
+  update_inventory: { en: 'Update Inventory', fr: 'Mettre à jour l\'inventaire', ar: 'تحديث المخزون' },
+  publish_service: { en: 'Publish Service', fr: 'Publier le service', ar: 'نشر الخدمة' },
+  publish_product: { en: 'Publish Product', fr: 'Publier le produit', ar: 'نشر المنتج' },
+  provide_name_error: { en: 'Please provide a product name.', fr: 'Veuillez fournir un nom de produit.', ar: 'يرجى تقديم اسم المنتج.' },
+  valid_price_product_error: { en: 'Please enter a valid price for the product.', fr: 'Veuillez entrer un prix valide pour le produit.', ar: 'يرجى إدخال سعر صالح للمنتج.' },
+  valid_price_service_error: { en: 'Please enter a valid price for the service.', fr: 'Veuillez entrer un prix valide pour le service.', ar: 'يرجى إدخال سعر صالح للخدمة.' },
+  valid_stock_error: { en: 'Please enter a valid stock quantity.', fr: 'Veuillez entrer une quantité de stock valide.', ar: 'يرجى إدخال كمية مخزون صالحة.' },
+};
+
 export default function EditCreateProductScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations, params?: Record<string, string>) => {
+    let text = translations[key]?.[language] || key;
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        text = text.replace(`{${k}}`, v);
+      });
+    }
+    return text;
+  };
   const initialProduct = route.params?.product;
   const isEdit = initialProduct !== undefined;
   const { auth } = useAuthStore();
@@ -98,7 +172,7 @@ export default function EditCreateProductScreen() {
   const pickImages = async () => {
     const totalImages = existingImages.length + newImages.length;
     if (totalImages >= 10) {
-      Alert.alert("Limit Reached", "You can upload up to 10 images per product.");
+      Alert.alert(t('limit_reached'), t('upload_limit_msg'));
       return;
     }
 
@@ -123,7 +197,7 @@ export default function EditCreateProductScreen() {
       // Permission request
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert("Permission Denied", "Camera permission is required to take photos.");
+        Alert.alert(t('permission_denied'), t('camera_permission_msg'));
         return;
       }
 
@@ -168,7 +242,7 @@ export default function EditCreateProductScreen() {
       setExistingImages(prev => prev.filter((img: any) => img.id !== imageId));
     } catch (error) {
       console.error("Error deleting image:", error);
-      Alert.alert("Error", "Failed to delete image.");
+      Alert.alert(t('error'), t('failed_save'));
     }
   };
 
@@ -199,7 +273,7 @@ export default function EditCreateProductScreen() {
       );
     } catch (error) {
       console.error("Error uploading images:", error);
-      Alert.alert("Warning", "Product saved, but some images failed to upload.");
+      Alert.alert(t('error'), t('upload_warning'));
     } finally {
       setIsUploadingImages(false);
     }
@@ -207,24 +281,24 @@ export default function EditCreateProductScreen() {
 
   const onSave = async () => {
     if (!form.name) {
-      Alert.alert("Error", "Please provide a product name.");
+      Alert.alert(t('error'), t('provide_name_error'));
       return;
     }
 
     // Validate pricing based on type
     if (form.product_type === 'product') {
       if (!form.price || parseFloat(form.price) <= 0) {
-        Alert.alert("Error", "Please enter a valid price for the product.");
+        Alert.alert(t('error'), t('valid_price_product_error'));
         return;
       }
       if (!form.stock || parseInt(form.stock) < 0) {
-        Alert.alert("Error", "Please enter a valid stock quantity.");
+        Alert.alert(t('error'), t('valid_stock_error'));
         return;
       }
     } else {
       // Service — price is required but stock not needed
       if (!form.price || parseFloat(form.price) <= 0) {
-        Alert.alert("Error", "Please enter a valid price for the service.");
+        Alert.alert(t('error'), t('valid_price_service_error'));
         return;
       }
     }
@@ -285,19 +359,19 @@ export default function EditCreateProductScreen() {
         await uploadImages(productId);
       }
 
-      Alert.alert("Success", isEdit ? "Product updated successfully" : "Product published successfully");
+      Alert.alert(t('success'), isEdit ? t('product_updated') : t('product_published'));
       navigation.goBack();
     } catch (error: any) {
       console.error("Error saving product:", error);
-      const msg = error.response?.data?.message || "Failed to save product";
-      Alert.alert("Error", msg);
+      const msg = error.response?.data?.message || t('failed_save');
+      Alert.alert(t('error'), msg);
     } finally {
       setIsSaving(false);
     }
   };
 
   const SectionHeader = ({ title }: { title: string }) => (
-    <View style={{ marginBottom: 12, marginTop: 12, marginLeft: 4 }}>
+    <View style={{ marginBottom: 12, marginTop: 12, marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
       <Text style={{ fontSize: 13, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1 }}>{title}</Text>
     </View>
   );
@@ -313,7 +387,7 @@ export default function EditCreateProductScreen() {
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       <View style={{
         height: 60,
-        flexDirection: 'row',
+        flexDirection: language === 'ar' ? 'row-reverse' : 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: paddingHorizontal,
@@ -321,11 +395,13 @@ export default function EditCreateProductScreen() {
         borderBottomColor: '#F1F5F9',
       }}>
         <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
-          <ArrowIcon size={24} color="#111" />
+          <View style={{ transform: [{ rotate: language === 'ar' ? '180deg' : '0deg' }] }}>
+            <ArrowIcon size={24} color="#111" />
+          </View>
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>{isEdit ? 'Edit Product' : 'Add New Product'}</Text>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: '#111' }}>{isEdit ? t('edit_product') : t('add_new_product')}</Text>
         <TouchableOpacity style={{ paddingHorizontal: 12 }} onPress={onSave} disabled={isSaving}>
-          {isSaving ? <ActivityIndicator size="small" color="#8B5CF6" /> : <Text style={{ color: '#8B5CF6', fontWeight: '800', fontSize: 15 }}>Save</Text>}
+          {isSaving ? <ActivityIndicator size="small" color="#8B5CF6" /> : <Text style={{ color: '#8B5CF6', fontWeight: '800', fontSize: 15 }}>{t('save')}</Text>}
         </TouchableOpacity>
       </View>
 
@@ -341,11 +417,11 @@ export default function EditCreateProductScreen() {
         >
 
           {/* Image Upload Section */}
-          <SectionHeader title='Product Images' />
+          <SectionHeader title={t('product_images')} />
           <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, gap: 16, marginBottom: 12, borderWidth: 1, borderColor: '#F1F5F9' }}>
             {/* Image Gallery */}
             {allImages.length > 0 && (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[ { gap: 12 }, language === 'ar' && { flexDirection: 'row-reverse' } ]}>
                 {allImages.map((img, idx) => (
                   <View key={`img-${idx}`} style={{ position: 'relative', paddingTop: 10 }}>
                     <Image
@@ -354,18 +430,18 @@ export default function EditCreateProductScreen() {
                     />
                     {/* Main badge */}
                     {img.type === 'existing' && img.isMain && (
-                      <View style={{ position: 'absolute', bottom: 6, left: 6, backgroundColor: '#8B5CF6', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+                      <View style={{ position: 'absolute', bottom: 6, left: language === 'ar' ? undefined : 6, right: language === 'ar' ? 6 : undefined, backgroundColor: '#8B5CF6', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
                         <Text style={{ fontSize: 9, fontWeight: '800', color: '#FFF' }}>MAIN</Text>
                       </View>
                     )}
                     {/* Delete button */}
                     <TouchableOpacity
-                      style={{ position: 'absolute', top: 0, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' }}
+                      style={{ position: 'absolute', top: 0, right: language === 'ar' ? undefined : -6, left: language === 'ar' ? -6 : undefined, width: 26, height: 26, borderRadius: 13, backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' }}
                       onPress={() => {
                         if (img.type === 'existing') {
-                          Alert.alert("Remove Image", "Delete this image?", [
-                            { text: "Cancel", style: "cancel" },
-                            { text: "Delete", style: "destructive", onPress: () => removeExistingImage(img.id) },
+                          Alert.alert(t('remove_image'), t('delete_image_msg'), [
+                            { text: t('cancel'), style: "cancel" },
+                            { text: t('delete'), style: "destructive", onPress: () => removeExistingImage(img.id) },
                           ]);
                         } else {
                           removeNewImage(img.index);
@@ -376,7 +452,7 @@ export default function EditCreateProductScreen() {
                     </TouchableOpacity>
                     {/* New badge */}
                     {img.type === 'new' && (
-                      <View style={{ position: 'absolute', bottom: 6, left: 6, backgroundColor: '#10B981', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+                      <View style={{ position: 'absolute', bottom: 6, left: language === 'ar' ? undefined : 6, right: language === 'ar' ? 6 : undefined, backgroundColor: '#10B981', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
                         <Text style={{ fontSize: 9, fontWeight: '800', color: '#FFF' }}>NEW</Text>
                       </View>
                     )}
@@ -396,7 +472,7 @@ export default function EditCreateProductScreen() {
                 backgroundColor: '#F8FAFC',
                 justifyContent: 'center',
                 alignItems: 'center',
-                flexDirection: allImages.length > 0 ? 'row' : 'column',
+                flexDirection: language === 'ar' ? 'row-reverse' : (allImages.length > 0 ? 'row' : 'column'),
                 gap: 8,
               }}
               onPress={pickImages}
@@ -404,12 +480,12 @@ export default function EditCreateProductScreen() {
               <View style={{ width: allImages.length > 0 ? 32 : 44, height: allImages.length > 0 ? 32 : 44, backgroundColor: '#EEF2FF', borderRadius: 10, justifyContent: 'center', alignItems: 'center' }}>
                 <Text style={{ fontSize: allImages.length > 0 ? 16 : 24 }}>📷</Text>
               </View>
-              <View style={{ alignItems: allImages.length > 0 ? 'flex-start' : 'center' }}>
+              <View style={{ alignItems: language === 'ar' ? 'flex-end' : (allImages.length > 0 ? 'flex-start' : 'center') }}>
                 <Text style={{ fontSize: 14, fontWeight: '700', color: '#8B5CF6' }}>
-                  {allImages.length > 0 ? 'Add More Photos' : 'Upload Product Photos'}
+                  {allImages.length > 0 ? t('add_more_photos') : t('upload_photos')}
                 </Text>
                 <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
-                  {allImages.length}/10 • JPG, PNG, WebP up to 5MB
+                  {t('size_limit_msg', { count: allImages.length.toString() })}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -423,7 +499,7 @@ export default function EditCreateProductScreen() {
           </View>
           {/* Product / Service Type Toggle */}
           <View style={{ marginBottom: 12 }}>
-            <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 16, padding: 4 }}>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', backgroundColor: '#F1F5F9', borderRadius: 16, padding: 4 }}>
               {(['product', 'service'] as const).map((type) => (
                 <TouchableOpacity
                   key={type}
@@ -437,27 +513,27 @@ export default function EditCreateProductScreen() {
                   <Text style={[
                     { fontSize: 13, fontWeight: '700', color: '#94A3B8', marginTop: 2 },
                     form.product_type === type && { color: '#8B5CF6' },
-                  ]}>{type === 'product' ? 'Product' : 'Service'}</Text>
+                  ]}>{type === 'product' ? t('product') : t('service')}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
           {/* 1. Basic Information */}
-          <SectionHeader title='Basic Information' />
+          <SectionHeader title={t('basic_info')} />
           <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, gap: 16, marginBottom: 24, borderWidth: 1, borderColor: '#F1F5F9' }}>
-            <View style={{ gap: 8 }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>{isService ? 'Service Name' : 'Product Name'} *</Text>
+            <View style={{ gap: 8, width: '100%', alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0 }}>{isService ? t('service_name') : t('product_name')} *</Text>
               <TextInput
-                style={{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }}
-                placeholder={isService ? "e.g. DNA Sequencing Analysis" : "e.g. Digital Microscope X1"}
+                style={{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111', width: '100%', textAlign: language === 'ar' ? 'right' : 'left' }}
+                placeholder={isService ? t('service_placeholder') : t('product_placeholder')}
                 value={form.name}
                 onChangeText={(v) => updateForm('name', v)}
               />
             </View>
-            <View style={{ gap: 8 }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Category</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            <View style={{ gap: 8, width: '100%', alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0 }}>{t('category')}</Text>
+              <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', flexWrap: 'wrap', gap: 8 }}>
                 {categories.map((cat) => (
                   <TouchableOpacity
                     key={cat.id}
@@ -471,27 +547,27 @@ export default function EditCreateProductScreen() {
               </View>
             </View>
             {!isService && (
-              <View style={{ gap: 8 }}>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Offer Type</Text>
-                <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ gap: 8, width: '100%', alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0 }}>{t('offer_type')}</Text>
+                <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 10, width: '100%' }}>
                   {['Sale', 'Rent'].map((type) => (
                     <TouchableOpacity
                       key={type}
                       style={[{ flex: 1, height: 44, borderRadius: 12, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }, form.offer_type === type && { backgroundColor: '#F5F3FF', borderColor: '#8B5CF6' }]}
                       onPress={() => updateForm('offer_type', type)}
                     >
-                      <Text style={[{ fontSize: 13, fontWeight: '700', color: '#64748B' }, form.offer_type === type && { color: '#8B5CF6' }]}>{type}</Text>
+                      <Text style={[{ fontSize: 13, fontWeight: '700', color: '#64748B' }, form.offer_type === type && { color: '#8B5CF6' }]}>{type === 'Sale' ? (language === 'ar' ? 'بيع' : (language === 'fr' ? 'Vente' : 'Sale')) : (language === 'ar' ? 'تأجير' : (language === 'fr' ? 'Location' : 'Rent'))}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               </View>
             )}
             {!isService && (
-              <View style={{ gap: 8 }}>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>SKU / Catalog Number</Text>
+              <View style={{ gap: 8, width: '100%', alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0 }}>{t('sku_label')}</Text>
                 <TextInput
-                  style={{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }}
-                  placeholder="e.g. NB-500-D"
+                  style={{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111', width: '100%', textAlign: language === 'ar' ? 'right' : 'left' }}
+                  placeholder={t('sku_placeholder')}
                   value={form.sku}
                   onChangeText={(v) => updateForm('sku', v)}
                 />
@@ -500,19 +576,19 @@ export default function EditCreateProductScreen() {
           </View>
 
           {/* 2. Pricing */}
-          <SectionHeader title={isService ? 'Pricing' : 'Inventory & Pricing'} />
+          <SectionHeader title={isService ? t('pricing') : t('inventory_pricing')} />
           <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, gap: 16, marginBottom: 24, borderWidth: 1, borderColor: '#F1F5F9' }}>
-            <View style={{ gap: 8 }}>
-              <View style={{ gap: 8 }}>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>
-                  Price (DA) *
+            <View style={{ gap: 8, width: '100%', alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+              <View style={{ gap: 8, width: '100%' }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0 }}>
+                  {t('price_da')}
                 </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 4 }}>
-                  <View style={{ paddingHorizontal: 12, paddingVertical: 14, borderRightWidth: 1, borderRightColor: '#E2E8F0' }}>
+                <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 4 }}>
+                  <View style={{ paddingHorizontal: 12, paddingVertical: 14, borderRightWidth: language === 'ar' ? 0 : 1, borderLeftWidth: language === 'ar' ? 1 : 0, borderColor: '#E2E8F0' }}>
                     <Text style={{ fontSize: 14, fontWeight: '800', color: '#8B5CF6' }}>DA</Text>
                   </View>
                   <TextInput
-                    style={{ flex: 1, paddingHorizontal: 12, height: 52, fontSize: 15, fontWeight: '600', color: '#111' }}
+                    style={{ flex: 1, paddingHorizontal: 12, height: 52, fontSize: 15, fontWeight: '600', color: '#111', textAlign: language === 'ar' ? 'right' : 'left' }}
                     placeholder="0.00"
                     keyboardType="decimal-pad"
                     value={form.price}
@@ -520,21 +596,21 @@ export default function EditCreateProductScreen() {
                   />
                 </View>
                 {!isService && (
-                  <View style={{ flexDirection: 'row', gap: 8 }}>
-                    <View style={{ gap: 8, flex: 1.5 }}>
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Stock *</Text>
+                  <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 8 }}>
+                    <View style={{ gap: 8, flex: 1.5, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0 }}>{t('stock')}</Text>
                       <TextInput
-                        style={{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }}
+                        style={{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111', width: '100%', textAlign: language === 'ar' ? 'right' : 'left' }}
                         placeholder="0"
                         keyboardType="numeric"
                         value={form.stock}
                         onChangeText={handleStockChange}
                       />
                     </View>
-                    <View style={{ gap: 8, flex: 1 }}>
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Unit</Text>
+                    <View style={{ gap: 8, flex: 1, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0 }}>{t('unit')}</Text>
                       <TextInput
-                        style={{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 10, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 13, fontWeight: '600', color: '#111', textAlign: 'center' }}
+                        style={{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 10, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 13, fontWeight: '600', color: '#111', textAlign: 'center', width: '100%' }}
                         placeholder="pc"
                         value={form.unit}
                         onChangeText={(v) => updateForm('unit', v)}
@@ -544,22 +620,27 @@ export default function EditCreateProductScreen() {
                 )}
               </View>
 
-              <View style={{ paddingTop: 8 }}>
+              <View style={{ paddingTop: 8, width: '100%' }}>
                 {form.price ? (
                   <Text style={{ fontSize: 11, color: '#64748B', textAlign: 'center' }}>
                     {parseFloat(form.price).toLocaleString('fr-DZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA
-                    {isService ? ' / session' : form.offer_type === 'Rent' ? ' / day' : ' / ' + (form.unit || 'piece')}
+                    {isService ? t('session_suffix') : form.offer_type === 'Rent' ? t('day_suffix') : t('piece_suffix', { unit: form.unit || 'piece' })}
                   </Text>
                 ) : null}
               </View>
             </View>
 
             {isService && (
-              <View style={{ gap: 8 }}>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>Pricing Model</Text>
-                <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ gap: 8, width: '100%', alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0 }}>{t('pricing_model')}</Text>
+                <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 10, width: '100%' }}>
                   {['Per Session', 'Per Hour', 'Fixed'].map((model) => {
                     const unitMap: any = { 'Per Session': 'session', 'Per Hour': 'hour', 'Fixed': 'fixed' };
+                    const modelTrans: any = {
+                      'Per Session': language === 'ar' ? 'لكل جلسة' : (language === 'fr' ? 'Par session' : 'Per Session'),
+                      'Per Hour': language === 'ar' ? 'لكل ساعة' : (language === 'fr' ? 'Par heure' : 'Per Hour'),
+                      'Fixed': language === 'ar' ? 'ثابت' : (language === 'fr' ? 'Fixe' : 'Fixed')
+                    };
                     return (
                       <TouchableOpacity
                         key={model}
@@ -569,7 +650,7 @@ export default function EditCreateProductScreen() {
                         ]}
                         onPress={() => updateForm('unit', unitMap[model])}
                       >
-                        <Text style={[{ fontSize: 12, fontWeight: '700', color: '#64748B' }, form.unit === unitMap[model] && { color: '#8B5CF6' }]}>{model}</Text>
+                        <Text style={[{ fontSize: 12, fontWeight: '700', color: '#64748B' }, form.unit === unitMap[model] && { color: '#8B5CF6' }]}>{modelTrans[model]}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -579,26 +660,26 @@ export default function EditCreateProductScreen() {
           </View>
 
           {/* 3. Deep Details */}
-          <SectionHeader title='Detailed Specifications' />
-          <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, gap: 16, marginBottom: 24, borderWidth: 1, borderColor: '#F1F5F9' }}>
-            <View style={{ gap: 8 }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>
-                {isService ? 'Service Details (Key: Value)' : 'Specifications (Key: Value)'}
+          <SectionHeader title={t('detailed_specs')} />
+          <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, gap: 16, marginBottom: 24, borderWidth: 1, borderColor: '#F1F5F9', alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+            <View style={{ gap: 8, width: '100%', alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0 }}>
+                {isService ? t('service_details_label') : t('specs_label')}
               </Text>
               <TextInput
-                style={[{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }, { height: 120, paddingTop: 16, textAlignVertical: 'top' }]}
+                style={[{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111', width: '100%', textAlign: language === 'ar' ? 'right' : 'left' }, { height: 120, paddingTop: 16, textAlignVertical: 'top' }]}
                 placeholder={isService ? "Duration: 2 hours\nTurnaround: 3 days" : "Magnification: 1600X\nResolution: 1080P"}
                 multiline
                 value={form.specifications}
                 onChangeText={(v) => updateForm('specifications', v)}
               />
             </View>
-            <View style={{ gap: 8 }}>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: 4 }}>
-                {isService ? 'Service Description' : 'Product Description'}
+            <View style={{ gap: 8, width: '100%', alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', marginLeft: language === 'ar' ? 0 : 4, marginRight: language === 'ar' ? 4 : 0 }}>
+                {isService ? t('service_desc_label') : t('product_desc_label')}
               </Text>
               <TextInput
-                style={[{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111' }, { height: 100, paddingTop: 16, textAlignVertical: 'top' }]}
+                style={[{ backgroundColor: '#F8FAFC', borderRadius: 14, paddingHorizontal: 16, height: 52, borderWidth: 1, borderColor: '#E2E8F0', fontSize: 15, fontWeight: '600', color: '#111', width: '100%', textAlign: language === 'ar' ? 'right' : 'left' }, { height: 100, paddingTop: 16, textAlignVertical: 'top' }]}
                 placeholder={isService ? "Describe the service you offer..." : "Tell researchers why they need this..."}
                 multiline
                 value={form.description}
@@ -608,12 +689,12 @@ export default function EditCreateProductScreen() {
           </View>
 
           {/* 4. Advanced Options */}
-          <SectionHeader title='Status' />
+          <SectionHeader title={t('status')} />
           <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, gap: 16, marginBottom: 24, borderWidth: 1, borderColor: '#F1F5F9' }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4 }}>
-              <View>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#111' }}>Visible to Researchers</Text>
-                <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>{form.isAvailable ? 'Currently Public' : 'Currently Private'}</Text>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4 }}>
+              <View style={{ alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                <Text style={{ fontSize: 15, fontWeight: '700', color: '#111' }}>{t('visible_to_researchers')}</Text>
+                <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>{form.isAvailable ? t('currently_public') : t('currently_private')}</Text>
               </View>
               <Switch
                 value={form.isAvailable}
@@ -628,7 +709,7 @@ export default function EditCreateProductScreen() {
             onPress={onSave}
             disabled={isSaving}
           >
-            {isSaving ? <ActivityIndicator color="#FFF" /> : <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '800' }}>{isEdit ? 'Update Inventory' : (isService ? 'Publish Service' : 'Publish Product')}</Text>}
+            {isSaving ? <ActivityIndicator color="#FFF" /> : <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '800' }}>{isEdit ? t('update_inventory') : (isService ? t('publish_service') : t('publish_product'))}</Text>}
           </TouchableOpacity>
 
           <View style={{ height: 40 }} />

@@ -10,9 +10,18 @@ import { useState, useEffect, useCallback } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
 import { paddingHorizontal } from "@/utils/variables/styles";
+import { useLanguageStore } from "@/zustand/language-store";
+
+const translations = {
+  followed_facilities: { en: 'Followed Facilities', fr: 'Établissements suivis', ar: 'المرافق المتابعة' },
+  no_followed: { en: 'No followed facilities yet.', fr: 'Pas encore d\'établissements suivis.', ar: 'لا توجد مرافق متابعة حتى الآن.' },
+};
 
 export default function StudentFollowedBusinessesScreen() {
   const navigation = useNavigation<any>();
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key][language];
+
   const [facilities, setFacilities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -51,7 +60,7 @@ export default function StudentFollowedBusinessesScreen() {
         <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Followed Facilities</Text>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>{t('followed_facilities')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -71,7 +80,7 @@ export default function StudentFollowedBusinessesScreen() {
           }
           ListEmptyComponent={
             <View style={{ flex: 1, paddingVertical: 100, justifyContent: 'center', alignItems: 'center' }}>
-              <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 15 }}>No followed facilities yet.</Text>
+              <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 15, textAlign: 'center' }}>{t('no_followed')}</Text>
             </View>
           }
         />

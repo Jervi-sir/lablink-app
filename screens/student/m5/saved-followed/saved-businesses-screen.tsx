@@ -10,9 +10,18 @@ import { useState, useEffect, useCallback } from "react";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
 import { paddingHorizontal } from "@/utils/variables/styles";
+import { useLanguageStore } from "@/zustand/language-store";
+
+const translations = {
+  saved_labs: { en: 'Saved Laboratories', fr: 'Laboratoires enregistrés', ar: 'المختبرات المحفوظة' },
+  no_saved_labs: { en: 'No saved laboratories yet.', fr: 'Pas encore de laboratoires enregistrés.', ar: 'لا توجد مختبرات محفوظة حتى الآن.' },
+};
 
 export default function StudentSavedBusinessesScreen() {
   const navigation = useNavigation<any>();
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key][language];
+
   const [labs, setLabs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -46,12 +55,12 @@ export default function StudentSavedBusinessesScreen() {
   );
 
   return (
-    <ScreenWrapper >
+    <ScreenWrapper>
       <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
         <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
           <ArrowIcon size={24} color="#111" />
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>Saved Laboratories</Text>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>{t('saved_labs')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -71,7 +80,7 @@ export default function StudentSavedBusinessesScreen() {
           }
           ListEmptyComponent={
             <View style={{ flex: 1, paddingVertical: 100, justifyContent: 'center', alignItems: 'center' }}>
-              <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 15 }}>No saved laboratories yet.</Text>
+              <Text style={{ color: '#64748B', fontWeight: '600', fontSize: 15, textAlign: 'center' }}>{t('no_saved_labs')}</Text>
             </View>
           }
         />

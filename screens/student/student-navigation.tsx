@@ -14,15 +14,26 @@ import M2StudentIcon from "@/assets/icons/menu/student/m2-student-icon";
 import M3StudentIcon from "@/assets/icons/menu/student/m3-student-icon";
 import M4StudentIcon from "@/assets/icons/menu/student/m4-student-icon";
 import M5StudentIcon from "@/assets/icons/menu/student/m5-student-icon";
+import { useLanguageStore } from "@/zustand/language-store";
+
+const translations = {
+  suppliers: { en: 'Suppliers', fr: 'Fournisseurs', ar: 'الموردين' },
+  laboratories: { en: 'Laboratories', fr: 'Laboratoires', ar: 'المختبرات' },
+  orders: { en: 'Orders', fr: 'Commandes', ar: 'الطلبات' },
+  inbox: { en: 'Inbox', fr: 'Messagerie', ar: 'الرسائل' },
+  profile: { en: 'Profile', fr: 'Profil', ar: 'الملف الشخصي' },
+};
 
 function useTabScreens() {
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key][language];
 
   return [
-    { key: 'M1', label: 'Suppliers', routeName: Routes.M1, component: StudentM1Navigation, icon: M1StudentIcon },
-    { key: 'M2', label: 'Laboratories', routeName: Routes.M2, component: StudentM2Navigation, icon: M2StudentIcon },
-    { key: 'M3', label: 'Orders', routeName: Routes.M3, component: StudentM3Navigation, icon: M3StudentIcon },
-    { key: 'M4', label: 'Inbox', routeName: Routes.M4, component: StudentM4Navigation, icon: M4StudentIcon },
-    { key: 'M5', label: 'Profile', routeName: Routes.M5, component: StudentM5Navigation, icon: M5StudentIcon },
+    { key: 'M1', label: t('suppliers'), routeName: Routes.M1, component: StudentM1Navigation, icon: M1StudentIcon },
+    { key: 'M2', label: t('laboratories'), routeName: Routes.M2, component: StudentM2Navigation, icon: M2StudentIcon },
+    { key: 'M3', label: t('orders'), routeName: Routes.M3, component: StudentM3Navigation, icon: M3StudentIcon },
+    { key: 'M4', label: t('inbox'), routeName: Routes.M4, component: StudentM4Navigation, icon: M4StudentIcon },
+    { key: 'M5', label: t('profile'), routeName: Routes.M5, component: StudentM5Navigation, icon: M5StudentIcon },
   ];
 }
 

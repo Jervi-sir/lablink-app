@@ -12,6 +12,7 @@ import ShareIcon from "@/assets/icons/share-icon";
 import SaveIcon from "@/assets/icons/save-icon";
 import { useLabCartStore } from "@/screens/student/zustand/lab-cart-store";
 import { useAuthStore } from "@/zustand/auth-store";
+import { useLanguageStore } from "@/zustand/language-store";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -19,16 +20,72 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 const { width } = Dimensions.get('window');
 
-const SECTIONS = [
-  { id: '1', title: 'Specifications', icon: 'specs' },
-  { id: '2', title: 'Description', icon: 'desc' },
-  { id: '3', title: 'Safety Data (MSDS)', icon: 'msds' },
-  { id: '4', title: 'Reviews', icon: 'reviews' },
-];
+const translations = {
+  specifications: { en: 'Specifications', fr: 'Spécifications', ar: 'المواصفات' },
+  description: { en: 'Description', fr: 'Description', ar: 'الوصف' },
+  safety_data: { en: 'Safety Data (MSDS)', fr: 'Données de sécurité (MSDS)', ar: 'بيانات السلامة (MSDS)' },
+  reviews: { en: 'Reviews', fr: 'Avis', ar: 'المراجعات' },
+  added_to_request: { en: 'Added to request', fr: 'Ajouté à la demande', ar: 'تم الإضافة إلى الطلب' },
+  now_in_request: { en: '{name} is now in your request for {lab}.', fr: '{name} est maintenant dans votre demande pour {lab}.', ar: '{name} موجود الآن في طلبك لـ {lab}.' },
+  discover_more: { en: 'Discover more from lab', fr: 'Découvrir plus du laboratoire', ar: 'اكتشف المزيد من المختبر' },
+  start_new_request: { en: 'Start New Request', fr: 'Démarrer une nouvelle demande', ar: 'بدء طلب جديد' },
+  request_exists_desc: { en: 'A request for {name} doesn\'t exist yet. Would you like to create one for this item?', fr: 'Une demande pour {name} n\'existe pas encore. Souhaitez-vous en créer une pour cet article ?', ar: 'لا يوجد طلب لـ {name} بعد. هل ترغب في إنشاء واحد لهذا العنصر؟' },
+  cancel: { en: 'Cancel', fr: 'Annuler', ar: 'إلغاء' },
+  create: { en: 'Create', fr: 'Créer', ar: 'إنشاء' },
+  loading_product: { en: 'Loading product...', fr: 'Chargement du produit...', ar: 'جاري تحميل المنتج...' },
+  product_not_found: { en: 'Product not found', fr: 'Produit non trouvé', ar: 'المنتج غير موجود' },
+  product_not_found_desc: { en: 'The product you\'re looking for doesn\'t exist or has been removed.', fr: 'Le produit que vous recherchez n\'existe pas ou a été supprimé.', ar: 'المنتج الذي تبحث عنه غير موجود أو تمت إزالته.' },
+  go_back: { en: 'Go Back', fr: 'Retourner', ar: 'العودة' },
+  share_title: { en: 'Check out {name} on LabLink!', fr: 'Découvrez {name} sur LabLink !', ar: 'تحقق من {name} على LabLink!' },
+  share_message: { en: 'I found {name} from {lab} on LabLink! Check it out!', fr: 'J\'ai trouvé {name} de {lab} sur LabLink ! Regardez ça !', ar: 'وجدت {name} من {lab} على LabLink! تحقق من ذلك!' },
+  in_stock: { en: 'IN STOCK', fr: 'EN STOCK', ar: 'متوفر' },
+  out_of_stock: { en: 'OUT OF STOCK', fr: 'RUPTURE DE STOCK', ar: 'غير متوفر' },
+  sku: { en: 'SKU', fr: 'SKU', ar: 'رمز التخزين' },
+  vat_applicable: { en: '+ VAT applicable', fr: '+ TVA applicable', ar: '+ ضريبة القيمة المضافة' },
+  location_na: { en: 'Location N/A', fr: 'Emplacement N/A', ar: 'الموقع غير متوفر' },
+  spec_lab: { en: 'Specialized Laboratory', fr: 'Laboratoire spécialisé', ar: 'مختبر متخصص' },
+  cert_supplier: { en: 'Certified Supplier', fr: 'Fournisseur certifié', ar: 'مورد معتمد' },
+  quick_summary: { en: 'Quick Summary', fr: 'Résumé rapide', ar: 'ملخص سريع' },
+  unit_label: { en: 'Unit: {unit}', fr: 'Unité : {unit}', ar: 'الوحدة: {unit}' },
+  safety_label: { en: 'Safety: L{level}', fr: 'Sécurité : L{level}', ar: 'السلامة: L{level}' },
+  update_request: { en: 'Update Request', fr: 'Mettre à jour la demande', ar: 'تحديث الطلب' },
+  add_to_request: { en: 'Add to Request', fr: 'Ajouter à la demande', ar: 'إضافة إلى الطلب' },
+  unavailable: { en: 'Unavailable', fr: 'Indisponible', ar: 'غير متوفر' },
+  order_now: { en: 'Order Now', fr: 'Commander maintenant', ar: 'اطلب الآن' },
+  send_proposal: { en: 'Send Proposal', fr: 'Envoyer la proposition', ar: 'إرسال مقترح' },
+  no_specs: { en: 'No specifications available.', fr: 'Aucune spécification disponible.', ar: 'لا توجد مواصفات متاحة.' },
+  no_desc: { en: 'No description available.', fr: 'Aucune description disponible.', ar: 'لا يوجد وصف متاح.' },
+  mat_safety_sheet: { en: 'Material Safety Data Sheet', fr: 'Fiche de données de sécurité', ar: 'صحيفة بيانات سلامة المواد' },
+  pdf_doc: { en: 'PDF Document', fr: 'Document PDF', ar: 'مستند PDF' },
+  doc_manuals: { en: 'Documentation & Manuals', fr: 'Documentation et manuels', ar: 'التوثيق والكتيبات' },
+  no_safety_data: { en: 'No safety data available.', fr: 'Aucune donnée de sécurité disponible.', ar: 'لا توجد بيانات سلامة متاحة.' },
+  no_reviews: { en: 'No reviews yet. Be the first to review!', fr: 'Aucun avis pour le moment. Soyez le premier à donner votre avis !', ar: 'لا توجد مراجعات بعد. كن أول من يقيم!' },
+  review: { en: 'review', fr: 'avis', ar: 'مراجعة' },
+  reviews_plural: { en: 'reviews', fr: 'avis', ar: 'مراجعات' },
+  anonymous: { en: 'Anonymous', fr: 'Anonyme', ar: 'مجهول' },
+  no_image: { en: 'No image available', fr: 'Aucune image disponible', ar: 'لا توجد صورة متاحة' },
+};
 
 export default function ProductScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations, params?: Record<string, string>) => {
+    let text = translations[key]?.[language] || key;
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        text = text.replace(`{${k}}`, v);
+      });
+    }
+    return text;
+  };
+
+  const SECTIONS = [
+    { id: '1', title: t('specifications'), icon: 'specs' },
+    { id: '2', title: t('description'), icon: 'desc' },
+    { id: '3', title: t('safety_data'), icon: 'msds' },
+    { id: '4', title: t('reviews'), icon: 'reviews' },
+  ];
   const { product: navProduct, labCartMode = false, lab: routeLab } = route.params || {};
 
   const [product, setProduct] = useState<any>(navProduct || null);
@@ -91,12 +148,12 @@ export default function ProductScreen() {
       });
 
       Alert.alert(
-        'Added to request',
-        `${product.name} is now in your request for ${targetBusiness.name}.`,
+        t('added_to_request'),
+        t('now_in_request', { name: product.name, lab: targetBusiness.name }),
         [
           { text: 'OK', style: 'default' },
           {
-            text: 'Discover more from lab',
+            text: t('discover_more'),
             onPress: () => navigation.navigate(Routes.BusinessScreen, {
               labId: targetBusiness.id,
               labName: targetBusiness.name,
@@ -109,12 +166,12 @@ export default function ProductScreen() {
 
     if (!currentCart) {
       Alert.alert(
-        'Start New Request',
-        `A request for ${targetBusiness.name} doesn't exist yet. Would you like to create one for this item?`,
+        t('start_new_request'),
+        t('request_exists_desc', { name: targetBusiness.name }),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('cancel'), style: 'cancel' },
           {
-            text: 'Create',
+            text: t('create'),
             onPress: commit
           }
         ]
@@ -198,7 +255,7 @@ export default function ProductScreen() {
           return (
             <View style={{ padding: 16, paddingTop: 0, gap: 12 }}>
               {Object.entries(specs).map(([key, value], index) => (
-                <View key={index} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' }}>
+                <View key={index} style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' }}>
                   <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '500' }}>{key}</Text>
                   <Text style={{ fontSize: 14, color: '#1E293B', fontWeight: '700' }}>{String(value)}</Text>
                 </View>
@@ -208,7 +265,7 @@ export default function ProductScreen() {
         }
         return (
           <View style={{ padding: 16, paddingTop: 0 }}>
-            <Text style={{ fontSize: 14, color: '#94A3B8', fontStyle: 'italic', fontWeight: '500' }}>No specifications available.</Text>
+            <Text style={{ fontSize: 14, color: '#94A3B8', fontStyle: 'italic', fontWeight: '500', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('no_specs')}</Text>
           </View>
         );
 
@@ -216,8 +273,8 @@ export default function ProductScreen() {
         // Description
         return (
           <View style={{ padding: 16, paddingTop: 0, gap: 12 }}>
-            <Text style={{ fontSize: 14, color: '#475569', lineHeight: 22, fontWeight: '500' }}>
-              {product?.description || 'No description available.'}
+            <Text style={{ fontSize: 14, color: '#475569', lineHeight: 22, fontWeight: '500', textAlign: language === 'ar' ? 'right' : 'left' }}>
+              {product?.description || t('no_desc')}
             </Text>
           </View>
         );
@@ -228,24 +285,24 @@ export default function ProductScreen() {
           return (
             <View style={{ padding: 16, paddingTop: 0, gap: 12 }}>
               {product?.msdsPath && (
-                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12 }}>
+                <TouchableOpacity style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 12, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12 }}>
                   <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#FEE2E2', justifyContent: 'center', alignItems: 'center' }}>
                     <Text style={{ fontSize: 14, fontWeight: '800', color: '#EF4444' }}>⚠</Text>
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B' }}>Material Safety Data Sheet</Text>
-                    <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>PDF Document</Text>
+                  <View style={{ flex: 1, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('mat_safety_sheet')}</Text>
+                    <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>{t('pdf_doc')}</Text>
                   </View>
                 </TouchableOpacity>
               )}
               {product?.documentations && (
-                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12 }}>
+                <TouchableOpacity style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 12, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12 }}>
                   <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#DBEAFE', justifyContent: 'center', alignItems: 'center' }}>
                     <Text style={{ fontSize: 14, fontWeight: '800', color: '#3B82F6' }}>📄</Text>
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B' }}>Documentation & Manuals</Text>
-                    <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>PDF Document</Text>
+                  <View style={{ flex: 1, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('doc_manuals')}</Text>
+                    <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>{t('pdf_doc')}</Text>
                   </View>
                 </TouchableOpacity>
               )}
@@ -254,7 +311,7 @@ export default function ProductScreen() {
         }
         return (
           <View style={{ padding: 16, paddingTop: 0 }}>
-            <Text style={{ fontSize: 14, color: '#94A3B8', fontStyle: 'italic', fontWeight: '500' }}>No safety data available.</Text>
+            <Text style={{ fontSize: 14, color: '#94A3B8', fontStyle: 'italic', fontWeight: '500', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('no_safety_data')}</Text>
           </View>
         );
 
@@ -264,7 +321,7 @@ export default function ProductScreen() {
         if (reviews.length === 0) {
           return (
             <View style={{ padding: 16, paddingTop: 0 }}>
-              <Text style={{ fontSize: 14, color: '#94A3B8', fontStyle: 'italic', fontWeight: '500' }}>No reviews yet. Be the first to review!</Text>
+              <Text style={{ fontSize: 14, color: '#94A3B8', fontStyle: 'italic', fontWeight: '500', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('no_reviews')}</Text>
             </View>
           );
         }
@@ -274,22 +331,22 @@ export default function ProductScreen() {
             {product?.avgRating && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
                 <Text style={{ fontSize: 32, fontWeight: '900', color: '#111' }}>{product.avgRating}</Text>
-                <View style={{ gap: 2 }}>
-                  <View style={{ flexDirection: 'row' }}>{renderStars(Math.round(product.avgRating))}</View>
-                  <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>{product.reviewCount} review{product.reviewCount !== 1 ? 's' : ''}</Text>
+                <View style={{ gap: 2, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                  <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row' }}>{renderStars(Math.round(product.avgRating))}</View>
+                  <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>{product.reviewCount} {product.reviewCount !== 1 ? t('reviews_plural') : t('review')}</Text>
                 </View>
               </View>
             )}
             {/* Individual Reviews */}
             {reviews.map((review: any) => (
               <View key={review.id} style={{ gap: 8, padding: 12, backgroundColor: '#F8FAFC', borderRadius: 12 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B' }}>
-                    {review.user?.studentProfile?.fullName || review.user?.email || 'Anonymous'}
+                    {review.user?.studentProfile?.fullName || review.user?.email || t('anonymous')}
                   </Text>
-                  <View style={{ flexDirection: 'row' }}>{renderStars(review.rating)}</View>
+                  <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row' }}>{renderStars(review.rating)}</View>
                 </View>
-                <Text style={{ fontSize: 13, color: '#475569', lineHeight: 18, fontWeight: '500' }}>{review.comment}</Text>
+                <Text style={{ fontSize: 13, color: '#475569', lineHeight: 18, fontWeight: '500', textAlign: language === 'ar' ? 'right' : 'left' }}>{review.comment}</Text>
               </View>
             ))}
           </View>
@@ -305,7 +362,7 @@ export default function ProductScreen() {
       <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }} statusBarStyle="dark-content">
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#137FEC" />
-          <Text style={{ marginTop: 12, fontSize: 14, color: '#94A3B8', fontWeight: '500' }}>Loading product...</Text>
+          <Text style={{ marginTop: 12, fontSize: 14, color: '#94A3B8', fontWeight: '500' }}>{t('loading_product')}</Text>
         </View>
       </ScreenWrapper>
     );
@@ -315,10 +372,10 @@ export default function ProductScreen() {
     return (
       <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }} statusBarStyle="dark-content">
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
-          <Text style={{ fontSize: 18, fontWeight: '700', color: '#111', marginBottom: 8 }}>Product not found</Text>
-          <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '500', textAlign: 'center' }}>The product you're looking for doesn't exist or has been removed.</Text>
+          <Text style={{ fontSize: 18, fontWeight: '700', color: '#111', marginBottom: 8, textAlign: 'center' }}>{t('product_not_found')}</Text>
+          <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '500', textAlign: 'center' }}>{t('product_not_found_desc')}</Text>
           <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20, backgroundColor: '#137FEC', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 }}>
-            <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>Go Back</Text>
+            <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>{t('go_back')}</Text>
           </TouchableOpacity>
         </View>
       </ScreenWrapper>
@@ -331,8 +388,8 @@ export default function ProductScreen() {
       if (!product) return;
 
       const shareOptions = {
-        title: `Check out ${product.name} on LabLink!`,
-        message: `I found ${product.name} from ${labName} on LabLink! Check it out!`,
+        title: t('share_title', { name: product.name }),
+        message: t('share_message', { name: product.name, lab: labName }),
       };
 
       const result = await Share.share(shareOptions);
@@ -353,14 +410,16 @@ export default function ProductScreen() {
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }} statusBarStyle="dark-content">
       {/* Top Navigation - Overlay */}
-      <View style={{ position: 'absolute', top: Platform.OS === 'ios' ? 50 : 10, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, zIndex: 50 }}>
+      <View style={{ position: 'absolute', top: Platform.OS === 'ios' ? 50 : 10, left: 0, right: 0, flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, height: 56, zIndex: 50 }}>
         <TouchableOpacity
           style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.9)', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 }}
           onPress={() => navigation.goBack()}
         >
-          <ArrowIcon size={24} color="#111" />
+          <View style={{ transform: [{ rotate: language === 'ar' ? '180deg' : '0deg' }] }}>
+            <ArrowIcon size={24} color="#111" />
+          </View>
         </TouchableOpacity>
-        <View style={{ flexDirection: 'row', gap: 12 }}>
+        <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 12 }}>
           {/* Save Button */}
           <TouchableOpacity
             style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.9)', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 }}
@@ -442,7 +501,7 @@ export default function ProductScreen() {
                 <View style={{ width: 80, height: 80, borderRadius: 20, backgroundColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}>
                   <Text style={{ fontSize: 40 }}>🔬</Text>
                 </View>
-                <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '600' }}>No image available</Text>
+                <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '600' }}>{t('no_image')}</Text>
               </View>
             </View>
           )}
@@ -450,37 +509,37 @@ export default function ProductScreen() {
 
         {/* Info Section */}
         <View style={{ padding: 24, gap: 8 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <TouchableOpacity
               onPress={() => navigation.navigate(Routes.BusinessScreen, {
                 labId: currentLab?.id,
                 labName: currentLab?.name || labName,
                 lab: currentLab
               })}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 6 }}
             >
               <Text style={{ fontSize: 14, fontWeight: '700', color: '#137FEC', letterSpacing: 0.5 }}>{labName}</Text>
-              <Text style={{ fontSize: 12, color: '#137FEC' }}>→</Text>
+              <Text style={{ fontSize: 12, color: '#137FEC', transform: [{ rotate: language === 'ar' ? '180deg' : '0deg' }] }}>→</Text>
             </TouchableOpacity>
             <View style={{ backgroundColor: isInStock ? '#E9F7EF' : '#FEF2F2', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
               <Text style={{ fontSize: 10, fontWeight: '800', color: isInStock ? '#27AE60' : '#EF4444' }}>
-                {isInStock ? 'IN STOCK' : 'OUT OF STOCK'}
+                {isInStock ? t('in_stock') : t('out_of_stock')}
               </Text>
             </View>
           </View>
 
-          <Text style={{ fontSize: 26, fontWeight: '800', color: '#111', lineHeight: 32 }}>{product.name}</Text>
-          {product.sku && <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '600' }}>SKU: #{product.sku}</Text>}
+          <Text style={{ fontSize: 26, fontWeight: '800', color: '#111', lineHeight: 32, textAlign: language === 'ar' ? 'right' : 'left' }}>{product.name}</Text>
+          {product.sku && <Text style={{ fontSize: 13, color: '#6B7280', fontWeight: '600', textAlign: language === 'ar' ? 'right' : 'left' }}>{t('sku')}: #{product.sku}</Text>}
 
-          <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+          <View style={{ marginTop: 12, flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'baseline', gap: 8 }}>
             <Text style={{ fontSize: 28, fontWeight: '900', color: '#111' }}>{productPrice}</Text>
-            <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '500' }}>+ VAT applicable</Text>
+            <Text style={{ fontSize: 12, color: '#9CA3AF', fontWeight: '500' }}>{t('vat_applicable')}</Text>
           </View>
 
           {/* Rating badge */}
           {product.avgRating && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
-              <View style={{ flexDirection: 'row' }}>{renderStars(Math.round(product.avgRating))}</View>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+              <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row' }}>{renderStars(Math.round(product.avgRating))}</View>
               <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '600' }}>{product.avgRating} ({product.reviewCount})</Text>
             </View>
           )}
@@ -498,7 +557,7 @@ export default function ProductScreen() {
               borderRadius: 20,
               borderWidth: 1,
               borderColor: '#E2E8F0',
-              flexDirection: 'row',
+              flexDirection: language === 'ar' ? 'row-reverse' : 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
               shadowColor: "#000",
@@ -508,42 +567,42 @@ export default function ProductScreen() {
               elevation: 2
             }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 16 }}>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', flex: 1, gap: 16 }}>
               <View style={{ position: 'relative' }}>
                 <Image
                   source={{ uri: currentLab?.logo || 'https://via.placeholder.com/60' }}
                   style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#F1F5F9' }}
                   resizeMode="contain"
                 />
-                <View style={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: '#22C55E', borderWidth: 2, borderColor: '#FFF', justifyContent: 'center', alignItems: 'center' }}>
+                <View style={{ position: 'absolute', bottom: -2, right: language === 'ar' ? undefined : -2, left: language === 'ar' ? -2 : undefined, width: 18, height: 18, borderRadius: 9, backgroundColor: '#22C55E', borderWidth: 2, borderColor: '#FFF', justifyContent: 'center', alignItems: 'center' }}>
                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#FFF' }} />
                 </View>
               </View>
 
-              <View style={{ flex: 1, gap: 4 }}>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>{labName}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <View style={{ flex: 1, gap: 4, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A', textAlign: language === 'ar' ? 'right' : 'left' }}>{labName}</Text>
+                <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 4 }}>
                   <Text style={{ fontSize: 14 }}>📍</Text>
                   <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '600' }}>
-                    {currentLab?.wilaya?.en || currentLab?.wilaya?.name || 'Location N/A'}
+                    {currentLab?.wilaya?.[language] || currentLab?.wilaya?.name || t('location_na')}
                   </Text>
                 </View>
                 <Text style={{ fontSize: 12, color: '#137FEC', fontWeight: '700', marginTop: 2 }}>
-                  {isLaboratoryOwner ? 'Specialized Laboratory' : 'Certified Supplier'}
+                  {isLaboratoryOwner ? t('spec_lab') : t('cert_supplier')}
                 </Text>
               </View>
             </View>
             <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9' }}>
-               <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '800' }}>›</Text>
+               <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '800', transform: [{ rotate: language === 'ar' ? '180deg' : '0deg' }] }}>›</Text>
             </View>
           </TouchableOpacity>
         </View>
 
         {/* Quick Summary */}
         {product.summary && (
-          <View style={{ paddingHorizontal: 24, paddingBottom: 24, gap: 8 }}>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>Quick Summary</Text>
-            <Text style={{ fontSize: 15, color: '#5D6575', lineHeight: 22, fontWeight: '500' }}>
+          <View style={{ paddingHorizontal: 24, paddingBottom: 24, gap: 8, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: '#111' }}>{t('quick_summary')}</Text>
+            <Text style={{ fontSize: 15, color: '#5D6575', lineHeight: 22, fontWeight: '500', textAlign: language === 'ar' ? 'right' : 'left' }}>
               {product.summary}
             </Text>
           </View>
@@ -551,7 +610,7 @@ export default function ProductScreen() {
 
         {/* Offer Type & Unit */}
         {(product.offerType || product.unit) && (
-          <View style={{ paddingHorizontal: 24, paddingBottom: 20, flexDirection: 'row', gap: 12 }}>
+          <View style={{ paddingHorizontal: 24, paddingBottom: 20, flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 12 }}>
             {product.offerType && (
               <View style={{ backgroundColor: '#EFF6FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#3B82F6', textTransform: 'capitalize' }}>{product.offerType}</Text>
@@ -559,12 +618,12 @@ export default function ProductScreen() {
             )}
             {product.unit && (
               <View style={{ backgroundColor: '#F0FDF4', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#22C55E' }}>Unit: {product.unit}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#22C55E' }}>{t('unit_label', { unit: product.unit })}</Text>
               </View>
             )}
             {product.safetyLevel > 0 && (
               <View style={{ backgroundColor: product.safetyLevel >= 3 ? '#FEF2F2' : '#FFFBEB', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: product.safetyLevel >= 3 ? '#EF4444' : '#F59E0B' }}>Safety: L{product.safetyLevel}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: product.safetyLevel >= 3 ? '#EF4444' : '#F59E0B' }}>{t('safety_label', { level: String(product.safetyLevel) })}</Text>
               </View>
             )}
           </View>
@@ -580,16 +639,16 @@ export default function ProductScreen() {
                 isExpanded && { borderColor: '#E2E8F0', backgroundColor: '#FFF', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 }
               ]}>
                 <TouchableOpacity
-                  style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFF', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9' }}
+                  style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFF', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#F1F5F9' }}
                   activeOpacity={0.7}
                   onPress={() => toggleSection(section.id)}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 12 }}>
                     <Text style={[{ fontSize: 16, fontWeight: '700', color: '#334155' }, isExpanded && { color: '#111' }]}>{section.title}</Text>
                   </View>
                   <View style={[
-                    { width: 8, height: 8, borderRightWidth: 2, borderBottomWidth: 2, borderColor: '#94A3B8', transform: [{ rotate: '-45deg' }] },
-                    isExpanded && { transform: [{ rotate: '45deg' }], borderColor: '#137FEC' }
+                    { width: 8, height: 8, borderRightWidth: 2, borderBottomWidth: 2, borderColor: '#94A3B8', transform: [{ rotate: language === 'ar' ? '135deg' : '-45deg' }] },
+                    isExpanded && { transform: [{ rotate: language === 'ar' ? '225deg' : '45deg' }], borderColor: '#137FEC' }
                   ]} />
                 </TouchableOpacity>
                 {isExpanded && renderSectionContent(section.id)}
@@ -614,9 +673,9 @@ export default function ProductScreen() {
         shadowRadius: 12,
         elevation: 20
       }}>
-        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+        <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 12, alignItems: 'center' }}>
           {/* Professional Quantity Selector */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', height: 54 }}>
+          <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', height: 54 }}>
             <TouchableOpacity style={{ width: 38, height: 54, justifyContent: 'center', alignItems: 'center' }} onPress={decrementQty}>
               <Text style={{ fontSize: 20, fontWeight: '600', color: '#64748B' }}>−</Text>
             </TouchableOpacity>
@@ -627,7 +686,7 @@ export default function ProductScreen() {
           </View>
 
           {effectiveLabCartMode ? (
-            <View style={{ flex: 1, flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1, flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 10 }}>
               <TouchableOpacity
                 style={{
                   width: 54,
@@ -644,7 +703,7 @@ export default function ProductScreen() {
               >
                 <Text style={{ fontSize: 20 }}>📋</Text>
                 {cartEntry && (
-                  <View style={{ position: 'absolute', top: -5, right: -5, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' }}>
+                  <View style={{ position: 'absolute', top: -5, right: language === 'ar' ? undefined : -5, left: language === 'ar' ? -5 : undefined, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' }}>
                     <Text style={{ fontSize: 10, fontWeight: '900', color: '#FFF' }}>{cartEntry.quantity}</Text>
                   </View>
                 )}
@@ -664,7 +723,7 @@ export default function ProductScreen() {
                 onPress={saveToLabCart}
               >
                 <Text style={{ fontSize: 15, fontWeight: '900', color: '#FFF', letterSpacing: -0.2 }}>
-                  {isInStock ? (cartEntry ? 'Update Request' : 'Add to Request') : 'Unavailable'}
+                  {isInStock ? (cartEntry ? t('update_request') : t('add_to_request')) : t('unavailable')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -684,8 +743,8 @@ export default function ProductScreen() {
             >
               <Text style={{ fontSize: 16, fontWeight: '900', color: '#FFF' }}>
                 {isInStock
-                  ? (showOrderNow ? 'Order Now' : 'Send Proposal')
-                  : 'Unavailable'}
+                  ? (showOrderNow ? t('order_now') : t('send_proposal'))
+                  : t('unavailable')}
               </Text>
             </TouchableOpacity>
           )}

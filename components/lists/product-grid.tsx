@@ -8,7 +8,7 @@ const COLUMN_WIDTH = (width - 48) / 2;
 interface ProductGridProps {
   products: any[];
   onProductPress: (product: any) => void;
-  onToggleSave: (id: string) => void;
+  onToggleSave?: (id: string) => void | Promise<void>;
   savingProductId?: string | null;
   paddingHorizontal?: number;
   isLoading?: boolean;
@@ -51,7 +51,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           price: typeof item.price === 'string' ? item.price : `${item.price.toLocaleString()} DA`
         }}
         onPress={() => onProductPress(item)}
-        onToggleSave={() => onToggleSave(item.id.toString())}
+        onToggleSave={() => onToggleSave?.(item.id.toString())}
         isSaving={savingProductId === item.id.toString()}
         style={{ marginBottom: 16 }}
       />

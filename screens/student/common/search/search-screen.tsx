@@ -13,6 +13,7 @@ import { LabGrid } from "@/components/lists/lab-grid";
 import { SearchInput } from "@/components/inputs/search-input";
 import { paddingHorizontal } from "@/utils/variables/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLanguageStore } from "@/zustand/language-store";
 
 export interface DiscoverySection {
   title: string;
@@ -35,8 +36,16 @@ interface SearchScreenProps {
   savingProductId?: string | null;
 }
 
+const translations = {
+  search_placeholder: { en: 'Search...', fr: 'Rechercher...', ar: 'بحث...' },
+  recent_searches: { en: 'Recent Searches', fr: 'Recherches récentes', ar: 'عمليات البحث الأخيرة' },
+  clear: { en: 'Clear', fr: 'Effacer', ar: 'مسح' },
+  no_results_prefix: { en: 'No', fr: 'Aucun(e)', ar: 'لا يوجد' },
+  no_results_suffix: { en: 'found for', fr: 'trouvé pour', ar: 'تم العثور عليه لـ' },
+};
+
 export const SearchScreen: React.FC<SearchScreenProps> = ({
-  placeholder = "Search...",
+  placeholder: propPlaceholder,
   apiRoute,
   recentSearchesKey,
   discoverySections = [],
@@ -46,6 +55,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
   savingProductId,
 }) => {
   const navigation = useNavigation<any>();
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key]?.[language] || key;
+
   const [search, setSearch] = useState("");
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,6 +67,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
 
   const isSearching = search.length > 0;
   const activeTab = tabs[activeTabIndex];
+  const placeholder = propPlaceholder || t('search_placeholder');
 
   useEffect(() => {
     loadRecentSearches();
@@ -159,7 +172,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
         <View style={{ marginTop: 8, paddingHorizontal: paddingHorizontal }}>
           <View
             style={{
-              flexDirection: "row",
+              flexDirection: language === 'ar' ? 'row-reverse' : 'row',
               justifyContent: "space-between",
               alignItems: "center",
               marginBottom: 12,
@@ -174,18 +187,18 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
                 letterSpacing: 1,
               }}
             >
-              Recent Searches
+              {t('recent_searches')}
             </Text>
             <TouchableOpacity onPress={clearRecentSearches}>
               <Text style={{ fontSize: 12, fontWeight: "700", color: accentColor }}>
-                Clear
+                {t('clear')}
               </Text>
             </TouchableOpacity>
           </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 10 }}
+            contentContainerStyle={{ gap: 10, flexDirection: language === 'ar' ? 'row-reverse' : 'row' }}
           >
             {recentSearches.map((item) => (
               <ButtonTag
@@ -216,6 +229,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
                     textTransform: "uppercase",
                     letterSpacing: 1,
                     marginBottom: 12,
+                    textAlign: language === 'ar' ? 'right' : 'left',
                   }}
                 >
                   {section.title}
@@ -227,6 +241,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
                 contentContainerStyle={{
                   gap: 16,
                   paddingHorizontal: paddingHorizontal,
+                  flexDirection: language === 'ar' ? 'row-reverse' : 'row',
                 }}
               >
                 {data.map((item) => (
@@ -260,6 +275,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
                   textTransform: "uppercase",
                   letterSpacing: 1,
                   marginBottom: 12,
+                  textAlign: language === 'ar' ? 'right' : 'left',
                 }}
               >
                 {section.title}
@@ -289,7 +305,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
         {/* Tab Switcher */}
         <View
           style={{
-            flexDirection: "row",
+            flexDirection: language === 'ar' ? 'row-reverse' : 'row',
             paddingHorizontal: paddingHorizontal,
             gap: 12,
             paddingVertical: 8,
@@ -341,9 +357,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
                   />
                 )
               ) : (
-                <View style={{ alignItems: "center", marginTop: 40 }}>
-                  <Text style={{ color: "#94A3B8" }}>
-                    No {activeTab.label.toLowerCase()} found for "{search}"
+                <View style={{ alignItems: "center", marginTop: 40, paddingHorizontal: 20 }}>
+                  <Text style={{ color: "#94A3B8", textAlign: 'center' }}>
+                    {t('no_results_prefix')} {activeTab.label.toLowerCase()} {t('no_results_suffix')} "{search}"
                   </Text>
                 </View>
               )}
@@ -359,7 +375,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
       {/* Dynamic Header */}
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: language === 'ar' ? 'row-reverse' : 'row',
           paddingHorizontal: paddingHorizontal,
           paddingVertical: 8,
           alignItems: "center",

@@ -15,20 +15,41 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, View } from "react-native";
+import { useLanguageStore } from "@/zustand/language-store";
 
 const TYPE_TABS = [
-  { label: 'All', value: 'all' },
-  { label: 'Products', value: 'product' },
-  { label: 'Services', value: 'service' },
+  { label: 'all', value: 'all' },
+  { label: 'products', value: 'product' },
+  { label: 'services', value: 'service' },
 ] as const;
+
+const translations = {
+  laboratories: { en: 'Laboratories', fr: 'Laboratoires', ar: 'المختبرات' },
+  explore_services: { en: 'Explore services and products from laboratories.', fr: 'Explorez les services et produits des laboratoires.', ar: 'استكشف الخدمات والمنتجات من المختبرات.' },
+  search_placeholder: { en: 'Search laboratory services, tests, or products...', fr: 'Rechercher des services de laboratoire, des tests ou des produits...', ar: 'البحث عن خدمات المختبر أو الاختبارات أو المنتجات...' },
+  all: { en: 'All', fr: 'Tout', ar: 'الكل' },
+  products: { en: 'Products', fr: 'Produits', ar: 'المنتجات' },
+  services: { en: 'Services', fr: 'Services', ar: 'الخدمات' },
+  recent_searches: { en: 'Recent Searches', fr: 'Recherches récentes', ar: 'عمليات البحث الأخيرة' },
+  clear: { en: 'Clear', fr: 'Effacer', ar: 'مسح' },
+  results_for: { en: 'Results for', fr: 'Résultats pour', ar: 'نتائج البحث عن' },
+  all_services: { en: 'All Services', fr: 'Tous les services', ar: 'جميع الخدمات' },
+  loaded: { en: 'loaded', fr: 'chargé(s)', ar: 'تم التحميل' },
+  no_matching: { en: 'No matching items', fr: 'Aucun article correspondant', ar: 'لا توجد عناصر مطابقة' },
+  try_another: { en: 'Try another keyword or adjust your filters to discover more laboratory services and products.', fr: 'Essayez un autre mot-clé ou ajustez vos filtres pour découvrir davantage de services et produits de laboratoire.', ar: 'جرب كلمة رئيسية أخرى أو اعدل الفلاتر لاكتشاف المزيد من خدمات ومنتجات المختبر.' },
+  load_more: { en: 'Load more', fr: 'Charger plus', ar: 'تحميل المزيد' },
+};
 
 export default function StudentM2Navigation() {
   const navigation = useNavigation<any>();
+  const language = useLanguageStore((state) => state.language);
   const filters = useStudentLaboratoryServiceStore((state) => state.filters);
   const recentSearches = useStudentLaboratoryServiceStore((state) => state.recentSearches);
   const setFilters = useStudentLaboratoryServiceStore((state) => state.setFilters);
   const addRecentSearch = useStudentLaboratoryServiceStore((state) => state.addRecentSearch);
   const clearRecentSearches = useStudentLaboratoryServiceStore((state) => state.clearRecentSearches);
+
+  const t = (key: keyof typeof translations) => translations[key][language];
 
   const [search, setSearch] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -143,9 +164,9 @@ export default function StudentM2Navigation() {
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       <View style={{ paddingHorizontal: paddingHorizontal, paddingTop: 10, paddingBottom: 8 }}>
-        <Text style={{ fontSize: 24, fontWeight: '900', color: '#0F172A' }}>Laboratories</Text>
+        <Text style={{ fontSize: 24, fontWeight: '900', color: '#0F172A' }}>{t('laboratories')}</Text>
         <Text style={{ marginTop: 4, fontSize: 13, fontWeight: '600', color: '#64748B' }}>
-          Explore services and products from laboratories.
+          {t('explore_services')}
         </Text>
       </View>
 
@@ -165,7 +186,7 @@ export default function StudentM2Navigation() {
             setSearch('');
             fetchProducts(1, false, '');
           }}
-          placeholder="Search laboratory services, tests, or products..."
+          placeholder={t('search_placeholder')}
           style={{ flex: 1 }}
         />
 
@@ -188,7 +209,7 @@ export default function StudentM2Navigation() {
               onPress={() => setFilters({ ...filters, productType: tab.value })}
               style={{ flex: 1, height: 42, borderRadius: 14, justifyContent: 'center', alignItems: 'center', backgroundColor: isActive ? '#0F172A' : '#FFF', borderWidth: 1, borderColor: isActive ? '#0F172A' : '#E2E8F0' }}
             >
-              <Text style={{ fontSize: 13, fontWeight: '800', color: isActive ? '#FFF' : '#475569' }}>{tab.label}</Text>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: isActive ? '#FFF' : '#475569' }}>{t(tab.label as any)}</Text>
             </TouchableOpacity>
           );
         })}
@@ -202,9 +223,9 @@ export default function StudentM2Navigation() {
         {isSearchFocused && recentSearches.length > 0 ? (
           <View style={{ paddingHorizontal: paddingHorizontal, marginBottom: 20 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <Text style={{ fontSize: 12, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase' }}>Recent Searches</Text>
+              <Text style={{ fontSize: 12, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase' }}>{t('recent_searches')}</Text>
               <TouchableOpacity onPress={clearRecentSearches}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#137FEC' }}>Clear</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#137FEC' }}>{t('clear')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -220,8 +241,8 @@ export default function StudentM2Navigation() {
 
         <View style={{ paddingHorizontal: paddingHorizontal, marginBottom: 14 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>{search.trim() ? `Results for "${search.trim()}"` : 'All Services'}</Text>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8' }}>{products.length} loaded</Text>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>{search.trim() ? `${t('results_for')} "${search.trim()}"` : t('all_services')}</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8' }}>{products.length} {t('loaded')}</Text>
           </View>
         </View>
 
@@ -236,9 +257,9 @@ export default function StudentM2Navigation() {
 
         {!isLoading && products.length === 0 ? (
           <View style={{ alignItems: 'center', paddingHorizontal: 24, marginTop: 80 }}>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>No matching items</Text>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>{t('no_matching')}</Text>
             <Text style={{ marginTop: 8, fontSize: 14, lineHeight: 22, color: '#64748B', textAlign: 'center' }}>
-              Try another keyword or adjust your filters to discover more laboratory services and products.
+              {t('try_another')}
             </Text>
           </View>
         ) : null}
@@ -246,7 +267,7 @@ export default function StudentM2Navigation() {
         {nextPage ? (
           <View style={{ paddingHorizontal: paddingHorizontal, marginTop: 8 }}>
             <TouchableOpacity onPress={handleLoadMore} style={{ height: 52, borderRadius: 16, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}>
-              {isLoadingMore ? <ActivityIndicator size="small" color="#137FEC" /> : <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>Load more</Text>}
+              {isLoadingMore ? <ActivityIndicator size="small" color="#137FEC" /> : <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>{t('load_more')}</Text>}
             </TouchableOpacity>
           </View>
         ) : null}

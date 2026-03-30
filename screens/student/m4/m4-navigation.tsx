@@ -9,11 +9,20 @@ import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { paddingHorizontal } from "@/utils/variables/styles";
+import { useLanguageStore } from "@/zustand/language-store";
 
 const { width } = Dimensions.get('window');
 
+const translations = {
+  messages: { en: 'Messages', fr: 'Messages', ar: 'الرسائل' },
+  no_messages_yet: { en: 'No messages yet', fr: 'Pas encore de messages', ar: 'لا توجد رسائل بعد' },
+  no_conversations: { en: 'No conversations found', fr: 'Aucune conversation trouvée', ar: 'لم يتم العثور على محادثات' },
+  user: { en: 'User', fr: 'Utilisateur', ar: 'مستخدم' },
+};
+
 export default function StudentM4Navigation() {
   const navigation = useNavigation<any>();
+  const language = useLanguageStore((state) => state.language);
   const [conversations, setConversations] = useState<any[]>([]);
   const [nextPage, setNextPage] = useState<number | null>(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -21,6 +30,8 @@ export default function StudentM4Navigation() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  const t = (key: keyof typeof translations) => translations[key][language];
 
   useEffect(() => {
     loadUser();
@@ -96,19 +107,19 @@ export default function StudentM4Navigation() {
     const lastMsg = item.messages?.[0];
 
     // Determine name: Business name or Student name
-    let displayName = "User";
+    let displayName = t('user');
     if (target?.businessProfile) displayName = target.businessProfile.name;
     else if (target?.studentProfile) displayName = target.studentProfile.first_name + " " + target.studentProfile.last_name;
     else if (target?.name) displayName = target.name;
 
     const time = lastMsg
-      ? new Date(lastMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      ? new Date(lastMsg.created_at).toLocaleTimeString(language === 'ar' ? 'ar-EG' : language === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' })
       : "";
 
     return {
       id: item.id.toString(),
       name: displayName,
-      lastMessage: lastMsg?.content || "No messages yet",
+      lastMessage: lastMsg?.content || t('no_messages_yet'),
       time: time,
       unread: 0, // Backend doesn't support unread count yet
       online: false, // Backend doesn't support online status yet
@@ -155,7 +166,7 @@ export default function StudentM4Navigation() {
     <ScreenWrapper>
       {/* Header */}
       <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: paddingHorizontal }}>
-        <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A' }}>Messages</Text>
+        <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A' }}>{t('messages')}</Text>
         <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ fontSize: 20 }}>📝</Text>
         </TouchableOpacity>
@@ -180,7 +191,7 @@ export default function StudentM4Navigation() {
           ListFooterComponent={isLoadingMore ? <ActivityIndicator color="#137FEC" style={{ marginVertical: 16 }} /> : null}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', marginTop: 100 }}>
-              <Text style={{ color: '#94A3B8', fontWeight: '600' }}>No conversations found</Text>
+              <Text style={{ color: '#94A3B8', fontWeight: '600' }}>{t('no_conversations')}</Text>
             </View>
           }
         />

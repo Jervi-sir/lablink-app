@@ -10,22 +10,59 @@ import { ApiRoutes } from "@/utils/api/api";
 import { Routes } from "@/utils/helpers/routes";
 import { paddingHorizontal } from "@/utils/variables/styles";
 import moment from "moment";
+import { useLanguageStore } from "@/zustand/language-store";
 
 const { width } = Dimensions.get('window');
 
-const getTrackingSteps = (rawOrder: any) => {
+const translations = {
+  order_submitted: { en: 'Order Submitted', fr: 'Commande soumise', ar: 'تم تقديم الطلب' },
+  confirmed: { en: 'Confirmed', fr: 'Confirmé', ar: 'مؤكد' },
+  pending: { en: 'Pending', fr: 'En attente', ar: 'قيد الانتظار' },
+  completed: { en: 'Completed', fr: 'Terminée', ar: 'مكتمل' },
+  processing: { en: 'Processing', fr: 'En traitement', ar: 'قيد المعالجة' },
+  shipped: { en: 'Shipped', fr: 'Expédié', ar: 'تم الشحن' },
+  delivered: { en: 'Delivered', fr: 'Livré', ar: 'تم التوصيل' },
+  cancelled: { en: 'Cancelled', fr: 'Annulé', ar: 'ملغى' },
+  order_cancelled_desc: { en: 'Order Cancelled', fr: 'Commande annulée', ar: 'تم إلغاء الطلب' },
+  error_label: { en: 'Error', fr: 'Erreur', ar: 'خطأ' },
+  user_not_identified: { en: 'Could not identify the business user to start a chat.', fr: 'Impossible d\'identifier l\'utilisateur professionnel pour démarrer une discussion.', ar: 'تعذر تحديد مستخدم العمل لبدء الدردشة.' },
+  failed_resolve_conv: { en: 'Failed to resolve conversation.', fr: 'Échec de la résolution de la conversation.', ar: 'فشل في حل المحادثة.' },
+  failed_message_vendor: { en: 'Failed to message vendor. Please try again.', fr: 'Échec de l\'envoi du message au fournisseur. Veuillez réessayer.', ar: 'فشل في مراسلة البائع. يرجى المحاولة مرة أخرى.' },
+  success_label: { en: 'Success', fr: 'Succès', ar: 'نجاح' },
+  invoice_downloaded: { en: 'Invoice downloaded successfully!', fr: 'Facture téléchargée avec succès !', ar: 'تم تحميل الفاتورة بنجاح!' },
+  order_details: { en: 'Order Details', fr: 'Détails de la commande', ar: 'تفاصيل الطلب' },
+  tracking_status: { en: 'Tracking Status', fr: 'État du suivi', ar: 'حالة التتبع' },
+  items_ordered: { en: 'Items Ordered', fr: 'Articles commandés', ar: 'العناصر المطلوبة' },
+  qty_label: { en: 'Qty:', fr: 'Qté :', ar: 'الكمية:' },
+  no_items: { en: 'No items found', fr: 'Aucun article trouvé', ar: 'لم يتم العثور على عناصر' },
+  delivery_details: { en: 'Delivery Details', fr: 'Détails de la livraison', ar: 'تفاصيل التسليم' },
+  address_label: { en: 'Address', fr: 'Adresse', ar: 'العنوان' },
+  dept_label: { en: 'Department', fr: 'Département', ar: 'القسم' },
+  handling_label: { en: 'Handling', fr: 'Manutention', ar: 'المناولة' },
+  hazmat_handling: { en: 'HAZMAT HANDLING', fr: 'MANUTENTION MATDANG', ar: 'مناولة المواد الخطرة' },
+  standard_handling: { en: 'STANDARD HANDLING', fr: 'MANUTENTION STANDARD', ar: 'مناولة قياسية' },
+  cost_summary: { en: 'Cost Summary', fr: 'Récapitulatif des coûts', ar: 'ملخص التكلفة' },
+  subtotal: { en: 'Subtotal', fr: 'Sous-total', ar: 'المجموع الفرعي' },
+  shipping_fee: { en: 'Shipping Fee', fr: 'Frais de livraison', ar: 'رسوم الشحن' },
+  tax_label: { en: 'Tax (VAT 19%)', fr: 'Taxe (TVA 19%)', ar: 'الضريبة (19%)' },
+  total_paid: { en: 'Total Paid', fr: 'Total payé', ar: 'إجمالي المدفوع' },
+  download_invoice: { en: 'Download Invoice', fr: 'Télécharger la facture', ar: 'تحميل الفاتورة' },
+  message_vendor: { en: 'Message Vendor', fr: 'Contacter le fournisseur', ar: 'مراسلة البائع' },
+};
+
+const getTrackingSteps = (rawOrder: any, t: any) => {
   const s = (rawOrder?.status?.code || 'pending').toLowerCase();
   
   const steps = [
-    { id: 1, title: 'Order Submitted', date: moment(rawOrder?.created_at).format('MMM D, hh:mm A'), completed: true },
-    { id: 2, title: 'Confirmed', date: ['pending'].includes(s) ? 'Pending' : 'Completed', completed: !['pending'].includes(s) },
-    { id: 3, title: 'Processing', date: ['processing', 'shipped', 'delivered', 'completed'].includes(s) ? 'Completed' : 'Pending', completed: ['processing', 'shipped', 'delivered', 'completed'].includes(s) },
-    { id: 4, title: 'Shipped', date: ['shipped', 'delivered', 'completed'].includes(s) ? 'Completed' : 'Pending', completed: ['shipped', 'delivered', 'completed'].includes(s) },
-    { id: 5, title: 'Delivered', date: ['delivered', 'completed'].includes(s) ? 'Completed' : 'Pending', completed: ['delivered', 'completed'].includes(s) },
+    { id: 1, title: t('order_submitted'), date: moment(rawOrder?.created_at).format('MMM D, hh:mm A'), completed: true },
+    { id: 2, title: t('confirmed'), date: ['pending'].includes(s) ? t('pending') : t('completed'), completed: !['pending'].includes(s) },
+    { id: 3, title: t('processing'), date: ['processing', 'shipped', 'delivered', 'completed'].includes(s) ? t('completed') : t('pending'), completed: ['processing', 'shipped', 'delivered', 'completed'].includes(s) },
+    { id: 4, title: t('shipped'), date: ['shipped', 'delivered', 'completed'].includes(s) ? t('completed') : t('pending'), completed: ['shipped', 'delivered', 'completed'].includes(s) },
+    { id: 5, title: t('delivered'), date: ['delivered', 'completed'].includes(s) ? t('completed') : t('pending'), completed: ['delivered', 'completed'].includes(s) },
   ];
 
   if (s === 'cancelled') {
-    steps.push({ id: 6, title: 'Cancelled', date: 'Order Cancelled', completed: true });
+    steps.push({ id: 6, title: t('cancelled'), date: t('order_cancelled_desc'), completed: true });
   }
 
   return steps;
@@ -34,6 +71,8 @@ const getTrackingSteps = (rawOrder: any) => {
 export default function OrderDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key]?.[language] || key;
   const { order = {
     id: 'ORD-8829',
     status: 'In Progress',
@@ -75,7 +114,7 @@ export default function OrderDetailScreen() {
 
   const handleMessageVendor = async () => {
     if (!businessUserId) {
-      Alert.alert("Error", "Could not identify the business user to start a chat.");
+      Alert.alert(t('error_label'), t('user_not_identified'));
       return;
     }
 
@@ -89,11 +128,11 @@ export default function OrderDetailScreen() {
       if (conversation) {
         navigation.navigate(Routes.ChatDetailScreen, { conversation });
       } else {
-        Alert.alert("Error", "Failed to resolve conversation.");
+        Alert.alert(t('error_label'), t('failed_resolve_conv'));
       }
     } catch (error) {
       console.error("Error starting chat:", error);
-      Alert.alert("Error", "Failed to message vendor. Please try again.");
+      Alert.alert(t('error_label'), t('failed_message_vendor'));
     } finally {
       setIsMessaging(false);
     }
@@ -104,18 +143,20 @@ export default function OrderDetailScreen() {
     // Simulating invoice download
     setTimeout(() => {
       setIsDownloading(false);
-      Alert.alert("Success", "Invoice downloaded successfully!");
+      Alert.alert(t('success_label'), t('invoice_downloaded'));
     }, 1500);
   };
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8FAFC' }}>
       {/* Header */}
-      <View style={{ height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#FFF' }}>
+      <View style={{ height: 60, flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#FFF' }}>
         <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }} onPress={() => navigation.goBack()}>
-          <ArrowIcon size={24} color="#111" />
+          <View style={{ transform: [{ rotate: language === 'ar' ? '180deg' : '0deg' }] }}>
+            <ArrowIcon size={24} color="#111" />
+          </View>
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>{rawOrder?.code || 'Order Details'}</Text>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>{rawOrder?.code || t('order_details')}</Text>
         <View style={{ width: 44 }} />
       </View>
 
@@ -128,10 +169,10 @@ export default function OrderDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: paddingHorizontal, gap: 16 }}>
         {/* Status Stepper */}
         <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#F1F5F9' }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', marginBottom: 20 }}>Tracking Status</Text>
-          <View style={{ paddingLeft: 10 }}>
-            {getTrackingSteps(rawOrder).map((step, index, array) => (
-              <View key={step.id} style={{ flexDirection: 'row', gap: 16 }}>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', marginBottom: 20, textAlign: language === 'ar' ? 'right' : 'left' }}>{t('tracking_status')}</Text>
+          <View style={{ paddingLeft: language === 'ar' ? 0 : 10, paddingRight: language === 'ar' ? 10 : 0 }}>
+            {getTrackingSteps(rawOrder, t).map((step, index, array) => (
+              <View key={step.id} style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 16 }}>
                 <View style={{ alignItems: 'center' }}>
                   <View style={[
                     { width: 24, height: 24, borderRadius: 12, justifyContent: 'center', alignItems: 'center', borderWidth: 2 },
@@ -146,7 +187,7 @@ export default function OrderDetailScreen() {
                     ]} />
                   )}
                 </View>
-                <View style={{ flex: 1, paddingBottom: 24 }}>
+                <View style={{ flex: 1, paddingBottom: 24, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
                   <Text style={[{ fontSize: 15, fontWeight: '700', color: '#1E293B' }, !step.completed && { color: '#94A3B8' }]}>{step.title}</Text>
                   <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500', marginTop: 2 }}>{step.date}</Text>
                 </View>
@@ -157,10 +198,10 @@ export default function OrderDetailScreen() {
 
         {/* Product Details */}
         <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#F1F5F9' }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', marginBottom: 20 }}>Items Ordered ({rawOrder.products?.length || 0})</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', marginBottom: 20, textAlign: language === 'ar' ? 'right' : 'left' }}>{t('items_ordered')} ({rawOrder.products?.length || 0})</Text>
           <View style={{ gap: 16 }}>
             {rawOrder.products?.map((product: any, index: number) => (
-              <View key={product.id} style={{ flexDirection: 'row', gap: 16, borderBottomWidth: index === rawOrder.products.length - 1 ? 0 : 1, borderBottomColor: '#F1F5F9', paddingBottom: index === rawOrder.products.length - 1 ? 0 : 16 }}>
+              <View key={product.id} style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 16, borderBottomWidth: index === rawOrder.products.length - 1 ? 0 : 1, borderBottomColor: '#F1F5F9', paddingBottom: index === rawOrder.products.length - 1 ? 0 : 16 }}>
                 <View style={{ width: 80, height: 80, borderRadius: 16, backgroundColor: '#F1F5F9', overflow: 'hidden' }}>
                     {product.images?.[0]?.url ? (
                         <Image source={{ uri: product.images[0].url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
@@ -170,38 +211,38 @@ export default function OrderDetailScreen() {
                         </View>
                     )}
                 </View>
-                <View style={{ flex: 1, gap: 2 }}>
+                <View style={{ flex: 1, gap: 2, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: '#137FEC' }}>{product.business?.name}</Text>
-                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#1E293B' }}>{product.name}</Text>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                    <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '800' }}>Qty: {product.pivot?.quantity || 1}</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }}>{product.name}</Text>
+                  <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, width: '100%' }}>
+                    <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '800' }}>{t('qty_label')} {product.pivot?.quantity || 1}</Text>
                     <Text style={{ fontSize: 15, fontWeight: '900', color: '#111' }}>{(product.pivot?.price || product.price).toLocaleString()} DA</Text>
                   </View>
                 </View>
               </View>
             )) || (
-              <Text style={{ color: '#94A3B8' }}>No items found</Text>
+              <Text style={{ color: '#94A3B8', textAlign: 'center' }}>{t('no_items')}</Text>
             )}
           </View>
         </View>
 
         {/* Delivery Information */}
         <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#F1F5F9' }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', marginBottom: 20 }}>Delivery Details</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', marginBottom: 20, textAlign: language === 'ar' ? 'right' : 'left' }}>{t('delivery_details')}</Text>
           <View style={{ gap: 16 }}>
-            <View style={{ gap: 4 }}>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>Address</Text>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: '#1E293B' }}>{rawOrder?.shipping_address || 'N/A'}</Text>
+            <View style={{ gap: 4, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>{t('address_label')}</Text>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }}>{rawOrder?.shipping_address || 'N/A'}</Text>
             </View>
-            <View style={{ gap: 4 }}>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>Department</Text>
-              <Text style={{ fontSize: 14, fontWeight: '600', color: '#1E293B' }}>{rawOrder?.department || 'N/A'}</Text>
+            <View style={{ gap: 4, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>{t('dept_label')}</Text>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: '#1E293B', textAlign: language === 'ar' ? 'right' : 'left' }}>{rawOrder?.department || 'N/A'}</Text>
             </View>
-            <View style={{ gap: 4 }}>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>Handling</Text>
-              <View style={{ alignSelf: 'flex-start', backgroundColor: rawOrder?.is_hazmat ? '#FEF2F2' : '#F0FDF4', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginTop: 2 }}>
+            <View style={{ gap: 4, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase' }}>{t('handling_label')}</Text>
+              <View style={{ alignSelf: language === 'ar' ? 'flex-end' : 'flex-start', backgroundColor: rawOrder?.is_hazmat ? '#FEF2F2' : '#F0FDF4', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, marginTop: 2 }}>
                 <Text style={{ fontSize: 10, fontWeight: '800', color: rawOrder?.is_hazmat ? '#EF4444' : '#16A34A' }}>
-                  {rawOrder?.is_hazmat ? 'HAZMAT HANDLING' : 'STANDARD HANDLING'}
+                  {rawOrder?.is_hazmat ? t('hazmat_handling') : t('standard_handling')}
                 </Text>
               </View>
             </View>
@@ -210,44 +251,44 @@ export default function OrderDetailScreen() {
 
         {/* Payment Summary */}
         <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#F1F5F9' }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', marginBottom: 20 }}>Cost Summary</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', marginBottom: 20, textAlign: language === 'ar' ? 'right' : 'left' }}>{t('cost_summary')}</Text>
           <View style={{ gap: 12 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>Subtotal</Text>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>{t('subtotal')}</Text>
               <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B' }}>
                 {(rawOrder.total_price - (rawOrder.shipping_fee || 0) - (rawOrder.tax || 0)).toLocaleString()} DA
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>Shipping Fee</Text>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>{t('shipping_fee')}</Text>
               <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B' }}>{(rawOrder.shipping_fee || 0).toLocaleString()} DA</Text>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>Tax (VAT 19%)</Text>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 14, color: '#64748B', fontWeight: '600' }}>{t('tax_label')}</Text>
               <Text style={{ fontSize: 14, fontWeight: '700', color: '#1E293B' }}>{(rawOrder.tax || 0).toLocaleString()} DA</Text>
             </View>
             <View style={{ height: 1, backgroundColor: '#F1F5F9', marginVertical: 4 }} />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={{ fontSize: 16, fontWeight: '800', color: '#1E293B' }}>Total Paid</Text>
+            <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#1E293B' }}>{t('total_paid')}</Text>
               <Text style={{ fontSize: 18, fontWeight: '900', color: '#111' }}>{rawOrder?.total_price?.toLocaleString()} DA</Text>
             </View>
           </View>
         </View>
         {/* Actions */}
-        <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+        <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 12, marginTop: 8 }}>
           <TouchableOpacity
             style={[{ flex: 1, height: 52, borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' }, isDownloading && { opacity: 0.7 }]}
             onPress={handleDownloadInvoice}
             disabled={isDownloading}
           >
-            {isDownloading ? <ActivityIndicator size="small" color="#137FEC" /> : <Text style={{ fontSize: 14, fontWeight: '700', color: '#475569' }}>Download Invoice</Text>}
+            {isDownloading ? <ActivityIndicator size="small" color="#137FEC" /> : <Text style={{ fontSize: 14, fontWeight: '700', color: '#475569' }}>{t('download_invoice')}</Text>}
           </TouchableOpacity>
           <TouchableOpacity
             style={[{ flex: 1.2, height: 52, borderRadius: 14, backgroundColor: '#137FEC', justifyContent: 'center', alignItems: 'center' }, isMessaging && { opacity: 0.7 }]}
             onPress={handleMessageVendor}
             disabled={isMessaging}
           >
-            {isMessaging ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFF' }}>Message Vendor</Text>}
+            {isMessaging ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFF' }}>{t('message_vendor')}</Text>}
           </TouchableOpacity>
         </View>
       </ScrollView>

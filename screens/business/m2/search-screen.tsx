@@ -13,6 +13,13 @@ import { LabGrid } from "@/components/lists/lab-grid";
 import { SearchInput } from "@/components/inputs/search-input";
 import { paddingHorizontal } from "@/utils/variables/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLanguageStore } from "@/zustand/language-store";
+
+const translations = {
+  recent_searches: { en: 'Recent Searches', fr: 'Recherches récentes', ar: 'عمليات البحث الأخيرة' },
+  clear: { en: 'Clear', fr: 'Effacer', ar: 'مسح' },
+  no_results_found: { en: 'No {label} found for "{search}"', fr: 'Aucun {label} trouvé pour "{search}"', ar: 'لم يتم العثور على {label} لـ "{search}"' },
+};
 
 export interface DiscoverySection {
   title: string;
@@ -46,6 +53,16 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
   savingProductId,
 }) => {
   const navigation = useNavigation<any>();
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations, params?: Record<string, string>) => {
+    let text = translations[key]?.[language] || key;
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        text = text.replace(`{${k}}`, v);
+      });
+    }
+    return text;
+  };
   const [search, setSearch] = useState("");
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -197,18 +214,18 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
                 letterSpacing: 1,
               }}
             >
-              Recent Searches
+              {t('recent_searches')}
             </Text>
             <TouchableOpacity onPress={clearRecentSearches}>
               <Text style={{ fontSize: 12, fontWeight: "700", color: accentColor }}>
-                Clear
+                {t('clear')}
               </Text>
             </TouchableOpacity>
           </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 10 }}
+            contentContainerStyle={[ { gap: 10 }, language === 'ar' && { flexDirection: 'row-reverse' } ]}
           >
             {recentSearches.map((item) => (
               <ButtonTag
@@ -239,6 +256,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
                     textTransform: "uppercase",
                     letterSpacing: 1,
                     marginBottom: 12,
+                    textAlign: language === 'ar' ? 'right' : 'left'
                   }}
                 >
                   {section.title}
@@ -283,6 +301,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
                   textTransform: "uppercase",
                   letterSpacing: 1,
                   marginBottom: 12,
+                  textAlign: language === 'ar' ? 'right' : 'left'
                 }}
               >
                 {section.title}
@@ -312,7 +331,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
         {/* Tab Switcher */}
         <View
           style={{
-            flexDirection: "row",
+            flexDirection: language === 'ar' ? "row-reverse" : "row",
             paddingHorizontal: paddingHorizontal,
             gap: 12,
             paddingVertical: 8,
@@ -373,8 +392,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
                 )
               ) : (
                 <View style={{ alignItems: "center", marginTop: 40 }}>
-                  <Text style={{ color: "#94A3B8" }}>
-                    No {activeTab.label.toLowerCase()} found for "{search}"
+                  <Text style={{ color: "#94A3B8", textAlign: 'center' }}>
+                    {t('no_results_found', { label: activeTab.label.toLowerCase(), search: search })}
                   </Text>
                 </View>
               )}
@@ -390,7 +409,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
       {/* Dynamic Header */}
       <View
         style={{
-          flexDirection: "row",
+          flexDirection: language === 'ar' ? "row-reverse" : "row",
           paddingHorizontal: paddingHorizontal,
           paddingVertical: 8,
           alignItems: "center",

@@ -2,6 +2,8 @@ import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView, TextInput, StyleSheet, Dimensions } from "react-native";
+import { useLanguageStore } from "@/zustand/language-store";
+
 
 const { width } = Dimensions.get('window');
 
@@ -65,12 +67,25 @@ const CONVERSATIONS = [
   },
 ];
 
+const translations = {
+  messages: { en: 'Messages', fr: 'Messages', ar: 'الرسائل' },
+  search_placeholder: { en: 'Search labs or messages...', fr: 'Rechercher des laboratoires ou des messages...', ar: 'ابحث عن مختبرات أو رسائل...' },
+  recent: { en: 'RECENT', fr: 'RÉCENT', ar: 'الأحدث' },
+  home: { en: 'Home', fr: 'Accueil', ar: 'الرئيسية' },
+  search: { en: 'Search', fr: 'Rechercher', ar: 'بحث' },
+  orders: { en: 'Orders', fr: 'Commandes', ar: 'الطلبات' },
+  profile: { en: 'Profile', fr: 'Profil', ar: 'الملف الشخصي' },
+};
+
 export default function ConversationScreen() {
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key]?.[language] || key;
+
   return (
     <ScreenWrapper style={{ backgroundColor: '#FFF' }}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Messages</Text>
+      <View style={[styles.header, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
+        <Text style={styles.headerTitle}>{t('messages')}</Text>
         <TouchableOpacity style={styles.composeBtn}>
           <View style={styles.composeIcon} />
         </TouchableOpacity>
@@ -78,11 +93,11 @@ export default function ConversationScreen() {
 
       {/* Search Bar */}
       <View style={styles.searchSection}>
-        <View style={styles.searchBar}>
-          <View style={styles.searchIcon} />
+        <View style={[styles.searchBar, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
+          <View style={[styles.searchIcon, { marginRight: language === 'ar' ? 0 : 10, marginLeft: language === 'ar' ? 10 : 0 }]} />
           <TextInput
-            placeholder="Search labs or messages..."
-            style={styles.searchInput}
+            placeholder={t('search_placeholder')}
+            style={[styles.searchInput, { textAlign: language === 'ar' ? 'right' : 'left' }]}
             placeholderTextColor="#A0AEC0"
           />
         </View>
@@ -90,7 +105,7 @@ export default function ConversationScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Section Title */}
-        <Text style={styles.sectionTitle}>RECENT</Text>
+        <Text style={[styles.sectionTitle, { textAlign: language === 'ar' ? 'right' : 'left' }]}>{t('recent')}</Text>
 
         {/* Conversation List */}
         <View style={styles.listContainer}>
@@ -99,6 +114,7 @@ export default function ConversationScreen() {
               key={item.id}
               style={[
                 styles.conversationItem,
+                { flexDirection: language === 'ar' ? 'row-reverse' : 'row' },
                 item.isFeatured && styles.featuredItem
               ]}
             >
@@ -110,17 +126,17 @@ export default function ConversationScreen() {
                 ) : (
                   <View style={styles.avatarPlaceholder} />
                 )}
-                {item.online && <View style={styles.onlineStatus} />}
+                {item.online && <View style={[styles.onlineStatus, { right: language === 'ar' ? undefined : 2, left: language === 'ar' ? 2 : undefined }]} />}
               </View>
 
-              <View style={styles.contentContainer}>
-                <View style={styles.itemHeader}>
-                  <Text style={styles.labName} numberOfLines={1}>{item.name}</Text>
+              <View style={[styles.contentContainer, { alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }]}>
+                <View style={[styles.itemHeader, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
+                  <Text style={[styles.labName, { textAlign: language === 'ar' ? 'right' : 'left' }]} numberOfLines={1}>{item.name}</Text>
                   <Text style={styles.timeText}>{item.time}</Text>
                 </View>
 
-                <View style={styles.itemFooter}>
-                  <Text style={styles.lastMessage} numberOfLines={1}>{item.lastMessage}</Text>
+                <View style={[styles.itemFooter, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
+                  <Text style={[styles.lastMessage, { textAlign: language === 'ar' ? 'right' : 'left' }]} numberOfLines={1}>{item.lastMessage}</Text>
                   {item.unreadCount > 0 && (
                     <View style={styles.unreadBadge}>
                       <Text style={styles.unreadText}>{item.unreadCount}</Text>
@@ -134,28 +150,28 @@ export default function ConversationScreen() {
       </ScrollView>
 
       {/* Bottom Nav Mock */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
         <View style={styles.navItem}>
           <View style={styles.navIcon} />
-          <Text style={styles.navLabel}>Home</Text>
+          <Text style={styles.navLabel}>{t('home')}</Text>
         </View>
         <View style={styles.navItem}>
           <View style={styles.navIcon} />
-          <Text style={styles.navLabel}>Search</Text>
+          <Text style={styles.navLabel}>{t('search')}</Text>
         </View>
         <View style={styles.navItem}>
           <View style={styles.navIcon} />
-          <Text style={styles.navLabel}>Orders</Text>
+          <Text style={styles.navLabel}>{t('orders')}</Text>
         </View>
         <View style={styles.navItem}>
           <View style={[styles.navIcon, { backgroundColor: '#137FEC' }]}>
             <View style={styles.activeNavDot} />
           </View>
-          <Text style={[styles.navLabel, { color: '#137FEC' }]}>Messages</Text>
+          <Text style={[styles.navLabel, { color: '#137FEC' }]}>{t('messages')}</Text>
         </View>
         <View style={styles.navItem}>
           <View style={styles.navIcon} />
-          <Text style={styles.navLabel}>Profile</Text>
+          <Text style={styles.navLabel}>{t('profile')}</Text>
         </View>
       </View>
     </ScreenWrapper>
