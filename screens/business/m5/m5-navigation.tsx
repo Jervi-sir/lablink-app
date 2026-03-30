@@ -15,16 +15,11 @@ import ClockIcon from "@/assets/icons/clock-icon";
 import StatsIcon from "@/assets/icons/stats-icon";
 import PolicyIcon from "@/assets/icons/policy-icon";
 import PhoneIcon from "@/assets/icons/phone-icon";
-import OrderIcon from "@/assets/icons/order-icon";
-import EditIcon from "@/assets/icons/edit-icon";
 import BusinessCardIcon from "@/assets/icons/business-card-icon";
 import RevenueIcon from "@/assets/icons/revenue-icon";
 import BellIcon from "@/assets/icons/bell-icon";
 import LanguageIcon from "@/assets/icons/language-icon";
 import InfoIcon from "@/assets/icons/info-icon";
-import { BusinessAuth } from "@/utils/types";
-
-const { width } = Dimensions.get('window');
 
 const SECTIONS = [
   {
@@ -220,7 +215,7 @@ export default function BusinessM5Navigation() {
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 15, fontWeight: '700', color: '#111' }}>{item.title}</Text>
                     </View>
-                    <ArrowIcon size={14} color="#CBD5E1" />
+                    <ArrowIcon type="right" size={14} color="#CBD5E1" />
                   </TouchableOpacity>
                 ))}
               </View>

@@ -31,6 +31,7 @@ type StudentCatalogStore = {
   resetFilters: () => void;
   addRecentSearch: (term: string) => void;
   clearRecentSearches: () => void;
+  reset: () => void;
 };
 
 export const useStudentCatalogStore = create<StudentCatalogStore>()(
@@ -54,7 +55,9 @@ export const useStudentCatalogStore = create<StudentCatalogStore>()(
         set({ recentSearches: [normalized, ...filtered].slice(0, 10) });
       },
       clearRecentSearches: () => set({ recentSearches: [] }),
+      reset: () => set({ filters: defaultStudentCatalogFilters, recentSearches: [] }),
     }),
+
     {
       name: 'student-catalog-storage',
       storage: createJSONStorage(() => AsyncStorage),

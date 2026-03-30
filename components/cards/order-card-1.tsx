@@ -1,6 +1,6 @@
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
-import { View } from "react-native";
+import { View, Image } from "react-native";
 
 export const OrderCard1 = ({ item, onPress }: { item: any, onPress: () => void }) => {
   return (
@@ -23,9 +23,53 @@ export const OrderCard1 = ({ item, onPress }: { item: any, onPress: () => void }
       <View style={{ height: 1, backgroundColor: '#F8FAFC', marginVertical: 12 }} />
 
       <View style={{ flexDirection: 'row', gap: 12 }}>
-        <View style={{ width: 70, height: 70, borderRadius: 14, backgroundColor: '#F1F5F9' }} />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {item.productImages?.map((url: string, index: number) => (
+            <View
+              key={index}
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 14,
+                backgroundColor: '#F1F5F9',
+                borderWidth: 2,
+                borderColor: '#FFF',
+                marginLeft: index === 0 ? 0 : -35, // Premium stacking effect
+                zIndex: 10 - index,
+                overflow: 'hidden',
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+                elevation: 3
+              }}
+            >
+              <Image source={{ uri: url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+            </View>
+          ))}
+          {item.totalProducts > 3 && (
+            <View style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: '#F8FAFC',
+              borderWidth: 1,
+              borderColor: '#E2E8F0',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginLeft: 8,
+            }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#64748B' }}>+{item.totalProducts - 3}</Text>
+            </View>
+          )}
+          {(!item.productImages || item.productImages.length === 0) && (
+            <View style={{ width: 60, height: 60, borderRadius: 14, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ fontSize: 24 }}>📦</Text>
+            </View>
+          )}
+        </View>
         <View style={{ flex: 1, justifyContent: 'center', gap: 2 }}>
-          <Text style={{ fontSize: 12, fontWeight: '700', color: '#137FEC' }}>{item.lab}</Text>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: '#137FEC' }}>{item.lab} • {item.totalProducts} item{item.totalProducts !== 1 ? 's' : ''}</Text>
           <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B' }} numberOfLines={1}>{item.product}</Text>
           <Text style={{ fontSize: 14, fontWeight: '800', color: '#111', marginTop: 2 }}>{item.price}</Text>
         </View>

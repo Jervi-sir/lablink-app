@@ -5,7 +5,7 @@ import ArrowIcon from "@/assets/icons/arrow-icon";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { Routes } from "@/utils/helpers/routes";
-import { useLabCartStore } from "@/zustand/lab-cart-store";
+import { useLabCartStore } from "@/screens/student/zustand/lab-cart-store";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Platform, ScrollView, TextInput, View } from "react-native";
@@ -163,17 +163,17 @@ export default function LabEstimationScreen() {
                         <Text style={{ fontSize: 12, fontWeight: '800', color: '#EF4444' }}>Remove</Text>
                       </TouchableOpacity>
                     </View>
-                    <View style={{ marginTop: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View style={{ marginTop: 14, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 4 }}>
-                        <TouchableOpacity style={{ width: 36, height: 40, justifyContent: 'center', alignItems: 'center' }} onPress={() => business && updateQuantity(business.id, item.productId, item.quantity - 1)}>
+                        <TouchableOpacity pressGuardMode="off" style={{ width: 36, height: 40, justifyContent: 'center', alignItems: 'center' }} onPress={() => business && updateQuantity(business.id, item.productId, item.quantity - 1)}>
                           <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F172A' }}>-</Text>
                         </TouchableOpacity>
                         <Text style={{ width: 28, textAlign: 'center', fontSize: 15, fontWeight: '800', color: '#0F172A' }}>{item.quantity}</Text>
-                        <TouchableOpacity style={{ width: 36, height: 40, justifyContent: 'center', alignItems: 'center' }} onPress={() => business && updateQuantity(business.id, item.productId, item.quantity + 1)}>
+                        <TouchableOpacity pressGuardMode="off" style={{ width: 36, height: 40, justifyContent: 'center', alignItems: 'center' }} onPress={() => business && updateQuantity(business.id, item.productId, item.quantity + 1)}>
                           <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F172A' }}>+</Text>
                         </TouchableOpacity>
                       </View>
-                      <Text style={{ fontSize: 15, fontWeight: '900', color: '#137FEC' }}>{formatPrice(item.price * item.quantity)}</Text>
+                      {/* <Text style={{ fontSize: 15, fontWeight: '900', color: '#137FEC' }}>{formatPrice(item.price * item.quantity)}</Text> */}
                     </View>
                   </View>
                 ))}
@@ -223,10 +223,10 @@ export default function LabEstimationScreen() {
                   <Text style={{ fontSize: 14, fontWeight: '600', color: '#64748B' }}>Total items</Text>
                   <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }}>{itemCount}</Text>
                 </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ fontSize: 14, fontWeight: '600', color: '#64748B' }}>Estimated value</Text>
                   <Text style={{ fontSize: 14, fontWeight: '900', color: '#137FEC' }}>{formatPrice(estimatedTotal)}</Text>
-                </View>
+                </View> */}
               </View>
             </View>
           </ScrollView>

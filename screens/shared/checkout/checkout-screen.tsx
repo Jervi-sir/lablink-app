@@ -318,14 +318,14 @@ export default function CheckoutScreen() {
           </View>
         </View>
 
-        {/* Payment Method - Fixed to Bank Transfer for Direct Orders */}
+        {/* Payment Method - Fixed to Payment on delivery */}
         <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#F1F5F9', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 8, elevation: 2 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Payment</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 12, padding: 12, backgroundColor: '#F0F7FF', borderRadius: 12, borderWidth: 1, borderColor: '#DBEAFE' }}>
             <Text style={{ fontSize: 20 }}>🏦</Text>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#137FEC' }}>Bank Transfer / Order Form</Text>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#137FEC' }}>Pay on delivery</Text>
           </View>
         </View>
 

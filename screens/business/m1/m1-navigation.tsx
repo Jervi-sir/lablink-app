@@ -2,7 +2,7 @@ import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView, TextInput, FlatList, Dimensions, ActivityIndicator, RefreshControl, Alert, Image } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Routes } from "@/utils/helpers/routes";
 import { useState, useEffect, useCallback, useRef } from "react";
 import api from "@/utils/api/axios-instance";
@@ -38,7 +38,15 @@ export default function BusinessM1Navigation() {
     await fetchInventory(page, shouldRefresh, searchQuery, activeTab);
   }, [searchQuery, activeTab, fetchInventory]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstRender.current) return;
+      handleFetchInventory(1, true);
+    }, [handleFetchInventory])
+  );
+
   useEffect(() => {
+    // We can just rely on useFocusEffect for the initial load and tab changes if we change how handleFetchInventory is used
     handleFetchInventory(1);
   }, [activeTab]);
 

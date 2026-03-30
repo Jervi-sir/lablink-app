@@ -21,6 +21,7 @@ type StudentBusinessSearchStore = {
   resetFilters: () => void;
   addRecentSearch: (term: string) => void;
   clearRecentSearches: () => void;
+  reset: () => void;
 };
 
 export const useStudentBusinessSearchStore = create<StudentBusinessSearchStore>()(
@@ -42,7 +43,9 @@ export const useStudentBusinessSearchStore = create<StudentBusinessSearchStore>(
         set({ recentSearches: [normalized, ...filtered].slice(0, 10) });
       },
       clearRecentSearches: () => set({ recentSearches: [] }),
+      reset: () => set({ filters: defaultStudentBusinessFilters, recentSearches: [] }),
     }),
+
     {
       name: 'student-business-search-storage',
       storage: createJSONStorage(() => AsyncStorage),

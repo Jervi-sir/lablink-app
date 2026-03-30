@@ -37,6 +37,7 @@ type LabCartState = {
   removeItem: (businessId: number, productId: number) => void;
   clearCart: (businessId: number) => void;
   clearAllCarts: () => void;
+  reset: () => void;
 };
 
 export const useLabCartStore = create<LabCartState>()(
@@ -129,7 +130,9 @@ export const useLabCartStore = create<LabCartState>()(
       }),
 
       clearAllCarts: () => set({ carts: {} }),
+      reset: () => set({ carts: {} }),
     }),
+
     {
       name: 'lab-multi-cart-storage',
       storage: createJSONStorage(() => AsyncStorage),

@@ -8,6 +8,7 @@ interface LanguageState {
   language: Language;
   setLanguage: (language: Language) => void;
   isRTL: boolean;
+  reset: () => void;
 }
 
 export const useLanguageStore = create<LanguageState>()(
@@ -24,6 +25,7 @@ export const useLanguageStore = create<LanguageState>()(
 
         set({ language, isRTL });
       },
+      reset: () => set({ language: 'en', isRTL: false }),
     }),
     {
       name: 'language-storage',
@@ -31,3 +33,4 @@ export const useLanguageStore = create<LanguageState>()(
     }
   )
 );
+

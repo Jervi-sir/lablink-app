@@ -69,6 +69,7 @@ export const ApiRoutes = {
   searchProducts: 'search/products',
   searchBusinesses: 'search/businesses',
   searchLaboratory: 'search/laboratory',
+  searchLaboratoryProducts: 'search/laboratory/products',
   searchLaboratoryRandom: 'search/laboratory/random',
   orders: {
     index: 'orders',

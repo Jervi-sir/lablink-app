@@ -9,7 +9,7 @@ import { OrderCard1 } from "../../../components/cards/order-card-1";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
 import { paddingHorizontal } from "@/utils/variables/styles";
-import { useLabCartStore } from "@/zustand/lab-cart-store";
+import { useLabCartStore } from "@/screens/student/zustand/lab-cart-store";
 import moment from "moment";
 import { Image } from "react-native";
 
@@ -113,6 +113,8 @@ export default function StudentM3Navigation() {
     product: item.products?.[0]?.name + (item.products?.length > 1 ? ` (+${item.products.length - 1} more)` : ''),
     price: `${item.total_price?.toLocaleString()} DA`,
     original: item,
+    productImages: (item.products || []).slice(0, 3).map((p: any) => p.images?.[0]?.url).filter(Boolean),
+    totalProducts: item.products?.length || 0,
   });
 
   const formatEstimationData = (item: any) => ({
@@ -126,6 +128,8 @@ export default function StudentM3Navigation() {
       : `${item.itemCount || 0} selected item${item.itemCount === 1 ? '' : 's'}`,
     price: item.estimatedTotal ? `${Number(item.estimatedTotal).toLocaleString()} DA` : 'Awaiting estimate',
     original: item,
+    productImages: (item.items || []).slice(0, 3).map((it: any) => it.product?.images?.[0]?.url).filter(Boolean),
+    totalProducts: item.items?.length || 0,
   });
 
   const renderOrder = ({ item }: { item: any }) => (

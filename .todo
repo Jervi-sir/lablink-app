@@ -1,19 +1,113 @@
-- in student M1 should be for the products @done
-- in student M2 should be for businesses @done
-- Show price only in the wholesalers @done
-- m1 show the suppliers products not the labs @done
-- m1 list the labs @done
-- m1 list the wholesales @done
-- Cart @done
-    - available in labs @done
-    - student will gather but only inside the lab not many labs @done
-    - student will send an estimation request to the lab @done
-    - student will list his requested estimations @done
-- 
-- for lab role, can see the products of the wholesalers @done
-- list the contracts (students and labs)
-- labs can use the camera only for taking pictures @done
-- rating for all the delivery
-- 
+# 🧪 LabLink App Testing TODO List
 
-- in student the Orders, make it shows multipe products 
+- fix the wilaya actionsheet
+- in certificate make it image too
+- translate all pages 
+
+## 🔐 Auth & Identity
+- [ ] **Student Registration Full Flow**
+  - [ ] Valid data submission @done
+      - Name, @done
+      - University, 
+      - Wilaya, 
+  - [ ] Validation errors @done
+      - missing fields, @done
+      - weak password
+- [ ] **Lab/ @done
+    - Supplier Registration** @done
+  - [ ] Business profile setup @done
+    - (Logo, @done
+    - Category, @done
+    - Location) @done
+- [ ] **Login Flows** @done
+  - [ ] Login as Student @done
+  - [ ] Login as Business/Lab @done
+  - [ ] "Forgot Password" flow
+- [ ] **Profile Management** @done
+  - [ ] Update @done
+      - personal/ @done
+      - business info @done
+  - [ ] Logout and session clearing @done
+
+## 🔍 Catalog & Search (M1)
+- [ ] **Search Functionality**
+  - [ ] Search by product name
+  - [ ] Search by lab name
+  - [ ] Recent searches history (save, clear)
+- [ ] **Filtering & Sorting** @done
+  - [ ] Filter by Wilaya @done
+  - [ ] Filter by Category @done
+  - [ ] Price range slider @done
+  - [ ] Safety level filters @done
+  - [ ] Tab switching (All / Products / Services) @done
+- [ ] **Infinite Scroll** @done
+  - [ ] "Load More" functionality in the product grid @done
+- [ ] **Favorites/Bookmarks** @done
+  - [ ] Toggle "Save" on products/services @done
+
+## 🛒 Cart & Procurement (M3)
+- [ ] **Cart Actions** @done
+  - [ ] Add product to cart from Product Screen @done
+  - [ ] Increase/Decrease quantities in the Lab Estimation screen @done
+  - [ ] Remove items from cart @done
+  - [ ] Draft cart persistence (across app restarts) @done
+- [ ] **Estimation Request (Full Flow)** @done
+  - [ ] Select items from a specific lab @done
+  - [ ] Submit estimation request with custom notes/address @done
+  - [ ] View estimation status in "Estimations" tab @done
+
+## 📦 Order Management
+- [ ] **Order Creation**
+  - [ ] Checkout from Cart -> Success Screen
+  - [ ] Confirming a Quoted Estimation -> Order Creation
+- [ ] **Order Tracking**
+  - [ ] Check order listing for correct images (stacked view)
+  - [ ] View Order Details (Multiple products list)
+  - [ ] Status updates (Pending -> Confirmed -> Processing -> Delivered)
+  - [ ] Dynamic tracking stepper updates based on status
+- [ ] **Financials**
+  - [ ] Correct subtotal, shipping fee, and tax (VAT) calculation
+  - [ ] Hazmat handling fee logic (Standard vs. Hazmat)
+
+## 💬 Communication
+- [ ] **Messaging**
+  - [ ] Start chat from Product screen (Message Vendor)
+  - [ ] Start chat from Order Details screen
+  - [ ] Real-time message sending and receiving
+  - [ ] Conversation list view correctly updated
+
+## 🏢 Laboratory / Business Management
+- [ ] **Business Dashboard**
+  - [ ] Order counts for different statuses
+- [ ] **Product Management**
+  - [ ] Add new product/service (images, price, type)
+  - [ ] Edit existing product
+- [ ] **Quote Handling**
+  - [ ] Viewing incoming Estimation Requests
+  - [ ] Sending a quote (adding prices and extra fees)
+- [ ] **Order Fulfillment**
+  - [ ] Update order status on behalf of the laboratory
+
+## 🔄 End-to-End Test Scenarios
+- [ ] **The "Custom Quote" Journey**:
+  - 1. Student finds Lab 
+  - -> Requests estimation 
+  - -> Lab provides quote 
+  - -> Student confirms 
+  - -> Lab ships 
+  - -> Student marks as delivered.
+- [ ] **The "Direct Shop" Journey**:
+  - 1. Student adds to cart 
+  - -> Checkouts 
+  - -> Lab fulfills order.
+- [ ] **The "Cross-Role" Messaging**:
+  - 1. Student asks about product 
+  - -> Lab replies 
+  - -> Negotiation (optional) 
+  - -> Transaction.
+
+## 💅 Aesthetics & UX
+- [ ] **Glassmorphism/Premium UI** checks in all new screens @done
+- [ ] **Loading States**: Skeleton loaders or ActivityIndicators in all fetching screens @done
+- [ ] **Empty States**: Friendly messages when no orders, results, or chats are found
+- [ ] **Refresh Control**: Pull-to-refresh on all listing screens @done

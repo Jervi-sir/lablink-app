@@ -2,44 +2,46 @@ import { ScreenWrapper } from "@/components/screen-wrapper";
 import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
 import { SearchInput } from "@/components/inputs/search-input";
-import { LabGrid } from "@/components/lists/lab-grid";
+import { ProductGrid } from "@/components/lists/product-grid";
 import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { Routes } from "@/utils/helpers/routes";
 import { paddingHorizontal } from "@/utils/variables/styles";
 import {
-  defaultStudentBusinessFilters,
-  useStudentBusinessSearchStore,
-} from "@/zustand/student-business-search-store";
+  defaultStudentLaboratoryServiceFilters,
+  STUDENT_LABORATORY_SERVICE_MAX_PRICE,
+  useStudentLaboratoryServiceStore,
+} from "@/screens/student/zustand/student-laboratory-service-store";
 import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, View } from "react-native";
 
 const TYPE_TABS = [
   { label: 'All', value: 'all' },
-  { label: 'Laboratories', value: 'laboratory' },
-  { label: 'Suppliers', value: 'supplier' },
+  { label: 'Products', value: 'product' },
+  { label: 'Services', value: 'service' },
 ] as const;
 
 export default function StudentM2Navigation() {
   const navigation = useNavigation<any>();
-  const filters = useStudentBusinessSearchStore((state) => state.filters);
-  const recentSearches = useStudentBusinessSearchStore((state) => state.recentSearches);
-  const setFilters = useStudentBusinessSearchStore((state) => state.setFilters);
-  const addRecentSearch = useStudentBusinessSearchStore((state) => state.addRecentSearch);
-  const clearRecentSearches = useStudentBusinessSearchStore((state) => state.clearRecentSearches);
+  const filters = useStudentLaboratoryServiceStore((state) => state.filters);
+  const recentSearches = useStudentLaboratoryServiceStore((state) => state.recentSearches);
+  const setFilters = useStudentLaboratoryServiceStore((state) => state.setFilters);
+  const addRecentSearch = useStudentLaboratoryServiceStore((state) => state.addRecentSearch);
+  const clearRecentSearches = useStudentLaboratoryServiceStore((state) => state.clearRecentSearches);
 
   const [search, setSearch] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [businesses, setBusinesses] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [nextPage, setNextPage] = useState<number | null>(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [savingProductId, setSavingProductId] = useState<string | null>(null);
 
   const blurTimeoutRef = useRef<any>(null);
 
-  const fetchBusinesses = useCallback(async (page: number | null, refreshingList = false, query = search) => {
+  const fetchProducts = useCallback(async (page: number | null, refreshingList = false, query = search) => {
     if (page === null) return;
 
     if (refreshingList) setRefreshing(true);
@@ -47,22 +49,26 @@ export default function StudentM2Navigation() {
     else setIsLoadingMore(true);
 
     try {
-      const response: any = await api.get(buildRoute(ApiRoutes.searchBusinesses), {
+      const response: any = await api.get(buildRoute(ApiRoutes.searchLaboratoryProducts), {
         params: {
           page,
           per_page: 12,
           q: query.trim() || undefined,
-          business_type: filters.businessType === 'all' ? undefined : filters.businessType,
+          product_type: filters.productType === 'all' ? undefined : filters.productType,
           wilaya_id: filters.wilayaId ?? undefined,
+          product_category_ids: filters.categoryIds,
+          min_price: filters.minPrice,
+          max_price: filters.maxPrice < STUDENT_LABORATORY_SERVICE_MAX_PRICE ? filters.maxPrice : undefined,
+          safety_levels: filters.safetyLevels,
           sort_by: filters.sortBy,
         },
       });
 
       const newItems = response?.data || [];
-      setBusinesses((current) => (page === 1 ? newItems : [...current, ...newItems]));
+      setProducts((current) => (page === 1 ? newItems : [...current, ...newItems]));
       setNextPage(response?.next_page ?? null);
     } catch (error) {
-      console.error('Error fetching businesses:', error);
+      console.error('Error fetching laboratory products:', error);
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
@@ -72,11 +78,11 @@ export default function StudentM2Navigation() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchBusinesses(1, false, search);
+      fetchProducts(1, false, search);
     }, search.trim() ? 350 : 0);
 
     return () => clearTimeout(timer);
-  }, [fetchBusinesses, search]);
+  }, [fetchProducts, search]);
 
   useEffect(() => () => {
     if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
@@ -84,38 +90,62 @@ export default function StudentM2Navigation() {
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
-    if (filters.businessType !== defaultStudentBusinessFilters.businessType) count += 1;
-    if (filters.wilayaId !== defaultStudentBusinessFilters.wilayaId) count += 1;
-    if (filters.sortBy !== defaultStudentBusinessFilters.sortBy) count += 1;
+    if (filters.productType !== defaultStudentLaboratoryServiceFilters.productType) count += 1;
+    if (filters.wilayaId !== defaultStudentLaboratoryServiceFilters.wilayaId) count += 1;
+    if (filters.categoryIds.length > 0) count += 1;
+    if (filters.safetyLevels.length > 0) count += 1;
+    if (filters.minPrice !== 0 || filters.maxPrice !== STUDENT_LABORATORY_SERVICE_MAX_PRICE) count += 1;
+    if (filters.sortBy !== defaultStudentLaboratoryServiceFilters.sortBy) count += 1;
     return count;
   }, [filters]);
 
-  const onRefresh = () => fetchBusinesses(1, true);
+  const onRefresh = () => fetchProducts(1, true);
 
   const handleLoadMore = () => {
-    if (!isLoadingMore && nextPage) fetchBusinesses(nextPage);
+    if (!isLoadingMore && nextPage) fetchProducts(nextPage);
   };
 
   const handleSearchSubmit = () => {
     const term = search.trim();
     if (term) addRecentSearch(term);
-    fetchBusinesses(1, false, term);
+    fetchProducts(1, false, term);
     setIsSearchFocused(false);
   };
 
   const handleRecentSearchPress = (term: string) => {
     setSearch(term);
     addRecentSearch(term);
-    fetchBusinesses(1, false, term);
+    fetchProducts(1, false, term);
     setIsSearchFocused(false);
   };
+
+  const toggleSaveProduct = useCallback(async (productId: string) => {
+    if (savingProductId) return;
+
+    try {
+      setSavingProductId(productId);
+      const response = await api.post(buildRoute(ApiRoutes.products.toggleSave, { id: productId }));
+
+      if (response) {
+        setProducts((current) => current.map((product) => (
+          product.id.toString() === productId
+            ? { ...product, isSaved: response.isSaved }
+            : product
+        )));
+      }
+    } catch (error) {
+      console.error('Error toggling save:', error);
+    } finally {
+      setSavingProductId(null);
+    }
+  }, [savingProductId]);
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       <View style={{ paddingHorizontal: paddingHorizontal, paddingTop: 10, paddingBottom: 8 }}>
-        <Text style={{ fontSize: 24, fontWeight: '900', color: '#0F172A' }}>Businesses</Text>
+        <Text style={{ fontSize: 24, fontWeight: '900', color: '#0F172A' }}>Laboratories</Text>
         <Text style={{ marginTop: 4, fontSize: 13, fontWeight: '600', color: '#64748B' }}>
-          Explore all businesses, laboratories, and suppliers.
+          Explore services and products from laboratories.
         </Text>
       </View>
 
@@ -133,14 +163,14 @@ export default function StudentM2Navigation() {
           }}
           onClear={() => {
             setSearch('');
-            fetchBusinesses(1, false, '');
+            fetchProducts(1, false, '');
           }}
-          placeholder="Search laboratories, suppliers, or services..."
+          placeholder="Search laboratory services, tests, or products..."
           style={{ flex: 1 }}
         />
 
         <TouchableOpacity
-          onPress={() => navigation.navigate(Routes.FilterScreen, { mode: 'businesses' })}
+          onPress={() => navigation.navigate(Routes.FilterScreen, { mode: 'laboratory_services' })}
           style={{ width: 52, height: 48, borderRadius: 16, backgroundColor: activeFilterCount > 0 ? '#137FEC' : '#FFF', borderWidth: 1, borderColor: activeFilterCount > 0 ? '#137FEC' : '#E2E8F0', justifyContent: 'center', alignItems: 'center' }}
         >
           <Text style={{ fontSize: 16, fontWeight: '900', color: activeFilterCount > 0 ? '#FFF' : '#475569' }}>
@@ -151,11 +181,11 @@ export default function StudentM2Navigation() {
 
       <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: paddingHorizontal, paddingBottom: 14 }}>
         {TYPE_TABS.map((tab) => {
-          const isActive = filters.businessType === tab.value;
+          const isActive = filters.productType === tab.value;
           return (
             <TouchableOpacity
               key={tab.value}
-              onPress={() => setFilters({ ...filters, businessType: tab.value })}
+              onPress={() => setFilters({ ...filters, productType: tab.value })}
               style={{ flex: 1, height: 42, borderRadius: 14, justifyContent: 'center', alignItems: 'center', backgroundColor: isActive ? '#0F172A' : '#FFF', borderWidth: 1, borderColor: isActive ? '#0F172A' : '#E2E8F0' }}
             >
               <Text style={{ fontSize: 13, fontWeight: '800', color: isActive ? '#FFF' : '#475569' }}>{tab.label}</Text>
@@ -190,23 +220,25 @@ export default function StudentM2Navigation() {
 
         <View style={{ paddingHorizontal: paddingHorizontal, marginBottom: 14 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>{search.trim() ? `Results for "${search.trim()}"` : 'All Businesses'}</Text>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8' }}>{businesses.length} loaded</Text>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>{search.trim() ? `Results for "${search.trim()}"` : 'All Services'}</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8' }}>{products.length} loaded</Text>
           </View>
         </View>
 
-        <LabGrid
-          labs={businesses}
-          onLabPress={(business) => navigation.navigate(Routes.BusinessScreen, { labId: business.id, labName: business.name, lab: business })}
-          isLoading={isLoading && businesses.length === 0}
+        <ProductGrid
+          products={products}
+          onProductPress={(product) => navigation.navigate(Routes.ProductScreen, { product })}
+          onToggleSave={toggleSaveProduct}
+          savingProductId={savingProductId}
+          isLoading={isLoading && products.length === 0}
           paddingHorizontal={paddingHorizontal}
         />
 
-        {!isLoading && businesses.length === 0 ? (
+        {!isLoading && products.length === 0 ? (
           <View style={{ alignItems: 'center', paddingHorizontal: 24, marginTop: 80 }}>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>No matching businesses</Text>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>No matching items</Text>
             <Text style={{ marginTop: 8, fontSize: 14, lineHeight: 22, color: '#64748B', textAlign: 'center' }}>
-              Try another keyword or adjust your filters to discover more laboratories and suppliers.
+              Try another keyword or adjust your filters to discover more laboratory services and products.
             </Text>
           </View>
         ) : null}

@@ -8,11 +8,16 @@ import {
   defaultStudentCatalogFilters,
   STUDENT_CATALOG_MAX_PRICE,
   useStudentCatalogStore,
-} from "@/zustand/student-catalog-store";
+} from "@/screens/student/zustand/student-catalog-store";
 import {
   defaultStudentBusinessFilters,
   useStudentBusinessSearchStore,
-} from "@/zustand/student-business-search-store";
+} from "@/screens/student/zustand/student-business-search-store";
+import {
+  defaultStudentLaboratoryServiceFilters,
+  STUDENT_LABORATORY_SERVICE_MAX_PRICE,
+  useStudentLaboratoryServiceStore,
+} from "@/screens/student/zustand/student-laboratory-service-store";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, TextInput, View } from "react-native";
@@ -36,7 +41,7 @@ const BUSINESS_SORT_OPTIONS = [
 export default function FilterScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const mode: 'products' | 'businesses' = route.params?.mode === 'businesses' ? 'businesses' : 'products';
+  const mode: 'products' | 'businesses' | 'laboratory_services' = route.params?.mode || 'products';
 
   const savedProductFilters = useStudentCatalogStore((state) => state.filters);
   const setProductFilters = useStudentCatalogStore((state) => state.setFilters);
@@ -46,10 +51,15 @@ export default function FilterScreen() {
   const setBusinessFilters = useStudentBusinessSearchStore((state) => state.setFilters);
   const resetBusinessFilters = useStudentBusinessSearchStore((state) => state.resetFilters);
 
+  const savedLabFilters = useStudentLaboratoryServiceStore((state) => state.filters);
+  const setLabFilters = useStudentLaboratoryServiceStore((state) => state.setFilters);
+  const resetLabFilters = useStudentLaboratoryServiceStore((state) => state.resetFilters);
+
   const [categories, setCategories] = useState<any[]>([]);
   const [wilayas, setWilayas] = useState<Wilaya[]>([]);
   const [productFilters, setLocalProductFilters] = useState(savedProductFilters);
   const [businessFilters, setLocalBusinessFilters] = useState(savedBusinessFilters);
+  const [labFilters, setLocalLabFilters] = useState(savedLabFilters);
 
   useEffect(() => {
     setLocalProductFilters(savedProductFilters);
@@ -60,9 +70,13 @@ export default function FilterScreen() {
   }, [savedBusinessFilters]);
 
   useEffect(() => {
+    setLocalLabFilters(savedLabFilters);
+  }, [savedLabFilters]);
+
+  useEffect(() => {
     const loadTaxonomies = async () => {
       try {
-        const types = mode === 'products' ? 'product_categories,wilayas' : 'wilayas';
+        const types = mode === 'businesses' ? 'wilayas' : 'product_categories,wilayas';
         const response = await api.get(buildRoute(ApiRoutes.taxonomies), {
           params: { types },
         });
@@ -79,6 +93,7 @@ export default function FilterScreen() {
 
   const selectedProductWilaya = wilayas.find((wilaya) => wilaya.id === productFilters.wilayaId);
   const selectedBusinessWilaya = wilayas.find((wilaya) => wilaya.id === businessFilters.wilayaId);
+  const selectedLabWilaya = wilayas.find((wilaya) => wilaya.id === labFilters.wilayaId);
 
   const productSummary = useMemo(() => {
     const parts: string[] = [];
@@ -94,17 +109,18 @@ export default function FilterScreen() {
     return parts;
   }, [productFilters, selectedProductWilaya]);
 
-  const businessSummary = useMemo(() => {
+  const labSummary = useMemo(() => {
     const parts: string[] = [];
 
-    if (businessFilters.businessType !== 'all') {
-      parts.push(businessFilters.businessType === 'laboratory' ? 'Laboratories' : 'Suppliers');
+    if (labFilters.productType !== 'all') parts.push(labFilters.productType === 'product' ? 'Products' : 'Services');
+    if (selectedLabWilaya) parts.push(selectedLabWilaya.en || selectedLabWilaya.code);
+    if (labFilters.categoryIds.length > 0) parts.push(`${labFilters.categoryIds.length} categories`);
+    if (labFilters.minPrice > 0 || labFilters.maxPrice < STUDENT_LABORATORY_SERVICE_MAX_PRICE) {
+      parts.push(`${labFilters.minPrice.toLocaleString()}-${labFilters.maxPrice.toLocaleString()} DA`);
     }
-    if (selectedBusinessWilaya) parts.push(selectedBusinessWilaya.en || selectedBusinessWilaya.code);
-    if (businessFilters.sortBy !== 'featured') parts.push(businessFilters.sortBy === 'recent' ? 'Newest' : 'A to Z');
 
     return parts;
-  }, [businessFilters, selectedBusinessWilaya]);
+  }, [labFilters, selectedLabWilaya]);
 
   const openWilayaSheet = (currentId: number | null, onSelect: (item: Wilaya) => void) => {
     SheetManager.show('taxonomy-selector-sheet', {
@@ -156,13 +172,17 @@ export default function FilterScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={{ fontSize: 14, fontWeight: '700', color: '#475569' }}>Cancel</Text>
         </TouchableOpacity>
-        <Text style={{ fontSize: 17, fontWeight: '900', color: '#0F172A' }}>{mode === 'products' ? 'Filter Products' : 'Filter Businesses'}</Text>
+        <Text style={{ fontSize: 17, fontWeight: '900', color: '#0F172A' }}>
+          {mode === 'businesses' ? 'Filter Businesses' : mode === 'laboratory_services' ? 'Filter Lab Services' : 'Filter Products'}
+        </Text>
         <TouchableOpacity
           onPress={() => {
             if (mode === 'products') {
               resetProductFilters();
-            } else {
+            } else if (mode === 'businesses') {
               resetBusinessFilters();
+            } else {
+              resetLabFilters();
             }
             navigation.goBack();
           }}
@@ -172,93 +192,7 @@ export default function FilterScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 140 }}>
-        {mode === 'products' ? (
-          <>
-            {renderSummary(productSummary)}
-
-            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
-              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Type</Text>
-              <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
-                {[{ label: 'All', value: 'all' }, { label: 'Products', value: 'product' }, { label: 'Services', value: 'service' }].map((option) => {
-                  const isActive = productFilters.productType === option.value;
-                  return (
-                    <TouchableOpacity key={option.value} onPress={() => setLocalProductFilters((current) => ({ ...current, productType: option.value as any }))} style={{ flex: 1, height: 42, borderRadius: 14, justifyContent: 'center', alignItems: 'center', backgroundColor: isActive ? '#137FEC' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: isActive ? '#FFF' : '#475569' }}>{option.label}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-
-            {renderWilayaBlock(
-              selectedProductWilaya,
-              () => openWilayaSheet(productFilters.wilayaId, (item) => setLocalProductFilters((current) => ({ ...current, wilayaId: item.id }))),
-              () => setLocalProductFilters((current) => ({ ...current, wilayaId: null }))
-            )}
-
-            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
-              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Categories</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 16, gap: 10 }}>
-                {categories.map((category) => {
-                  const isActive = productFilters.categoryIds.includes(category.id);
-                  return (
-                    <TouchableOpacity key={category.id} onPress={() => setLocalProductFilters((current) => ({ ...current, categoryIds: isActive ? current.categoryIds.filter((id) => id !== category.id) : [...current.categoryIds, category.id] }))} style={{ paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, backgroundColor: isActive ? '#DBEAFE' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: isActive ? '#137FEC' : '#475569' }}>{category.en || category.code}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-
-            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
-              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Price Range</Text>
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', marginBottom: 8 }}>Min</Text>
-                  <TextInput style={{ height: 48, borderRadius: 14, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 14, color: '#0F172A', fontWeight: '700' }} keyboardType="numeric" value={String(productFilters.minPrice)} onChangeText={(value) => {
-                    const parsed = Math.max(0, Math.min(STUDENT_CATALOG_MAX_PRICE, parseInt(value || '0', 10) || 0));
-                    setLocalProductFilters((current) => ({ ...current, minPrice: Math.min(parsed, current.maxPrice) }));
-                  }} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', marginBottom: 8 }}>Max</Text>
-                  <TextInput style={{ height: 48, borderRadius: 14, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 14, color: '#0F172A', fontWeight: '700' }} keyboardType="numeric" value={String(productFilters.maxPrice)} onChangeText={(value) => {
-                    const parsed = Math.max(0, Math.min(STUDENT_CATALOG_MAX_PRICE, parseInt(value || '0', 10) || 0));
-                    setLocalProductFilters((current) => ({ ...current, maxPrice: Math.max(parsed, current.minPrice) }));
-                  }} />
-                </View>
-              </View>
-            </View>
-
-            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
-              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Safety Level</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 16, gap: 10 }}>
-                {SAFETY_LEVELS.map((level) => {
-                  const isActive = productFilters.safetyLevels.includes(level);
-                  return (
-                    <TouchableOpacity key={level} onPress={() => setLocalProductFilters((current) => ({ ...current, safetyLevels: isActive ? current.safetyLevels.filter((item) => item !== level) : [...current.safetyLevels, level] }))} style={{ width: 52, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center', backgroundColor: isActive ? '#DBEAFE' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
-                      <Text style={{ fontSize: 14, fontWeight: '800', color: isActive ? '#137FEC' : '#475569' }}>{level}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-
-            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
-              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Sort By</Text>
-              <View style={{ marginTop: 16, gap: 10 }}>
-                {PRODUCT_SORT_OPTIONS.map((option) => {
-                  const isActive = productFilters.sortBy === option.value;
-                  return (
-                    <TouchableOpacity key={option.value} onPress={() => setLocalProductFilters((current) => ({ ...current, sortBy: option.value }))} style={{ height: 48, borderRadius: 14, justifyContent: 'center', paddingHorizontal: 16, backgroundColor: isActive ? '#EFF6FF' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: isActive ? '#137FEC' : '#475569' }}>{option.label}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          </>
-        ) : (
+        {mode === 'businesses' ? (
           <>
             {renderSummary(businessSummary)}
 
@@ -296,6 +230,121 @@ export default function FilterScreen() {
               </View>
             </View>
           </>
+        ) : (
+          <>
+            {renderSummary(mode === 'products' ? productSummary : labSummary)}
+
+            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Type</Text>
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                {[{ label: 'All', value: 'all' }, { label: 'Products', value: 'product' }, { label: 'Services', value: 'service' }].map((option) => {
+                  const filters_to_use = mode === 'products' ? productFilters : labFilters;
+                  const set_filters_to_use = mode === 'products' ? setLocalProductFilters : setLocalLabFilters;
+                  const isActive = filters_to_use.productType === option.value;
+                  return (
+                    <TouchableOpacity key={option.value} onPress={() => set_filters_to_use((current: any) => ({ ...current, productType: option.value as any }))} style={{ flex: 1, height: 42, borderRadius: 14, justifyContent: 'center', alignItems: 'center', backgroundColor: isActive ? '#137FEC' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: isActive ? '#FFF' : '#475569' }}>{option.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            {renderWilayaBlock(
+              mode === 'products' ? selectedProductWilaya : selectedLabWilaya,
+              () => {
+                const filters_to_use = mode === 'products' ? productFilters : labFilters;
+                const set_filters_to_use = mode === 'products' ? setLocalProductFilters : setLocalLabFilters;
+                openWilayaSheet(filters_to_use.wilayaId, (item) => set_filters_to_use((current: any) => ({ ...current, wilayaId: item.id })));
+              },
+              () => {
+                const set_filters_to_use = mode === 'products' ? setLocalProductFilters : setLocalLabFilters;
+                set_filters_to_use((current: any) => ({ ...current, wilayaId: null }));
+              }
+            )}
+
+            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Categories</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 16, gap: 10 }}>
+                {categories.map((category) => {
+                  const filters_to_use = mode === 'products' ? productFilters : labFilters;
+                  const set_filters_to_use = mode === 'products' ? setLocalProductFilters : setLocalLabFilters;
+                  const isActive = filters_to_use.categoryIds.includes(category.id);
+                  return (
+                    <TouchableOpacity key={category.id} onPress={() => set_filters_to_use((current: any) => ({ ...current, categoryIds: isActive ? current.categoryIds.filter((id: number) => id !== category.id) : [...current.categoryIds, category.id] }))} style={{ paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, backgroundColor: isActive ? '#DBEAFE' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: isActive ? '#137FEC' : '#475569' }}>{category.en || category.code}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Price Range</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', marginBottom: 8 }}>Min</Text>
+                  <TextInput
+                    style={{ height: 48, borderRadius: 14, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 14, color: '#0F172A', fontWeight: '700' }}
+                    keyboardType="numeric"
+                    value={String(mode === 'products' ? productFilters.minPrice : labFilters.minPrice)}
+                    onChangeText={(value) => {
+                      const max_limit = mode === 'products' ? STUDENT_CATALOG_MAX_PRICE : STUDENT_LABORATORY_SERVICE_MAX_PRICE;
+                      const set_filters_to_use = mode === 'products' ? setLocalProductFilters : setLocalLabFilters;
+                      const parsed = Math.max(0, Math.min(max_limit, parseInt(value || '0', 10) || 0));
+                      set_filters_to_use((current: any) => ({ ...current, minPrice: Math.min(parsed, current.maxPrice) }));
+                    }}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', marginBottom: 8 }}>Max</Text>
+                  <TextInput
+                    style={{ height: 48, borderRadius: 14, backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 14, color: '#0F172A', fontWeight: '700' }}
+                    keyboardType="numeric"
+                    value={String(mode === 'products' ? productFilters.maxPrice : labFilters.maxPrice)}
+                    onChangeText={(value) => {
+                      const max_limit = mode === 'products' ? STUDENT_CATALOG_MAX_PRICE : STUDENT_LABORATORY_SERVICE_MAX_PRICE;
+                      const set_filters_to_use = mode === 'products' ? setLocalProductFilters : setLocalLabFilters;
+                      const parsed = Math.max(0, Math.min(max_limit, parseInt(value || '0', 10) || 0));
+                      set_filters_to_use((current: any) => ({ ...current, maxPrice: Math.max(parsed, current.minPrice) }));
+                    }}
+                  />
+                </View>
+              </View>
+            </View>
+
+            {mode === 'products' ? (
+              <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Safety Level</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 16, gap: 10 }}>
+                  {SAFETY_LEVELS.map((level) => {
+                    const isActive = productFilters.safetyLevels.includes(level);
+                    return (
+                      <TouchableOpacity key={level} onPress={() => setLocalProductFilters((current) => ({ ...current, safetyLevels: isActive ? current.safetyLevels.filter((item) => item !== level) : [...current.safetyLevels, level] }))} style={{ width: 52, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center', backgroundColor: isActive ? '#DBEAFE' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
+                        <Text style={{ fontSize: 14, fontWeight: '800', color: isActive ? '#137FEC' : '#475569' }}>{level}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            ) : null}
+
+            <View style={{ marginTop: 20, backgroundColor: '#FFF', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>Sort By</Text>
+              <View style={{ marginTop: 16, gap: 10 }}>
+                {PRODUCT_SORT_OPTIONS.map((option) => {
+                  const filters_to_use = mode === 'products' ? productFilters : labFilters;
+                  const set_filters_to_use = mode === 'products' ? setLocalProductFilters : setLocalLabFilters;
+                  const isActive = filters_to_use.sortBy === option.value;
+                  return (
+                    <TouchableOpacity key={option.value} onPress={() => set_filters_to_use((current: any) => ({ ...current, sortBy: option.value }))} style={{ height: 48, borderRadius: 14, justifyContent: 'center', paddingHorizontal: 16, backgroundColor: isActive ? '#EFF6FF' : '#F8FAFC', borderWidth: 1, borderColor: isActive ? '#137FEC' : '#E2E8F0' }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: isActive ? '#137FEC' : '#475569' }}>{option.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </>
         )}
       </ScrollView>
 
@@ -305,8 +354,10 @@ export default function FilterScreen() {
           onPress={() => {
             if (mode === 'products') {
               setProductFilters(productFilters);
-            } else {
+            } else if (mode === 'businesses') {
               setBusinessFilters(businessFilters);
+            } else {
+              setLabFilters(labFilters);
             }
             navigation.goBack();
           }}
@@ -318,8 +369,10 @@ export default function FilterScreen() {
           onPress={() => {
             if (mode === 'products') {
               setLocalProductFilters(defaultStudentCatalogFilters);
-            } else {
+            } else if (mode === 'businesses') {
               setLocalBusinessFilters(defaultStudentBusinessFilters);
+            } else {
+              setLocalLabFilters(defaultStudentLaboratoryServiceFilters);
             }
           }}
         >

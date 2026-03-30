@@ -12,6 +12,7 @@ import StatsIcon from "@/assets/icons/stats-icon";
 import InfoIcon from "@/assets/icons/info-icon";
 import SpecsIcon from "@/assets/icons/specs-icon";
 import { paddingHorizontal } from "@/utils/variables/styles";
+import { useInventoryStore } from "../zustand/inventory-store";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -29,6 +30,7 @@ export default function BusinessProductDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const initialProduct = route.params?.product;
+  const { updateProductLocal, deleteProductLocal } = useInventoryStore();
 
   const [product, setProduct] = useState<any>(initialProduct);
   const [isLoading, setIsLoading] = useState(!initialProduct);
@@ -69,8 +71,10 @@ export default function BusinessProductDetailScreen() {
         is_available: !product.isAvailable
       });
       if (response.data) {
-        setProduct({ ...product, isAvailable: !product.isAvailable });
-        Alert.alert("Success", `Product marked as ${!product.isAvailable ? 'available' : 'private'}`);
+        const newStatus = !product.isAvailable;
+        setProduct({ ...product, isAvailable: newStatus });
+        updateProductLocal(product.id, { isAvailable: newStatus });
+        Alert.alert("Success", `Product marked as ${newStatus ? 'available' : 'private'}`);
       }
     } catch (error) {
       Alert.alert("Error", "Failed to update product status");
@@ -92,6 +96,7 @@ export default function BusinessProductDetailScreen() {
             setIsActionLoading(true);
             try {
               await api.delete(buildRoute(ApiRoutes.products.destroy, { id: product.id }));
+              deleteProductLocal(product.id);
               navigation.goBack();
             } catch (error) {
               Alert.alert("Error", "Failed to delete product");

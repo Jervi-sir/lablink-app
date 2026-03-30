@@ -11,6 +11,7 @@ import { paddingHorizontal } from "@/utils/variables/styles";
 import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "@/zustand/auth-store";
 import { SheetManager } from "react-native-actions-sheet";
+import { useInventoryStore } from "../zustand/inventory-store";
 
 
 const { width } = Dimensions.get('window');
@@ -21,6 +22,7 @@ export default function EditCreateProductScreen() {
   const initialProduct = route.params?.product;
   const isEdit = initialProduct !== undefined;
   const { auth } = useAuthStore();
+  const { addProductLocal, updateProductLocal } = useInventoryStore();
 
 
   const [form, setForm] = useState({
@@ -262,9 +264,20 @@ export default function EditCreateProductScreen() {
 
       if (isEdit) {
         await api.put(buildRoute(ApiRoutes.products.update, { id: form.id }), payload);
+        updateProductLocal(form.id, {
+          ...payload,
+          isAvailable: payload.is_available,
+          images: existingImages // Keeping existing ones, new ones will be added after refresh or manual push
+        });
       } else {
         const response: any = await api.post(ApiRoutes.products.store, payload);
         productId = response.data?.id;
+        if (response.data) {
+          addProductLocal({
+            ...response.data,
+            isAvailable: response.data.is_available ?? payload.is_available
+          });
+        }
       }
 
       // Upload new images

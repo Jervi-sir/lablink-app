@@ -120,7 +120,7 @@ export default function BusinessM4Navigation() {
   };
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#FFF' }}>
+    <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       {isLoading && !isRefreshing ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#8B5CF6" />

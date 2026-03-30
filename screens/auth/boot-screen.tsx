@@ -128,7 +128,7 @@ export default function BootScreen() {
             }}
           >
             <Image
-              source={require("../../assets/icon.png")}
+              source={require("../../assets/logo.png")}
               style={{ width: 60, height: 60 }}
               resizeMode="contain"
             />

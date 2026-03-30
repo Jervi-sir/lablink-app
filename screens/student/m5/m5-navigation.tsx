@@ -11,9 +11,11 @@ import api from "@/utils/api/axios-instance";
 import { ApiRoutes } from "@/utils/api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { paddingHorizontal } from "@/utils/variables/styles";
+import { useLanguageStore } from "@/zustand/language-store";
 
 export default function StudentM5Navigation() {
   const navigation = useNavigation<any>();
+  const { language } = useLanguageStore();
   const [student, setStudent] = useState<any>(null);
   const [stats, setStats] = useState<any>({ orders: 0, saved_products: 0, saved_laboratories: 0, followed_facilities: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -59,6 +61,19 @@ export default function StudentM5Navigation() {
     }
   };
 
+  const translations = {
+    language: { en: 'Language', fr: 'Langue', ar: 'اللغة' },
+    english: { en: 'English', fr: 'Anglais', ar: 'الإنجليزية' },
+    french: { en: 'French', fr: 'Français', ar: 'الفرنسية' },
+    arabic: { en: 'Arabic', fr: 'Arabe', ar: 'العربية' },
+    // Direct language names for display
+    en: 'English',
+    fr: 'Français',
+    ar: 'العربية',
+  };
+
+  const t = (key: any) => (translations as any)[key]?.[language] || (translations as any)[key] || key;
+
   const MENU_ITEMS = [
     { label: 'Saved Products', onPress: () => navigation.navigate(Routes.StudentSavedProductsScreen), count: stats?.saved_products?.toString() || '0' },
     { label: 'Saved Laboratories', onPress: () => navigation.navigate(Routes.StudentSavedBusinessesScreen), count: stats?.saved_laboratories?.toString() || '0' },
@@ -68,7 +83,7 @@ export default function StudentM5Navigation() {
   const SETTINGS_ITEMS = [
     { label: 'Edit Profile', onPress: () => navigation.navigate(Routes.EditProfileScreen) },
     { label: 'Notifications', onPress: () => navigation.navigate(Routes.NotificationsScreen) },
-    { label: 'Language', value: 'English', onPress: () => navigation.navigate(Routes.LanguageScreen) },
+    { label: t('language'), value: t(language) || 'English', onPress: () => navigation.navigate(Routes.LanguageScreen) },
     { label: 'Privacy & Security', onPress: () => navigation.navigate(Routes.PrivacySecurityScreen) },
     { label: 'Help & Support', onPress: () => navigation.navigate(Routes.HelpSupportScreen) },
   ];

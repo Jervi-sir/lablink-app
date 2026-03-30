@@ -10,7 +10,7 @@ import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import ShareIcon from "@/assets/icons/share-icon";
 import SaveIcon from "@/assets/icons/save-icon";
-import { useLabCartStore } from "@/zustand/lab-cart-store";
+import { useLabCartStore } from "@/screens/student/zustand/lab-cart-store";
 import { useAuthStore } from "@/zustand/auth-store";
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -43,17 +43,21 @@ export default function ProductScreen() {
   const carts = useLabCartStore((state) => state.carts);
   const upsertItem = useLabCartStore((state) => state.upsertItem);
   const { auth, authType } = useAuthStore();
- 
+
   const isBusiness = authType === 'business';
   const isLaboratory = auth?.businessProfile?.category?.code === 'laboratory';
   const showOrderNow = isBusiness && isLaboratory;
- 
+
   const productId = navProduct?.id;
   const currentLab = routeLab || product?.business || navProduct?.business;
-  const productOwnerCategory = product?.category?.code || product?.business?.category?.code || currentLab?.category?.code || 'laboratory';
-  const isSupplierProduct = productOwnerCategory === 'supplier';
-  
-  const effectiveLabCartMode = labCartMode && !isSupplierProduct;
+
+  // Check if the owner of this product is a laboratory
+  const isLaboratoryOwner = product?.business?.category?.code === 'laboratory' ||
+    navProduct?.business?.category?.code === 'laboratory' ||
+    currentLab?.category?.code === 'laboratory';
+
+  // Lab cart mode is enforced for laboratory products, or if explicitly requested
+  const effectiveLabCartMode = isLaboratoryOwner || (labCartMode && product?.business?.category?.code !== 'supplier');
 
   const currentCart = carts[Number(currentLab?.id)];
   const cartEntry = currentCart?.items.find((item) => item.productId === Number(productId));
@@ -86,18 +90,32 @@ export default function ProductScreen() {
         imageUrl: product.images?.find((image: any) => image.isMain)?.url || product.images?.[0]?.url || null,
       });
 
-      Alert.alert('Lab cart updated', `${product.name} is ready in your ${targetBusiness.name} request.`);
+      Alert.alert(
+        'Added to request',
+        `${product.name} is now in your request for ${targetBusiness.name}.`,
+        [
+          { text: 'OK', style: 'default' },
+          {
+            text: 'Discover more from lab',
+            onPress: () => navigation.navigate(Routes.BusinessScreen, {
+              labId: targetBusiness.id,
+              labName: targetBusiness.name,
+              lab: currentLab
+            })
+          }
+        ]
+      );
     };
 
     if (!currentCart) {
       Alert.alert(
-        'Cart does not exist',
-        `A cart for ${targetBusiness.name} does not exist yet. Please press Create to continue.`,
+        'Start New Request',
+        `A request for ${targetBusiness.name} doesn't exist yet. Would you like to create one for this item?`,
         [
           { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Create', 
-            onPress: commit 
+          {
+            text: 'Create',
+            onPress: commit
           }
         ]
       );
@@ -105,7 +123,7 @@ export default function ProductScreen() {
     }
 
     commit();
-  }, [currentCart, currentLab, labName, product, productId, productPriceValue, quantity, upsertItem]);
+  }, [currentCart, currentLab, labName, product, productId, productPriceValue, quantity, upsertItem, navigation]);
 
   const fetchProduct = useCallback(async () => {
     if (!productId) return;
@@ -433,7 +451,17 @@ export default function ProductScreen() {
         {/* Info Section */}
         <View style={{ padding: 24, gap: 8 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#137FEC', letterSpacing: 0.5 }}>{labName}</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate(Routes.BusinessScreen, {
+                labId: currentLab?.id,
+                labName: currentLab?.name || labName,
+                lab: currentLab
+              })}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#137FEC', letterSpacing: 0.5 }}>{labName}</Text>
+              <Text style={{ fontSize: 12, color: '#137FEC' }}>→</Text>
+            </TouchableOpacity>
             <View style={{ backgroundColor: isInStock ? '#E9F7EF' : '#FEF2F2', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
               <Text style={{ fontSize: 10, fontWeight: '800', color: isInStock ? '#27AE60' : '#EF4444' }}>
                 {isInStock ? 'IN STOCK' : 'OUT OF STOCK'}
@@ -456,6 +484,59 @@ export default function ProductScreen() {
               <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '600' }}>{product.avgRating} ({product.reviewCount})</Text>
             </View>
           )}
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate(Routes.BusinessScreen, {
+              labId: currentLab?.id,
+              labName: currentLab?.name || labName,
+              lab: currentLab
+            })}
+            style={{
+              marginTop: 12,
+              padding: 16,
+              backgroundColor: '#F8FAFC',
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: '#E2E8F0',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.02,
+              shadowRadius: 4,
+              elevation: 2
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 16 }}>
+              <View style={{ position: 'relative' }}>
+                <Image
+                  source={{ uri: currentLab?.logo || 'https://via.placeholder.com/60' }}
+                  style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#F1F5F9' }}
+                  resizeMode="contain"
+                />
+                <View style={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: '#22C55E', borderWidth: 2, borderColor: '#FFF', justifyContent: 'center', alignItems: 'center' }}>
+                   <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#FFF' }} />
+                </View>
+              </View>
+
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>{labName}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Text style={{ fontSize: 14 }}>📍</Text>
+                  <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '600' }}>
+                    {currentLab?.wilaya?.en || currentLab?.wilaya?.name || 'Location N/A'}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 12, color: '#137FEC', fontWeight: '700', marginTop: 2 }}>
+                  {isLaboratoryOwner ? 'Specialized Laboratory' : 'Certified Supplier'}
+                </Text>
+              </View>
+            </View>
+            <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#F1F5F9' }}>
+               <Text style={{ fontSize: 14, color: '#94A3B8', fontWeight: '800' }}>›</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Quick Summary */}
@@ -504,9 +585,6 @@ export default function ProductScreen() {
                   onPress={() => toggleSection(section.id)}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    {/* <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center' }}>
-                      <View style={[{ width: 18, height: 18, backgroundColor: '#CBD5E1', borderRadius: 4 }, isExpanded && { backgroundColor: '#137FEC' }]} />
-                    </View> */}
                     <Text style={[{ fontSize: 16, fontWeight: '700', color: '#334155' }, isExpanded && { color: '#111' }]}>{section.title}</Text>
                   </View>
                   <View style={[
@@ -522,47 +600,96 @@ export default function ProductScreen() {
       </ScrollView>
 
       {/* Bottom Action Area */}
-      <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#FFF', flexDirection: 'row', padding: 20, paddingBottom: Platform.OS === 'ios' ? 34 : 20, gap: 16, borderTopWidth: 1, borderTopColor: '#F1F5F9' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F5F9', borderRadius: 12, paddingHorizontal: 4 }}>
-          <TouchableOpacity style={{ width: 40, height: 44, justifyContent: 'center', alignItems: 'center' }} onPress={decrementQty}><Text style={{ fontSize: 20, fontWeight: '600', color: '#111' }}>-</Text></TouchableOpacity>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#111', width: 30, textAlign: 'center' }}>{quantity}</Text>
-          <TouchableOpacity style={{ width: 40, height: 44, justifyContent: 'center', alignItems: 'center' }} onPress={incrementQty}><Text style={{ fontSize: 20, fontWeight: '600', color: '#111' }}>+</Text></TouchableOpacity>
-        </View>
-
-        {effectiveLabCartMode ? (
-          <>
-            <TouchableOpacity
-              style={{ paddingHorizontal: 16, backgroundColor: '#E2E8F0', borderRadius: 12, justifyContent: 'center', alignItems: 'center' }}
-              activeOpacity={0.8}
-              onPress={() => navigation.navigate(Routes.LabEstimationScreen, { businessId: currentLab?.id })}
-            >
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#334155' }}>View Cart{cartEntry ? ` (${cartEntry.quantity})` : ''}</Text>
+      <View style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        backgroundColor: '#FFF',
+        paddingHorizontal: 20,
+        paddingTop: 14,
+        paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+        borderTopWidth: 1,
+        borderTopColor: '#F1F5F9',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -10 },
+        shadowOpacity: 0.04,
+        shadowRadius: 12,
+        elevation: 20
+      }}>
+        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+          {/* Professional Quantity Selector */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', height: 54 }}>
+            <TouchableOpacity style={{ width: 38, height: 54, justifyContent: 'center', alignItems: 'center' }} onPress={decrementQty}>
+              <Text style={{ fontSize: 20, fontWeight: '600', color: '#64748B' }}>−</Text>
             </TouchableOpacity>
+            <Text style={{ fontSize: 16, fontWeight: '900', color: '#0F172A', width: 28, textAlign: 'center' }}>{quantity}</Text>
+            <TouchableOpacity style={{ width: 38, height: 54, justifyContent: 'center', alignItems: 'center' }} onPress={incrementQty}>
+              <Text style={{ fontSize: 20, fontWeight: '600', color: '#64748B' }}>+</Text>
+            </TouchableOpacity>
+          </View>
+
+          {effectiveLabCartMode ? (
+            <View style={{ flex: 1, flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity
+                style={{
+                  width: 54,
+                  height: 54,
+                  backgroundColor: '#EFF6FF',
+                  borderRadius: 16,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderWidth: 1,
+                  borderColor: '#DBEAFE'
+                }}
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate(Routes.LabEstimationScreen, { businessId: currentLab?.id, lab: currentLab })}
+              >
+                <Text style={{ fontSize: 20 }}>📋</Text>
+                {cartEntry && (
+                  <View style={{ position: 'absolute', top: -5, right: -5, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' }}>
+                    <Text style={{ fontSize: 10, fontWeight: '900', color: '#FFF' }}>{cartEntry.quantity}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  height: 54,
+                  backgroundColor: isInStock ? '#137FEC' : '#94A3B8',
+                  borderRadius: 16,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+                activeOpacity={0.8}
+                disabled={!isInStock}
+                onPress={saveToLabCart}
+              >
+                <Text style={{ fontSize: 15, fontWeight: '900', color: '#FFF', letterSpacing: -0.2 }}>
+                  {isInStock ? (cartEntry ? 'Update Request' : 'Add to Request') : 'Unavailable'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
             <TouchableOpacity
-              style={{ flex: 1, backgroundColor: isInStock ? '#137FEC' : '#94A3B8', borderRadius: 12, justifyContent: 'center', alignItems: 'center' }}
+              style={{
+                flex: 1,
+                height: 54,
+                backgroundColor: isInStock ? '#137FEC' : '#94A3B8',
+                borderRadius: 16,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
               activeOpacity={0.8}
               disabled={!isInStock}
-              onPress={saveToLabCart}
+              onPress={() => navigation.navigate(Routes.CheckoutScreen, { product, quantity })}
             >
-              <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>
-                {isInStock ? (cartEntry ? 'Update Lab Cart' : 'Add to Lab Cart') : 'Unavailable'}
+              <Text style={{ fontSize: 16, fontWeight: '900', color: '#FFF' }}>
+                {isInStock
+                  ? (showOrderNow ? 'Order Now' : 'Send Proposal')
+                  : 'Unavailable'}
               </Text>
             </TouchableOpacity>
-          </>
-        ) : (
-          <TouchableOpacity
-            style={{ flex: 1, backgroundColor: isInStock ? '#137FEC' : '#94A3B8', borderRadius: 12, justifyContent: 'center', alignItems: 'center' }}
-            activeOpacity={0.8}
-            disabled={!isInStock}
-            onPress={() => navigation.navigate(Routes.CheckoutScreen, { product, quantity })}
-          >
-            <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFF' }}>
-              {isInStock 
-                ? (isSupplierProduct ? (showOrderNow ? 'Order Now' : 'Place Order') : 'Request Proposal') 
-                : 'Unavailable'}
-            </Text>
-          </TouchableOpacity>
-        )}
+          )}
+        </View>
       </View>
     </ScreenWrapper>
   );

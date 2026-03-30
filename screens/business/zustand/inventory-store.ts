@@ -22,8 +22,10 @@ interface InventoryState {
   isRefreshing: boolean;
   isLoadingMore: boolean;
   fetchInventory: (page?: number, shouldRefresh?: boolean, searchQuery?: string, activeTab?: string) => Promise<void>;
+  addProductLocal: (product: Product) => void;
   updateProductLocal: (productId: string | number, updates: Partial<Product>) => void;
   deleteProductLocal: (productId: string | number) => void;
+  reset: () => void;
 }
 
 export const useInventoryStore = create<InventoryState>((set) => ({
@@ -73,6 +75,13 @@ export const useInventoryStore = create<InventoryState>((set) => ({
       });
     }
   },
+  
+  addProductLocal: (product) => {
+    set((state) => ({
+      products: [product, ...state.products],
+      total: state.total + 1,
+    }));
+  },
 
   updateProductLocal: (productId, updates) => {
     set((state) => ({
@@ -88,4 +97,14 @@ export const useInventoryStore = create<InventoryState>((set) => ({
       total: Math.max(0, state.total - 1),
     }));
   },
+
+  reset: () => set({
+    products: [],
+    total: 0,
+    nextPage: 1,
+    isLoading: false,
+    isRefreshing: false,
+    isLoadingMore: false,
+  }),
 }));
+

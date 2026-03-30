@@ -18,9 +18,9 @@ type AuthStore = {
 
   me: (payload?: { username: string; password: string; full_name?: string; profile_image?: string | null; wilaya_id?: number | null; }) => Promise<User>;
   logout: (navigation: any) => Promise<void>;
-
+  reset: () => void;
 }
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
   auth: null,
   setAuth: (user: User | null) => {
     set({ auth: user });
@@ -64,11 +64,19 @@ export const useAuthStore = create<AuthStore>((set) => ({
       //   })
       // )
     } finally {
-      // await get().setAuthToken(null);
+      await get().setAuthToken(null);
       // await setStoredAuth(null);
       set({ auth: null });
     }
   },
 
-
+  reset: () => {
+    set({
+      auth: null,
+      authType: null,
+      authToken: null,
+      isLoading: false,
+      error: null,
+    });
+  },
 }));

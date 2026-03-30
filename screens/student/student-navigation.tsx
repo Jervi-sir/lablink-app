@@ -18,8 +18,8 @@ import M5StudentIcon from "@/assets/icons/menu/student/m5-student-icon";
 function useTabScreens() {
 
   return [
-    { key: 'M1', label: 'Home', routeName: Routes.M1, component: StudentM1Navigation, icon: M1StudentIcon },
-    { key: 'M2', label: 'Search', routeName: Routes.M2, component: StudentM2Navigation, icon: M2StudentIcon },
+    { key: 'M1', label: 'Suppliers', routeName: Routes.M1, component: StudentM1Navigation, icon: M1StudentIcon },
+    { key: 'M2', label: 'Laboratories', routeName: Routes.M2, component: StudentM2Navigation, icon: M2StudentIcon },
     { key: 'M3', label: 'Orders', routeName: Routes.M3, component: StudentM3Navigation, icon: M3StudentIcon },
     { key: 'M4', label: 'Inbox', routeName: Routes.M4, component: StudentM4Navigation, icon: M4StudentIcon },
     { key: 'M5', label: 'Profile', routeName: Routes.M5, component: StudentM5Navigation, icon: M5StudentIcon },
