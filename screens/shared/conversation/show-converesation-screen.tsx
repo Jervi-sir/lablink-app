@@ -5,41 +5,13 @@ import { View, ScrollView, TextInput, StyleSheet, Dimensions } from "react-nativ
 import { useLanguageStore } from "@/zustand/language-store";
 
 
-const MESSAGES = [
-  {
-    id: '1',
-    text: 'Hello! Your sample #4092 has been received safely at our facility.',
-    time: '9:41 AM',
-    isMe: false,
-    showAvatar: true
-  },
-  {
-    id: '2',
-    text: 'Great, thanks for the update! When can I expect the preliminary results?',
-    time: '9:43 AM',
-    isMe: true
-  },
-  {
-    id: '3',
-    text: 'We are processing it now. The sequencing usually takes about 6-8 hours.',
-    time: '9:45 AM',
-    isMe: false,
-    showAvatar: false
-  },
-  {
-    id: '4',
-    text: 'You can expect a full PDF report by 5 PM today.',
-    time: '9:45 AM',
-    isMe: false,
-    showAvatar: true
-  },
-  {
-    id: '5',
-    text: 'Perfect. I also have the additional consent form you asked for.',
-    time: '9:47 AM',
-    isMe: true
-  },
-];
+import { useConversationStore } from "@/zustand/conversation-store";
+import { useAuthStore } from "@/zustand/auth-store";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { useEffect, useRef, useState } from "react";
+import moment from "moment";
+import * as ImagePicker from 'expo-image-picker';
+import { ActivityIndicator, Image } from "react-native";
 
 const SUGGESTIONS = {
   en: ['Check pricing', 'Request extension', 'Call Lab'],
@@ -57,23 +29,84 @@ const translations = {
 
 export default function ShowConversationScreen() {
   const language = useLanguageStore((state) => state.language);
+  const { activeConversation, fetchConversationDetails, sendMessage, isSending } = useConversationStore();
+  const { auth } = useAuthStore();
+  const route = useRoute<any>();
+  const navigation = useNavigation();
+  const scrollViewRef = useRef<ScrollView>(null);
+  
+  const [inputText, setInputText] = useState('');
+
   const t = (key: keyof typeof translations) => translations[key]?.[language] || key;
   const currentSuggestions = SUGGESTIONS[language] || SUGGESTIONS.en;
 
+  useEffect(() => {
+    if (route.params?.id) {
+       fetchConversationDetails(route.params.id);
+    }
+  }, [route.params?.id]);
+
+  useEffect(() => {
+    // Scroll to bottom when messages change
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, [activeConversation?.messages]);
+
+  const handleSend = async () => {
+    if (!inputText.trim() || !activeConversation) return;
+    const text = inputText;
+    setInputText('');
+    await sendMessage(activeConversation.id, text);
+  };
+
+  const handlePickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && activeConversation) {
+      await sendMessage(activeConversation.id, '', result.assets[0]);
+    }
+  };
+
+  const getOtherUser = () => {
+    if (!activeConversation) return null;
+    return activeConversation.user1_id === auth?.id ? activeConversation.user2 : activeConversation.user1;
+  };
+
+  const otherUser = getOtherUser();
+  const otherUserProfile = otherUser?.business_profile || otherUser?.student_profile;
+  const otherUserName = otherUserProfile?.name || otherUserProfile?.fullname || 'User';
+  const otherUserAvatar = otherUserProfile?.logo || otherUserProfile?.profile_image;
+
+  if (!activeConversation) {
+    return (
+      <ScreenWrapper style={{ backgroundColor: '#F8F9FB', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#137FEC" />
+      </ScreenWrapper>
+    );
+  }
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       {/* Header */}
       <View style={[styles.header, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
         <View style={[styles.headerLeft, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
-          <TouchableOpacity style={styles.backBtn}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <View style={[styles.backArrow, { transform: [{ rotate: language === 'ar' ? '135deg' : '-45deg' }] }]} />
           </TouchableOpacity>
           <View style={styles.labAvatarContainer}>
-            <View style={styles.labAvatar} />
+            {otherUserAvatar ? (
+               <Image source={{ uri: otherUserAvatar }} style={styles.labAvatar} />
+            ) : (
+               <View style={styles.labAvatar} />
+            )}
             <View style={[styles.onlineStatus, { right: language === 'ar' ? undefined : -2, left: language === 'ar' ? -2 : undefined }]} />
           </View>
           <View style={{ alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
-            <Text style={styles.labName}>BioGenetics Lab A</Text>
+            <Text style={styles.labName}>{otherUserName}</Text>
             <Text style={styles.onlineText}>{t('active_now')}</Text>
           </View>
         </View>
@@ -96,44 +129,67 @@ export default function ShowConversationScreen() {
         <View style={[styles.contextArrow, { transform: [{ rotate: language === 'ar' ? '225deg' : '45deg' }] }]} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.chatContainer}>
+      <ScrollView 
+        ref={scrollViewRef}
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={styles.chatContainer}
+        onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+      >
         {/* Date Divider */}
         <View style={styles.dateDivider}>
           <Text style={styles.dateText}>{t('today')}</Text>
         </View>
 
-        {MESSAGES.map((msg) => (
-          <View key={msg.id} style={[
-            styles.messageRow,
-            { flexDirection: language === 'ar' ? 'row-reverse' : 'row' },
-            msg.isMe ? styles.myMessageRow : styles.theirMessageRow
-          ]}>
-            {!msg.isMe && (
-              <View style={styles.avatarSpace}>
-                {msg.showAvatar && <View style={styles.theirAvatar} />}
-              </View>
-            )}
-
-            <View style={[
-              styles.bubbleContainer,
-              msg.isMe ? styles.myBubbleContainer : styles.theirBubbleContainer,
-              { alignItems: msg.isMe ? (language === 'ar' ? 'flex-start' : 'flex-end') : (language === 'ar' ? 'flex-end' : 'flex-start') }
+        {activeConversation.messages.slice().reverse().map((msg, index, array) => {
+          const isMe = msg.sender_id === auth?.id;
+          const showAvatar = !isMe && (index === 0 || array[index-1].sender_id !== msg.sender_id);
+          
+          return (
+            <View key={msg.id} style={[
+              styles.messageRow,
+              { flexDirection: language === 'ar' ? 'row-reverse' : 'row' },
+              isMe ? styles.myMessageRow : styles.theirMessageRow
             ]}>
+              {!isMe && (
+                <View style={styles.avatarSpace}>
+                  {showAvatar && (
+                    otherUserAvatar ? (
+                        <Image source={{ uri: otherUserAvatar }} style={styles.theirAvatar} />
+                    ) : (
+                        <View style={[styles.theirAvatar, { backgroundColor: '#E7F2FD', justifyContent: 'center', alignItems: 'center' }]}>
+                            <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#137FEC' }}>{otherUserName.charAt(0)}</Text>
+                        </View>
+                    )
+                  )}
+                </View>
+              )}
+
               <View style={[
-                styles.bubble,
-                msg.isMe ? styles.myBubble : styles.theirBubble,
-                msg.isMe ? (language === 'ar' ? { borderBottomLeftRadius: 4, borderBottomRightRadius: 16 } : { borderBottomRightRadius: 4, borderBottomLeftRadius: 16 }) : (language === 'ar' ? { borderBottomRightRadius: 4, borderBottomLeftRadius: 16 } : { borderBottomLeftRadius: 4, borderBottomRightRadius: 16 })
+                styles.bubbleContainer,
+                isMe ? styles.myBubbleContainer : styles.theirBubbleContainer,
+                { alignItems: isMe ? (language === 'ar' ? 'flex-start' : 'flex-end') : (language === 'ar' ? 'flex-end' : 'flex-start') }
               ]}>
-                <Text style={[
-                  styles.messageText,
-                  msg.isMe ? styles.myMessageText : styles.theirMessageText,
-                  { textAlign: language === 'ar' ? 'right' : 'left' }
-                ]}>{msg.text}</Text>
+                <View style={[
+                  styles.bubble,
+                  isMe ? styles.myBubble : styles.theirBubble,
+                  isMe ? (language === 'ar' ? { borderBottomLeftRadius: 4, borderBottomRightRadius: 16 } : { borderBottomRightRadius: 4, borderBottomLeftRadius: 16 }) : (language === 'ar' ? { borderBottomRightRadius: 4, borderBottomLeftRadius: 16 } : { borderBottomLeftRadius: 4, borderBottomRightRadius: 16 })
+                ]}>
+                  {msg.type === 'image' && msg.object?.url ? (
+                    <Image source={{ uri: msg.object.url }} style={{ width: 200, height: 200, borderRadius: 8, marginBottom: msg.message ? 8 : 0 }} resizeMode="cover" />
+                  ) : null}
+                  {msg.message ? (
+                    <Text style={[
+                      styles.messageText,
+                      isMe ? styles.myMessageText : styles.theirMessageText,
+                      { textAlign: language === 'ar' ? 'right' : 'left' }
+                    ]}>{msg.message}</Text>
+                  ) : null}
+                </View>
+                <Text style={styles.timeText}>{moment(msg.created_at).format('HH:mm')}</Text>
               </View>
-              <Text style={styles.timeText}>{msg.time}</Text>
             </View>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
 
       {/* Input Section */}
@@ -148,7 +204,7 @@ export default function ShowConversationScreen() {
         </ScrollView>
 
         <View style={[styles.inputContainer, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
-          <TouchableOpacity style={styles.attachBtn}>
+          <TouchableOpacity style={styles.attachBtn} onPress={handlePickImage}>
             <View style={styles.paperclipIcon} />
           </TouchableOpacity>
           <View style={[styles.textInputWrapper, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
@@ -156,9 +212,16 @@ export default function ShowConversationScreen() {
               placeholder={t('type_message')}
               style={[styles.textInput, { textAlign: language === 'ar' ? 'right' : 'left' }]}
               placeholderTextColor="#A0AEC0"
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
             />
-            <TouchableOpacity style={styles.sendBtn}>
-              <View style={[styles.sendIcon, { transform: [{ rotate: language === 'ar' ? '180deg' : '0deg' }] }]} />
+            <TouchableOpacity style={styles.sendBtn} onPress={handleSend} disabled={isSending}>
+              {isSending ? (
+                <ActivityIndicator size="small" color="#137FEC" />
+              ) : (
+                <View style={[styles.sendIcon, { transform: [{ rotate: language === 'ar' ? '180deg' : '0deg' }] }]} />
+              )}
             </TouchableOpacity>
           </View>
         </View>

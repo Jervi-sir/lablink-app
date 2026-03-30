@@ -13,6 +13,8 @@ import SaveIcon from "@/assets/icons/save-icon";
 import { useLabCartStore } from "@/screens/student/zustand/lab-cart-store";
 import { useAuthStore } from "@/zustand/auth-store";
 import { useLanguageStore } from "@/zustand/language-store";
+import { useConversationStore } from "@/zustand/conversation-store";
+import MessageIcon from "@/assets/icons/message-icon"; // Assuming this exists or I'll use a placeholder
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -100,6 +102,7 @@ export default function ProductScreen() {
   const carts = useLabCartStore((state) => state.carts);
   const upsertItem = useLabCartStore((state) => state.upsertItem);
   const { auth, authType } = useAuthStore();
+  const { createConversation, setActiveConversation } = useConversationStore();
 
   const isBusiness = authType === 'business';
   const isLaboratory = auth?.businessProfile?.category?.code === 'laboratory';
@@ -432,6 +435,25 @@ export default function ProductScreen() {
               <SaveIcon isActive={isSaved} />
             )}
           </TouchableOpacity>
+          {/* Message Button */}
+          {auth?.id !== currentLab?.user_id && (
+            <TouchableOpacity
+              style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.9)', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 }}
+              onPress={async () => {
+                if (!currentLab?.user_id) return;
+                try {
+                  const conv = await createConversation(currentLab.user_id);
+                  setActiveConversation(conv);
+                  navigation.navigate('ShowConversation', { id: conv.id });
+                } catch (err) {
+                  Alert.alert("Error", "Could not start conversation");
+                }
+              }}
+            >
+               <MessageIcon size={24} color="#111" />
+            </TouchableOpacity>
+          )}
+
           {/* Share Button */}
           <TouchableOpacity
             style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.9)', justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 }}

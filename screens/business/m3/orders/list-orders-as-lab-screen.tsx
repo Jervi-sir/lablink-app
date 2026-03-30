@@ -4,6 +4,14 @@ import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView, Dimensions } from "react-native";
 import { useLanguageStore } from "@/zustand/language-store";
 
+const getSummaryCards = (t: any) => [
+  { id: '1', title: t('pending'), count: '5', icon: 'clock' },
+  { id: '2', title: t('to_ship'), count: '5', icon: 'truck' },
+  { id: '3', title: t('packaging'), count: '2', icon: 'package' },
+];
+
+const getFilterTabs = (t: any) => [t('all'), t('new'), t('processing'), t('completed')];
+
 const translations = {
   incoming_orders: { en: 'Incoming Orders', fr: 'Commandes entrantes', ar: 'الطلبات الواردة' },
   pending: { en: 'Pending', fr: 'En attente', ar: 'قيد الانتظار' },
@@ -55,6 +63,20 @@ const ORDERS = [
 ];
 
 export default function ListOrdersAsLabScreen() {
+  const language = useLanguageStore((state) => state.language);
+  const t = (key: keyof typeof translations) => translations[key]?.[language] || key;
+
+  const summaryCards = getSummaryCards(t);
+  const filterTabs = getFilterTabs(t);
+
+  const getLocalizedOrderStatus = (status: string) => {
+    switch (status) {
+      case 'New Order': return t('new_order');
+      case 'Awaiting Shipment': return t('awaiting_shipment');
+      default: return status;
+    }
+  };
+
   return (
     <ScreenWrapper style={{ backgroundColor: '#F8F9FB' }}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
@@ -63,12 +85,12 @@ export default function ListOrdersAsLabScreen() {
         <View style={{
           paddingHorizontal: 16,
           paddingVertical: 16,
-          flexDirection: 'row',
+          flexDirection: language === 'ar' ? 'row-reverse' : 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
           backgroundColor: '#FFF',
         }}>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: '#000' }}>Incoming Orders</Text>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#000' }}>{t('incoming_orders')}</Text>
           <TouchableOpacity>
             <View style={{
               width: 22,
@@ -86,9 +108,12 @@ export default function ListOrdersAsLabScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 16, gap: 12 }}
+          contentContainerStyle={[
+            { paddingHorizontal: 12, paddingVertical: 16, gap: 12 },
+            language === 'ar' && { flexDirection: 'row-reverse' }
+          ]}
         >
-          {SUMMARY_CARDS.map((card) => (
+          {summaryCards.map((card) => (
             <View key={card.id} style={{
               width: 140,
               backgroundColor: '#FFF',
@@ -102,7 +127,7 @@ export default function ListOrdersAsLabScreen() {
               shadowRadius: 10,
               elevation: 3,
             }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', gap: 8 }}>
                 <View style={{ width: 20, height: 20, backgroundColor: '#000', borderRadius: 4 }} />
                 <Text style={{ fontSize: 16, fontWeight: '700', color: '#000' }}>{card.title}</Text>
               </View>
@@ -112,8 +137,8 @@ export default function ListOrdersAsLabScreen() {
         </ScrollView>
 
         {/* Filter Tabs */}
-        <View style={{ flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 16 }}>
-          {FILTER_TABS.map((tab, index) => (
+        <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', paddingHorizontal: 16, gap: 8, marginBottom: 16 }}>
+          {filterTabs.map((tab, index) => (
             <TouchableOpacity
               key={tab}
               style={{
@@ -151,7 +176,7 @@ export default function ListOrdersAsLabScreen() {
               elevation: 3,
             }}>
               {/* Card Header */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <View style={{ paddingHorizontal: 10, paddingVertical: 4, backgroundColor: '#F3F4F6', borderRadius: 6 }}>
                   <Text style={{ fontSize: 12, fontWeight: '600', color: '#137FEC' }}>{order.id}</Text>
                 </View>
@@ -159,21 +184,21 @@ export default function ListOrdersAsLabScreen() {
               </View>
 
               {/* Card Body */}
-              <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', gap: 12 }}>
                 <View style={{ width: 66, height: 66, backgroundColor: '#D9D9D9', borderRadius: 12 }} />
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={{ fontSize: 16, fontWeight: '800', color: '#000' }}>{order.title}</Text>
-                  <Text style={{ fontSize: 14, color: '#6B7280', fontWeight: '500' }}>{order.description}</Text>
-                  <Text style={{ fontSize: 14, color: '#6B7280', fontWeight: '500' }}>{order.location}</Text>
+                <View style={{ flex: 1, gap: 2, alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }}>
+                  <Text style={{ fontSize: 16, fontWeight: '800', color: '#000', textAlign: language === 'ar' ? 'right' : 'left' }}>{order.title}</Text>
+                  <Text style={{ fontSize: 14, color: '#6B7280', fontWeight: '500', textAlign: language === 'ar' ? 'right' : 'left' }}>{order.description}</Text>
+                  <Text style={{ fontSize: 14, color: '#6B7280', fontWeight: '500', textAlign: language === 'ar' ? 'right' : 'left' }}>{order.location}</Text>
                 </View>
               </View>
 
               {/* Card Footer */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 6, backgroundColor: order.statusBg }}>
+              <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                <View style={{ flexDirection: language === 'ar' ? 'row-reverse' : 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 6, backgroundColor: order.statusBg }}>
                   <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: order.statusColor }} />
                   <Text style={{ fontSize: 12, fontWeight: '700', color: order.statusColor }}>
-                    {order.status}
+                    {getLocalizedOrderStatus(order.status)}
                   </Text>
                 </View>
 
@@ -188,7 +213,7 @@ export default function ListOrdersAsLabScreen() {
                     fontSize: 14,
                     fontWeight: '700',
                   }}>
-                    View Details
+                    {t('view_details')}
                   </Text>
                 </TouchableOpacity>
               </View>

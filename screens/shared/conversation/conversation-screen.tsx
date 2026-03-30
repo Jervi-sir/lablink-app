@@ -3,69 +3,12 @@ import Text from "@/components/text";
 import TouchableOpacity from "@/components/touchable-opacity";
 import { View, ScrollView, TextInput, StyleSheet, Dimensions } from "react-native";
 import { useLanguageStore } from "@/zustand/language-store";
-
-
-const { width } = Dimensions.get('window');
-
-const CONVERSATIONS = [
-  {
-    id: '1',
-    name: 'BioTech Solutions',
-    lastMessage: 'Your order #402 has been...',
-    time: '2m ago',
-    unreadCount: 1,
-    online: true,
-    isFeatured: true,
-  },
-  {
-    id: '2',
-    name: 'ChemLab Supplies',
-    lastMessage: 'Can you confirm the purity...',
-    time: '10:45 AM',
-    unreadCount: 2,
-    online: false,
-    isFeatured: true,
-  },
-  {
-    id: '3',
-    name: 'Genomics Core',
-    lastMessage: 'The sequencing results are ready for download in your portal dashboard.',
-    time: 'Yesterday',
-    unreadCount: 0,
-    online: false,
-    isFeatured: false,
-  },
-  {
-    id: '4',
-    name: "Dr. Smith's Lab",
-    lastMessage: 'Approved. You can pick up the reagents anytime this afternoon.',
-    time: 'Mon',
-    unreadCount: 0,
-    online: false,
-    isFeatured: false,
-    hasImage: true,
-  },
-  {
-    id: '5',
-    name: 'Lab Equipment Co.',
-    lastMessage: 'Thanks for your inquiry. The centrifuge model X200 is currently...',
-    time: 'Oct 24',
-    unreadCount: 0,
-    online: false,
-    isFeatured: false,
-    isInitial: true,
-    initials: 'LE'
-  },
-  {
-    id: '6',
-    name: 'Uni Supplies',
-    lastMessage: 'Invoice #9921 attached. Please process payment by end of month.',
-    time: 'Oct 22',
-    unreadCount: 0,
-    online: false,
-    isFeatured: false,
-  },
-];
+import { useConversationStore } from "@/zustand/conversation-store";
+import { useAuthStore } from "@/zustand/auth-store";
+import { useNavigation } from "@react-navigation/native";
+import { useEffect, useState } from "react";
+import moment from "moment";
+import { ActivityIndicator, Image } from "react-native";
 
 const translations = {
   messages: { en: 'Messages', fr: 'Messages', ar: 'الرسائل' },
@@ -79,7 +22,40 @@ const translations = {
 
 export default function ConversationScreen() {
   const language = useLanguageStore((state) => state.language);
+  const { conversations, isLoading, fetchConversations, initReverb, setActiveConversation } = useConversationStore();
+  const { auth } = useAuthStore();
+  const navigation = useNavigation<any>();
+  const [search, setSearch] = useState('');
+
   const t = (key: keyof typeof translations) => translations[key]?.[language] || key;
+
+  useEffect(() => {
+    fetchConversations();
+    initReverb();
+  }, []);
+
+  const handleSearch = (text: string) => {
+    setSearch(text);
+    fetchConversations(text);
+  };
+
+  const getOtherUser = (item: any) => {
+    return item.user1_id === auth?.id ? item.user2 : item.user1;
+  };
+
+  const getOtherUserProfile = (user: any) => {
+    return user?.business_profile || user?.student_profile;
+  };
+
+  const getName = (user: any) => {
+    const profile = getOtherUserProfile(user);
+    return profile?.name || profile?.fullname || 'User';
+  };
+
+  const getAvatar = (user: any) => {
+    const profile = getOtherUserProfile(user);
+    return profile?.logo || profile?.profile_image;
+  };
 
   return (
     <ScreenWrapper style={{ backgroundColor: '#FFF' }}>
@@ -99,6 +75,8 @@ export default function ConversationScreen() {
             placeholder={t('search_placeholder')}
             style={[styles.searchInput, { textAlign: language === 'ar' ? 'right' : 'left' }]}
             placeholderTextColor="#A0AEC0"
+            value={search}
+            onChangeText={handleSearch}
           />
         </View>
       </View>
@@ -107,45 +85,62 @@ export default function ConversationScreen() {
         {/* Section Title */}
         <Text style={[styles.sectionTitle, { textAlign: language === 'ar' ? 'right' : 'left' }]}>{t('recent')}</Text>
 
+        {/* Loading State */}
+        {isLoading && conversations.length === 0 && (
+          <ActivityIndicator size="large" color="#137FEC" style={{ marginTop: 20 }} />
+        )}
+
         {/* Conversation List */}
         <View style={styles.listContainer}>
-          {CONVERSATIONS.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.conversationItem,
-                { flexDirection: language === 'ar' ? 'row-reverse' : 'row' },
-                item.isFeatured && styles.featuredItem
-              ]}
-            >
-              <View style={styles.avatarContainer}>
-                {item.isInitial ? (
-                  <View style={styles.initialsAvatar}>
-                    <Text style={styles.initialsText}>{item.initials}</Text>
-                  </View>
-                ) : (
-                  <View style={styles.avatarPlaceholder} />
-                )}
-                {item.online && <View style={[styles.onlineStatus, { right: language === 'ar' ? undefined : 2, left: language === 'ar' ? 2 : undefined }]} />}
-              </View>
+          {conversations.map((item) => {
+            const otherUser = getOtherUser(item);
+            const lastMsg = item.messages?.[0];
+            const name = getName(otherUser);
+            const avatar = getAvatar(otherUser);
 
-              <View style={[styles.contentContainer, { alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }]}>
-                <View style={[styles.itemHeader, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
-                  <Text style={[styles.labName, { textAlign: language === 'ar' ? 'right' : 'left' }]} numberOfLines={1}>{item.name}</Text>
-                  <Text style={styles.timeText}>{item.time}</Text>
-                </View>
-
-                <View style={[styles.itemFooter, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
-                  <Text style={[styles.lastMessage, { textAlign: language === 'ar' ? 'right' : 'left' }]} numberOfLines={1}>{item.lastMessage}</Text>
-                  {item.unreadCount > 0 && (
-                    <View style={styles.unreadBadge}>
-                      <Text style={styles.unreadText}>{item.unreadCount}</Text>
+            return (
+              <TouchableOpacity
+                key={item.id}
+                onPress={() => {
+                   setActiveConversation(item);
+                   navigation.navigate('ShowConversation', { id: item.id });
+                }}
+                style={[
+                  styles.conversationItem,
+                  { flexDirection: language === 'ar' ? 'row-reverse' : 'row' },
+                ]}
+              >
+                <View style={styles.avatarContainer}>
+                  {avatar ? (
+                    <Image source={{ uri: avatar }} style={styles.avatarPlaceholder} />
+                  ) : (
+                    <View style={styles.initialsAvatar}>
+                      <Text style={styles.initialsText}>{name.charAt(0).toUpperCase()}</Text>
                     </View>
                   )}
+                  {/* {otherUser.online && <View style={[styles.onlineStatus, { right: language === 'ar' ? undefined : 2, left: language === 'ar' ? 2 : undefined }]} />} */}
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+
+                <View style={[styles.contentContainer, { alignItems: language === 'ar' ? 'flex-end' : 'flex-start' }]}>
+                  <View style={[styles.itemHeader, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
+                    <Text style={[styles.labName, { textAlign: language === 'ar' ? 'right' : 'left' }]} numberOfLines={1}>{name}</Text>
+                    <Text style={styles.timeText}>{lastMsg ? moment(lastMsg.created_at).fromNow(true) : ''}</Text>
+                  </View>
+
+                  <View style={[styles.itemFooter, { flexDirection: language === 'ar' ? 'row-reverse' : 'row' }]}>
+                    <Text style={[styles.lastMessage, { textAlign: language === 'ar' ? 'right' : 'left' }]} numberOfLines={1}>
+                      {lastMsg?.type === 'image' ? 'Sent an image' : (lastMsg?.message || 'No messages yet')}
+                    </Text>
+                    {item.unread_count && item.unread_count > 0 ? (
+                      <View style={styles.unreadBadge}>
+                        <Text style={styles.unreadText}>{item.unread_count}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </ScrollView>
 

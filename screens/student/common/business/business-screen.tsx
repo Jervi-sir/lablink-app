@@ -11,6 +11,8 @@ import api from "@/utils/api/axios-instance";
 import { ApiRoutes, buildRoute } from "@/utils/api/api";
 import { useLabCartStore } from "@/screens/student/zustand/lab-cart-store";
 import { useLanguageStore } from "@/zustand/language-store";
+import { useConversationStore } from "@/zustand/conversation-store";
+import { useAuthStore } from "@/zustand/auth-store";
 
 const { width } = Dimensions.get('window');
 
@@ -71,6 +73,8 @@ export default function BusinessScreen() {
   const [togglingFollow, setTogglingFollow] = useState(false);
   const [togglingSave, setTogglingSave] = useState(false);
   const [savingProductId, setSavingProductId] = useState<string | null>(null);
+  const { createConversation, setActiveConversation } = useConversationStore();
+  const { auth } = useAuthStore();
 
   const carts = useLabCartStore((state) => state.carts);
   const upsertItem = useLabCartStore((state) => state.upsertItem);
@@ -396,7 +400,17 @@ export default function BusinessScreen() {
         </TouchableOpacity>
         <TouchableOpacity
           style={{ flex: 1, height: 50, borderRadius: 14, backgroundColor: '#137FEC', justifyContent: 'center', alignItems: 'center' }}
-          onPress={() => navigation.navigate(Routes.ChatDetailScreen, { businessId: business.id, businessName: business.name })}
+          onPress={async () => {
+             const targetUserId = business?.user_id;
+             if (!targetUserId) return;
+             try {
+                const conv = await createConversation(targetUserId);
+                setActiveConversation(conv);
+                navigation.navigate(Routes.ChatDetailScreen, { id: conv.id });
+             } catch (err) {
+                Alert.alert("Error", "Could not start conversation");
+             }
+          }}
         >
           <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFF' }}>{t('message')}</Text>
         </TouchableOpacity>

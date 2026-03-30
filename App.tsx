@@ -18,7 +18,7 @@ import LabProductsScreen from "./screens/student/common/business/lab-products-sc
 import LabEstimationScreen from "./screens/student/common/business/lab-estimation-screen";
 import CheckoutScreen from "./screens/shared/checkout/checkout-screen";
 import OrderDetailScreen from "./screens/student/common/order-detail-screen";
-import ChatDetailScreen from "./screens/student/common/chat-detail-screen";
+import ChatDetailScreen from "./screens/shared/conversation/show-converesation-screen";
 import EstimationDetailScreen from "./screens/student/common/estimation-detail-screen";
 import FeaturedLabsScreen from "./screens/student/common/business/featured-labs-screen";
 import StudentSavedProductsScreen from "./screens/student/m5/saved-followed/saved-products-screen";
