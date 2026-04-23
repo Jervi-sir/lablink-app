@@ -1,24 +1,18 @@
 {
   "expo": {
-    "name": "my-expo-app",
-    "slug": "my-expo-app",
-    "version": "1.0.0",
-
+    "name": "Lablink",
+    "slug": "lablink-app",
+    "version": "1.0.1",
     "web": {
       "favicon": "./assets/favicon.png"
     },
-
     "experiments": {
       "tsconfigPaths": true
     },
-
     "plugins": [],
-
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-
     "userInterfaceStyle": "light",
-
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -26,13 +20,28 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jervi.lablink"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "package": "com.jervi.lablink"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f9b5bc3d-b46f-463b-911f-73eb54bba2e7"
       }
+    },
+
+    "owner": "jervi",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f9b5bc3d-b46f-463b-911f-73eb54bba2e7"
     }
   }
 }

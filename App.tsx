@@ -1,14 +1,101 @@
-import { ScreenContent } from 'components/ScreenContent';
-import { StatusBar } from 'expo-status-bar';
-
 import './global.css';
+import { BootScreen } from '@/screens/boot-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Routes } from 'utils/routes';
+
+import './utils/notifications/push-notifications';
+
+import { SheetProvider } from 'react-native-actions-sheet';
+import './action-sheets';
+import { UserTypeSelectionScreen } from './screens/auth/user-type-selection-screen';
+import { LabRegistrationScreen } from './screens/auth/lab-registration-screen';
+import { StudentRegistrationScreen } from './screens/auth/student-registration-screen';
+import { ServiceDetailsScreen } from './screens/commons/products/service-details-screen';
+import { LabDetailsScreen } from './screens/commons/as-student/lab-details-screen';
+import { ContractSigningScreen } from './screens/commons/as-student/contract-signing-screen';
+import { MyProductsScreen } from './screens/lab/m1/my-profile-screen';
+import { AddEquipmentScreen } from './screens/lab/m1/add-equipment-screen';
+
+import { CartProvider } from './context/CartContext';
+import { LoginScreen } from './screens/auth/login-screen';
+import { CartScreen } from './screens/commons/as-student/cart-screen';
+import { StudentNavigation } from './screens/student/student-navigation';
+import { LabNavigation } from './screens/lab/lab-navigation';
+import { LabM2Navigation } from './screens/lab/m2/lab-m2-navigation';
+import { LabOrdersScreen } from './screens/lab/m1/lab-orders-screen';
+import { LabOrderDetailScreen } from './screens/lab/m1/lab-order-details-screen';
+import ProductDetailsScreen from './screens/commons/products/product-details-screen';
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <ScreenContent title="Home" path="App.tsx"></ScreenContent>
-      <StatusBar style="auto" />
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <CartProvider>
+        <NavigationContainer
+          onStateChange={(state) => {
+            const currentRoute = state?.routes[state.index];
+            console.log('Current Route:', currentRoute?.name);
+          }}
+        >
+          <SafeAreaProvider>
+            <SheetProvider>
+              <Navigation />
+            </SheetProvider>
+          </SafeAreaProvider>
+        </NavigationContainer>
+      </CartProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const Stack = createNativeStackNavigator();
+
+const Navigation = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+      initialRouteName={Routes.BootScreen}>
+      {[
+        /**-- Navigation --*/
+        { name: Routes.BootScreen, component: BootScreen },
+        { name: Routes.LoginScreen, component: LoginScreen },
+        { name: Routes.UserTypeSelection, component: UserTypeSelectionScreen },
+        { name: Routes.StudentRegistrationScreen, component: StudentRegistrationScreen },
+        { name: Routes.LabRegistrationScreen, component: LabRegistrationScreen },
+
+        // Common Students
+        { name: Routes.ServiceDetailsScreen, component: ServiceDetailsScreen },
+        { name: Routes.LabDetailsScreen, component: LabDetailsScreen },
+        { name: Routes.ContractSigningScreen, component: ContractSigningScreen },
+        { name: Routes.CartScreen, component: CartScreen },
+
+        // Navigations
+        { name: Routes.StudentNavigation, component: StudentNavigation },
+        { name: Routes.LabNavigation, component: LabNavigation },
+
+        // Labs
+        { name: Routes.AddEquipmentScreen, component: AddEquipmentScreen },
+        { name: Routes.LabM2Navigation, component: LabM2Navigation },
+        { name: Routes.MyProductsScreen, component: MyProductsScreen },
+        { name: Routes.LabOrdersScreen, component: LabOrdersScreen },
+        { name: Routes.LabOrderDetailScreen, component: LabOrderDetailScreen },
+
+        // Products
+        { name: Routes.ProductDetailsScreen, component: ProductDetailsScreen },
+      ].map((item, index) => (
+        <Stack.Screen
+          key={index}
+          name={item.name}
+          component={item.component as any}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+      ))}
+    </Stack.Navigator>
+  );
+};

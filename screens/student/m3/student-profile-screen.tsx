@@ -1,0 +1,231 @@
+import React, { useState } from 'react';
+import {
+  ScrollView,
+  Text,
+  View,
+  Pressable,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuthStore } from '@/zustand/auth-store';
+import { useNavigation } from '@react-navigation/native';
+import { Routes } from '@/utils/routes';
+import api from '@/utils/api/axios-instance';
+import { User as UserIcon, LogOut, Mail, Phone, GraduationCap, Save, Edit2, Shield, School, BookOpen } from 'lucide-react-native';
+
+const inputClassName = "rounded-2xl border border-slate-200 bg-white px-4 py-4 text-right text-base text-slate-900";
+
+export const StudentProfileScreen = () => {
+  const { user, clearAuth } = useAuthStore();
+  const navigation = useNavigation<any>();
+
+  const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState(false);
+
+  const [formData, setFormData] = useState({
+    full_name: user?.student?.full_name || '',
+    email: user?.email || '',
+    phone_number: user?.phone_number || '',
+    specialty: user?.student?.specialty || '',
+    university: 'جامعة وهران للعلوم والتكنولوجيا', // Placeholder if not in model
+    password: '',
+    password_confirmation: ''
+  });
+
+  const handleLogout = () => {
+    Alert.alert(
+      'تسجيل الخروج',
+      'هل أنت متأكد من رغبتك في تسجيل الخروج؟',
+      [
+        { text: 'إلغاء', style: 'cancel' },
+        {
+          text: 'خروج',
+          style: 'destructive',
+          onPress: () => {
+            clearAuth();
+            navigation.replace(Routes.LoginScreen);
+          }
+        }
+      ]
+    );
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const response: any = await api.post('/profile', {
+        ...formData,
+        // Ensure specialty is sent if backend supports it
+      });
+      if (response.status === 'success') {
+        Alert.alert('نجاح', 'تم تحديث الملف الشخصي بنجاح');
+        setEditing(false);
+      }
+    } catch (error: any) {
+      console.error('Update profile error:', error);
+      Alert.alert('خطأ', error.response?.data?.message || 'فشل تحديث الملف الشخصي');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
+      <StatusBar barStyle="dark-content" />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        className="flex-1"
+      >
+        <View className="bg-white px-6 pb-6 pt-5 border-b border-slate-100 flex-row-reverse items-center justify-between">
+          <Text className="text-2xl font-black text-slate-900">حسابي</Text>
+          <Pressable
+            onPress={() => setEditing(!editing)}
+            className={`h-10 w-10 items-center justify-center rounded-full ${editing ? 'bg-amber-100' : 'bg-blue-100'}`}
+          >
+            {editing ? <Save size={20} color="#b45309" /> : <Edit2 size={20} color="#2563eb" />}
+          </Pressable>
+        </View>
+
+        <ScrollView className="flex-1" contentContainerClassName="px-6 py-8 pb-12" showsVerticalScrollIndicator={false}>
+          {/* Header Info */}
+          <View className="items-center mb-8">
+            <View className="h-24 w-24 items-center justify-center rounded-full bg-blue-600 shadow-xl shadow-blue-200">
+              <Text className="text-5xl">{user?.student?.icon || '👨‍🎓'}</Text>
+            </View>
+            <Text className="mt-4 text-2xl font-bold text-slate-900">{user?.student?.full_name}</Text>
+            <View className="mt-1 flex-row-reverse items-center gap-1 rounded-full bg-slate-100 px-3 py-1">
+              <GraduationCap size={12} color="#64748b" />
+              <Text className="text-xs text-slate-500 font-medium">{user?.student?.specialty || 'طالب باحث'}</Text>
+            </View>
+          </View>
+
+          {/* Form Fields */}
+          <View className="gap-5">
+            <View>
+              <View className="flex-row-reverse items-center gap-2 mb-2">
+                <UserIcon size={16} color="#64748b" />
+                <Text className="text-right text-sm font-bold text-slate-700">الاسم الكامل</Text>
+              </View>
+              <TextInput
+                className={`${inputClassName} ${!editing ? 'bg-slate-50 border-transparent text-slate-500' : ''}`}
+                editable={editing}
+                value={formData.full_name}
+                onChangeText={(val) => setFormData({ ...formData, full_name: val })}
+                placeholder="الاسم الكامل"
+                textAlign="right"
+              />
+            </View>
+
+            <View>
+              <View className="flex-row-reverse items-center gap-2 mb-2">
+                <BookOpen size={16} color="#64748b" />
+                <Text className="text-right text-sm font-bold text-slate-700">التخصص</Text>
+              </View>
+              <TextInput
+                className={`${inputClassName} ${!editing ? 'bg-slate-50 border-transparent text-slate-500' : ''}`}
+                editable={editing}
+                value={formData.specialty}
+                onChangeText={(val) => setFormData({ ...formData, specialty: val })}
+                placeholder="مثال: بيولوجيا جزيئية"
+                textAlign="right"
+              />
+            </View>
+
+            <View>
+              <View className="flex-row-reverse items-center gap-2 mb-2">
+                <Mail size={16} color="#64748b" />
+                <Text className="text-right text-sm font-bold text-slate-700">البريد الإلكتروني</Text>
+              </View>
+              <TextInput
+                className={`${inputClassName} ${!editing ? 'bg-slate-50 border-transparent text-slate-500' : ''}`}
+                editable={editing}
+                value={formData.email}
+                onChangeText={(val) => setFormData({ ...formData, email: val })}
+                placeholder="email@example.com"
+                keyboardType="email-address"
+                textAlign="right"
+              />
+            </View>
+
+            <View>
+              <View className="flex-row-reverse items-center gap-2 mb-2">
+                <Phone size={16} color="#64748b" />
+                <Text className="text-right text-sm font-bold text-slate-700">رقم الهاتف</Text>
+              </View>
+              <TextInput
+                className={`${inputClassName} ${!editing ? 'bg-slate-50 border-transparent text-slate-500' : ''}`}
+                editable={editing}
+                value={formData.phone_number}
+                onChangeText={(val) => setFormData({ ...formData, phone_number: val })}
+                placeholder="05XX XX XX XX"
+                keyboardType="phone-pad"
+                textAlign="right"
+              />
+            </View>
+
+            {editing && (
+              <>
+                <View className="mt-4 border-t border-slate-100 pt-6">
+                  <View className="flex-row-reverse items-center gap-2 mb-2">
+                    <Text className="text-right text-sm font-bold text-slate-700">تغيير كلمة المرور</Text>
+                  </View>
+                  <TextInput
+                    className={inputClassName}
+                    secureTextEntry
+                    value={formData.password}
+                    onChangeText={(val) => setFormData({ ...formData, password: val })}
+                    placeholder="كلمة المرور الجديدة"
+                    textAlign="right"
+                  />
+                </View>
+                <View>
+                  <TextInput
+                    className={inputClassName}
+                    secureTextEntry
+                    value={formData.password_confirmation}
+                    onChangeText={(val) => setFormData({ ...formData, password_confirmation: val })}
+                    placeholder="تأكيد كلمة المرور"
+                    textAlign="right"
+                  />
+                </View>
+              </>
+            )}
+          </View>
+
+          {editing && (
+            <Pressable
+              onPress={handleSave}
+              disabled={loading}
+              className={`mt-10 flex-row-reverse items-center justify-center gap-3 rounded-[24px] py-4 shadow-lg shadow-blue-200 ${loading ? 'bg-blue-300' : 'bg-blue-600'}`}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Save size={20} color="white" />
+                  <Text className="text-lg font-bold text-white">حفظ التغييرات</Text>
+                </>
+              )}
+            </Pressable>
+          )}
+
+          {/* Logout Button */}
+          <Pressable
+            onPress={handleLogout}
+            className="mt-10 flex-row-reverse items-center justify-center gap-3 rounded-[24px] bg-rose-50 border border-rose-100 py-4"
+          >
+            <LogOut size={20} color="#e11d48" />
+            <Text className="text-lg font-bold text-rose-600">تسجيل الخروج</Text>
+          </Pressable>
+
+          <Text className="mt-10 text-center text-xs text-slate-400">LabLink v1.0.0 • الإصدار التجريبي</Text>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+};
