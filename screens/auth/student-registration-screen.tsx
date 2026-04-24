@@ -27,10 +27,10 @@ export function StudentRegistrationScreen() {
   const setAuth = useAuthStore((state) => state.setAuth);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [formData, setFormData] = useState<FormData>({
-    name: 'jervi',
+    name: '',
     state: '',
-    email: 'jervi@jervi.dev',
-    phone: '0558054300',
+    email: 'student@email.com',
+    phone: '0550000000',
     password: '',
     universityId: '123456789',
     acceptTerms: false,
@@ -44,8 +44,8 @@ export function StudentRegistrationScreen() {
     const fetchTaxonomies = async () => {
       try {
         const response = await apiPublic.get(ApiRoutes.taxonomies, { params: { types: 'wilayas' } });
-        if (response.wilayas) {
-          setWilayas(response.wilayas);
+        if (response.status === 'success' && response.data.wilayas) {
+          setWilayas(response.data.wilayas);
         }
       } catch (error) {
         console.error('Failed to fetch wilayas:', error);
@@ -167,7 +167,7 @@ export function StudentRegistrationScreen() {
                     setField('state', state.id);
                     setShowStateOptions(false);
                   }}>
-                  <Text className="text-right text-base text-slate-700">{state.ar}</Text>
+                  <Text className="text-right text-base text-slate-700">{state.number} - {state.ar}</Text>
                 </Pressable>
               ))}
             </View>

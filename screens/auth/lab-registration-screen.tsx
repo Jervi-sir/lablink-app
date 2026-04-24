@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuthStore } from '@/zustand/auth-store';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, Text, TextInput, View, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface FormData {
@@ -19,19 +19,8 @@ interface FormData {
   password: string;
   commercialRegistry: string;
   accreditationFile: string | null;
-  equipmentListFile: string | null;
   acceptTerms: boolean;
 }
-
-const specialties = [
-  'مخبر تحاليل طبية',
-  'مخبر أبحاث بيولوجية',
-  'مخبر كيمياء',
-  'مخبر فيزياء',
-  'مخبر الهندسة الوراثية',
-  'مخبر الميكروبيولوجيا',
-  'مخبر متعدد التخصصات',
-];
 
 const inputClassName =
   'rounded-2xl border-2 border-slate-200 bg-white px-4 py-4 text-right text-base text-slate-900';
@@ -84,15 +73,14 @@ function UploadField({
 export function LabRegistrationScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [formData, setFormData] = useState<FormData>({
-    labName: 'jervi',
-    email: 'jervi.lab@jervi.dev',
+    labName: '',
+    email: 'lab@lablink.org',
     state: '',
     specialty: '',
-    phone: '0558054300',
+    phone: '0550000001',
     password: '',
-    commercialRegistry: '34rf234e',
+    commercialRegistry: '123456789',
     accreditationFile: null,
-    equipmentListFile: null,
     acceptTerms: false,
   });
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -108,11 +96,13 @@ export function LabRegistrationScreen() {
     const fetchTaxonomies = async () => {
       try {
         const response = await apiPublic.get(ApiRoutes.taxonomies, { params: { types: 'wilayas,lab_categories' } });
-        if (response.wilayas) {
-          setWilayas(response.wilayas);
-        }
-        if (response.lab_categories) {
-          setLabCategories(response.lab_categories);
+        if (response.status === 'success') {
+          if (response.data.wilayas) {
+            setWilayas(response.data.wilayas);
+          }
+          if (response.data.lab_categories) {
+            setLabCategories(response.data.lab_categories);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch taxonomies:', error);
@@ -135,7 +125,6 @@ export function LabRegistrationScreen() {
         formData.password.trim() &&
         formData.commercialRegistry.trim() &&
         formData.accreditationFile &&
-        formData.equipmentListFile &&
         formData.acceptTerms
       ),
     [formData]
@@ -145,39 +134,36 @@ export function LabRegistrationScreen() {
     setFormData((current) => ({ ...current, [field]: value }));
   };
 
-  const handleDocumentPick = async (field: 'accreditationFile' | 'equipmentListFile') => {
+  const handleDocumentPick = async (field: 'accreditationFile') => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'application/pdf',
         copyToCacheDirectory: true,
       });
 
-      if (!result.canceled && result.assets && result.assets[0]) {
+      if (!result.canceled && result.assets?.[0]) {
         const file = result.assets[0];
         setUploadingField(field);
 
-        const formDataUpdate = new FormData() as any;
-        formDataUpdate.append('file', {
+        const formDataPayload = new FormData();
+        formDataPayload.append('file', {
           uri: file.uri,
-          name: file.name,
-          type: 'application/pdf',
-        });
+          name: file.name || 'document.pdf',
+          type: file.mimeType || 'application/pdf',
+        } as any);
 
-        const response = await apiPublic.post(ApiRoutes.uploads.temp, formDataUpdate, {
+        const response = await apiPublic.post(ApiRoutes.uploads.temp, formDataPayload, {
+          transformRequest: (data) => data,   // prevent Axios JSON serialization
           headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'multipart/form-data',  // ← explicit header
           },
         });
 
-        if (response.status === 'success') {
-          setField(field, response.data.path);
-        } else {
-          Alert.alert('خطأ', 'فشل رفع الملف');
-        }
+        setField(field, response.data.path);
       }
-    } catch (error) {
-      console.error('File pick error:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء رفع الملف');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      Alert.alert('خطأ', 'حدث خطأ أثناء رفع الملف: ' + (error.message || 'خطأ غير معروف'));
     } finally {
       setUploadingField(null);
     }
@@ -197,7 +183,6 @@ export function LabRegistrationScreen() {
         specialty: formData.specialty,
         commercialRegistry: formData.commercialRegistry,
         accreditationFile: formData.accreditationFile,
-        equipmentListFile: formData.equipmentListFile,
       });
 
       if (response.status === 'success') {
@@ -385,15 +370,6 @@ export function LabRegistrationScreen() {
           placeholder="رفع شهادة الاعتماد"
         />
 
-        <UploadField
-          fileName={formData.equipmentListFile}
-          icon="📄"
-          isLoading={uploadingField === 'equipmentListFile'}
-          label="قائمة المعدات (PDF) *"
-          onPress={() => handleDocumentPick('equipmentListFile')}
-          placeholder="رفع قائمة المعدات"
-        />
-
         <View className="flex-row items-start gap-3 rounded-2xl bg-slate-100 px-4 py-4">
           <Switch
             onValueChange={(value) => setField('acceptTerms', value)}
@@ -410,7 +386,7 @@ export function LabRegistrationScreen() {
         <Pressable
           accessibilityRole="button"
           className={`mt-2 rounded-[22px] px-5 py-4 ${isValid && !isSubmitting ? 'bg-teal-700' : 'bg-teal-300'}`}
-          disabled={!isValid || isSubmitting}
+          // disabled={!isValid || isSubmitting}
           onPress={handleRegister}
           style={({ pressed }) => ({
             transform: [{ scale: pressed && isValid && !isSubmitting ? 0.98 : 1 }],

@@ -33,6 +33,9 @@ import { enableScreens } from 'react-native-screens';
 
 import { useEffect } from 'react';
 import * as Notifications from 'expo-notifications';
+import { createStackNavigator } from '@react-navigation/stack';
+
+const Stack = createStackNavigator();
 
 export default function App() {
   enableScreens();
@@ -52,76 +55,59 @@ export default function App() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <CartProvider>
-        <NavigationContainer
-          onStateChange={(state) => {
-            const currentRoute = state?.routes[state.index];
-            console.log('Current Route:', currentRoute?.name);
-          }}
-        >
-          <SafeAreaProvider>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <CartProvider>
+          <NavigationContainer
+            onStateChange={(state) => {
+              const currentRoute = state?.routes[state.index];
+              console.log('Current Route:', currentRoute?.name);
+            }}
+          >
             <SheetProvider>
-              <Navigation />
+              <Stack.Navigator
+                screenOptions={{
+                  headerShown: false,
+                  animation: 'slide_from_right', // iOS default push
+                  // animationDuration: 350,
+                  gestureEnabled: true, // swipe back
+                  // fullScreenGestureEnabled: true, // smoother swipe
+                  gestureDirection: 'horizontal',
+                  // animationMatchesGesture: true, // 👈 important for smooth sync
+                }}
+                initialRouteName={Routes.BootScreen}>
+
+                {/**-- Auth & Boot --**/}
+                <Stack.Screen name={Routes.BootScreen} component={BootScreen} />
+                <Stack.Screen name={Routes.LoginScreen} component={LoginScreen} />
+                <Stack.Screen name={Routes.UserTypeSelection} component={UserTypeSelectionScreen} />
+                <Stack.Screen name={Routes.StudentRegistrationScreen} component={StudentRegistrationScreen} />
+                <Stack.Screen name={Routes.LabRegistrationScreen} component={LabRegistrationScreen} />
+
+                {/**-- Main Navigations (Tabs) --**/}
+                <Stack.Screen name={Routes.StudentNavigation} component={StudentNavigation} />
+                <Stack.Screen name={Routes.LabNavigation} component={LabNavigation} />
+
+                {/**-- Common Screens (Stacked on top of Tabs) --**/}
+                <Stack.Screen name={Routes.ServiceDetailsScreen} component={ServiceDetailsScreen} />
+                <Stack.Screen name={Routes.LabDetailsScreen} component={LabDetailsScreen} />
+                <Stack.Screen name={Routes.ContractSigningScreen} component={ContractSigningScreen} />
+                <Stack.Screen name={Routes.CartScreen} component={CartScreen} />
+                <Stack.Screen name={Routes.ProductDetailsScreen} component={ProductDetailsScreen} />
+
+                {/**-- Lab Specific Screens --**/}
+                <Stack.Screen name={Routes.AddEquipmentScreen} component={AddEquipmentScreen} />
+                <Stack.Screen name={Routes.LabM2Navigation} component={LabM2Navigation} />
+                <Stack.Screen name={Routes.MyProductsScreen} component={MyProductsScreen} />
+                <Stack.Screen name={Routes.LabOrdersScreen} component={LabOrdersScreen} />
+                <Stack.Screen name={Routes.LabOrderDetailScreen} component={LabOrderDetailScreen} />
+                <Stack.Screen name={Routes.ProductStatsScreen} component={ProductStatsScreen} />
+
+              </Stack.Navigator>
             </SheetProvider>
-          </SafeAreaProvider>
-        </NavigationContainer>
-      </CartProvider>
-    </GestureHandlerRootView>
+          </NavigationContainer>
+        </CartProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
-
-const Stack = createNativeStackNavigator();
-
-const Navigation = () => {
-  return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        animation: 'slide_from_right', // iOS default push
-        animationDuration: 350,
-        gestureEnabled: true, // swipe back
-        fullScreenGestureEnabled: true, // smoother swipe
-        gestureDirection: 'horizontal',
-        animationMatchesGesture: true, // 👈 important for smooth sync
-      }}
-
-      initialRouteName={Routes.BootScreen}>
-      {[
-        /**-- Navigation --*/
-        { name: Routes.BootScreen, component: BootScreen },
-        { name: Routes.LoginScreen, component: LoginScreen },
-        { name: Routes.UserTypeSelection, component: UserTypeSelectionScreen },
-        { name: Routes.StudentRegistrationScreen, component: StudentRegistrationScreen },
-        { name: Routes.LabRegistrationScreen, component: LabRegistrationScreen },
-
-        // Common Students
-        { name: Routes.ServiceDetailsScreen, component: ServiceDetailsScreen },
-        { name: Routes.LabDetailsScreen, component: LabDetailsScreen },
-        { name: Routes.ContractSigningScreen, component: ContractSigningScreen },
-        { name: Routes.CartScreen, component: CartScreen },
-
-        // Navigations
-        { name: Routes.StudentNavigation, component: StudentNavigation },
-        { name: Routes.LabNavigation, component: LabNavigation },
-
-        // Labs
-        { name: Routes.AddEquipmentScreen, component: AddEquipmentScreen },
-        { name: Routes.LabM2Navigation, component: LabM2Navigation },
-        { name: Routes.MyProductsScreen, component: MyProductsScreen },
-        { name: Routes.LabOrdersScreen, component: LabOrdersScreen },
-        { name: Routes.LabOrderDetailScreen, component: LabOrderDetailScreen },
-
-        // Products
-        { name: Routes.ProductDetailsScreen, component: ProductDetailsScreen },
-        { name: Routes.ProductStatsScreen, component: ProductStatsScreen },
-      ].map((item, index) => (
-        <Stack.Screen
-          key={index}
-          name={item.name}
-          component={item.component as any}
-        />
-      ))}
-    </Stack.Navigator>
-  );
-};

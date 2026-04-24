@@ -248,7 +248,7 @@ export const OrdersScreen = () => {
             <Pressable
               className="rounded-xl bg-blue-600 py-3 items-center"
               onPress={() => {
-                navigation.navigate(Routes.ContractSigningScreen, { orderId: order.id });
+                navigation.navigate(Routes.ContractSigningScreen, { orderId: order.id, onRefresh: onRefresh });
               }}>
               <Text className="text-sm font-bold text-white">مراجعة التسعير والتوقيع</Text>
             </Pressable>

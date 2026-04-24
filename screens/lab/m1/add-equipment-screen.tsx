@@ -12,7 +12,6 @@ import {
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Routes } from '@/utils/routes';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Image } from 'react-native';
@@ -170,7 +169,10 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
         } as any);
 
         const uploadRes: any = await api.post(ApiRoutes.uploads.temp, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+          transformRequest: (data) => data,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         });
 
         if (uploadRes.status === 'success') {
@@ -209,9 +211,14 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
         Alert.alert('نجاح', isEditing ? 'تم تحديث البيانات بنجاح' : `تمت إضافة ${type === 'equipment' ? 'الجهاز' : 'الخدمة'} بنجاح`);
         navigation.goBack();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving item:', error);
-      Alert.alert('خطأ', 'حدث خطأ أثناء حفظ البيانات');
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+      }
+      const errorMsg = error.response?.data?.message || error.message || 'حدث خطأ أثناء حفظ البيانات';
+      Alert.alert('خطأ', errorMsg);
     } finally {
       setLoading(false);
     }

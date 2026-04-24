@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert, TextInput } from 'react-native';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert, TextInput, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useCart } from '@/context/CartContext';
@@ -73,9 +73,13 @@ export function CartScreen() {
 
       <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
         {items.map((item, index) => (
-          <View key={index} className="mb-4 bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex-row items-center">
-            <View className="h-16 w-16 bg-slate-50 rounded-xl items-center justify-center border border-slate-100 ml-4">
-              <Text className="text-3xl">{item.product.image || '📦'}</Text>
+          <View key={index} className="mb-4 bg-white rounded-2xl p-4 gap-4 shadow-sm border border-slate-100 flex-row items-center">
+            <View className="h-16 w-16 bg-slate-50 rounded-xl overflow-hidden items-center justify-center border border-slate-100">
+              {item.product.image && (item.product.image.startsWith('http') || item.product.image.startsWith('file')) ? (
+                <Image source={{ uri: item.product.image }} className="h-full w-full" resizeMode="cover" />
+              ) : (
+                <Text className="text-3xl">{item.product.image || '📦'}</Text>
+              )}
             </View>
             <View className="flex-1">
               <Text className="text-right text-base font-bold text-slate-800">{item.product.name}</Text>
@@ -108,7 +112,7 @@ export function CartScreen() {
 
       {/* Bottom Action Bar */}
       <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-6 shadow-2xl">
-        <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row-reverse items-center gap-4 mb-4">
           <Text className="text-lg font-bold text-slate-800">إجمالي العناصر:</Text>
           <Text className="text-2xl font-black text-teal-600">{getCartTotal()}</Text>
         </View>

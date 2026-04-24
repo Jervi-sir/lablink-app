@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  ScrollView,
   Text,
   View,
   Pressable,
-  SafeAreaView,
-  StatusBar,
   TextInput,
   ActivityIndicator,
-  Alert
+  Alert,
+  Image,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Order, OrderItem } from '../../m2/OrdersScreen';
 import { ChevronRight, Package, Calendar, User, CreditCard, Send, CheckCircle } from 'lucide-react-native';
 import api from '@/utils/api/axios-instance';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Order, OrderItem } from '@/screens/commons/orders/orders-screen';
 
 export const LabOrderDetailScreen = () => {
   const navigation = useNavigation<any>();
@@ -122,25 +122,26 @@ export const LabOrderDetailScreen = () => {
   const isConfirmed = order.status === 'confirmed';
 
   return (
-    <View className="flex-1 bg-slate-50">
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView className="bg-white shadow-sm">
-        <View className="flex-row items-center justify-between px-6 py-4">
-          <Pressable
-            onPress={() => navigation.goBack()}
-            className="h-10 w-10 items-center justify-center rounded-full bg-slate-100"
-          >
-            <ChevronRight size={24} color="#1e293b" />
-          </Pressable>
-          <Text className="text-xl font-bold text-slate-800">تفاصيل الطلب</Text>
-          <View className="w-10" />
-        </View>
-      </SafeAreaView>
+    <SafeAreaView className="flex-1 bg-slate-50" >
+      <View className="flex-row items-center justify-between px-6 py-4">
+        <Pressable
+          onPress={() => navigation.goBack()}
+          className="h-10 w-10 items-center justify-center rounded-full bg-slate-100"
+        >
+          <ChevronRight size={24} color="#1e293b" />
+        </Pressable>
+        <Text className="text-xl font-bold text-slate-800">تفاصيل الطلب</Text>
+        <View className="w-10" />
+      </View>
 
-      <ScrollView
+      <KeyboardAwareScrollView
         className="flex-1"
-        contentContainerClassName="px-6 py-8 pb-12"
+        contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 32, paddingBottom: 60 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid={true}
+        extraScrollHeight={100}
+        enableAutomaticScroll={true}
       >
         {/* Student Info Card */}
         <View className="mb-6 rounded-[32px] bg-white p-6 shadow-sm border border-slate-100">
@@ -169,8 +170,12 @@ export const LabOrderDetailScreen = () => {
             <View key={item.id} className="mb-4 rounded-[24px] bg-white p-5 shadow-sm border border-slate-50">
               <View className="flex-row items-center justify-between mb-4">
                 <View className="flex-row items-center gap-3">
-                  <View className="h-10 w-10 items-center justify-center rounded-lg bg-slate-50">
-                    <Text className="text-xl">{item.product.image_url || '📦'}</Text>
+                  <View className="h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-slate-50">
+                    {item.product.image_url && (item.product.image_url.startsWith('http') || item.product.image_url.startsWith('file')) ? (
+                      <Image source={{ uri: item.product.image_url }} className="h-full w-full" resizeMode="cover" />
+                    ) : (
+                      <Text className="text-xl">{item.product.image_url || '📦'}</Text>
+                    )}
                   </View>
                   <View>
                     <Text className="text-right font-bold text-slate-800">{item.product.name_ar}</Text>
@@ -180,7 +185,7 @@ export const LabOrderDetailScreen = () => {
               </View>
 
               {isEstimationRequest ? (
-                <View className="flex-row items-center gap-3 bg-slate-50 rounded-xl p-3">
+                <View className="flex-row-reverse items-center gap-3 bg-slate-50 rounded-xl p-3">
                   <Text className="text-sm font-bold text-slate-600">السعر المقترح:</Text>
                   <TextInput
                     className="flex-1 bg-white rounded-lg border border-slate-200 px-3 py-2 text-left font-bold text-teal-600"
@@ -221,7 +226,7 @@ export const LabOrderDetailScreen = () => {
               <Text className="text-2xl font-black text-teal-400">{calculateTotal().toLocaleString()} DA</Text>
             </View>
             <Pressable
-              className={`mt-6 flex-row items-center justify-center gap-3 rounded-2xl py-4 ${submitting ? 'bg-slate-700' : 'bg-teal-500'}`}
+              className={`mt-6 flex-row-reverse items-center justify-center gap-3 rounded-2xl py-4 ${submitting ? 'bg-slate-700' : 'bg-teal-500'}`}
               onPress={handleSubmitEstimation}
               disabled={submitting}
             >
@@ -230,7 +235,7 @@ export const LabOrderDetailScreen = () => {
               ) : (
                 <>
                   <Send size={20} color="white" />
-                  <Text className="text-lg font-bold text-white">إرسال عرض السعر</Text>
+                  <Text className="font-bold text-white">إرسال عرض السعر</Text>
                 </>
               )}
             </Pressable>
@@ -256,7 +261,7 @@ export const LabOrderDetailScreen = () => {
             </Pressable>
           </View>
         )}
-      </ScrollView>
-    </View>
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
   );
 };

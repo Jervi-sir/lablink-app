@@ -51,21 +51,21 @@ const M2Icon: React.FC<type> = ({ color = '#111', size = 24, isActive = false })
       :
       <>
         <Path
-          stroke="#707070"
+          stroke={color}
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
           d="M14.453 12.895c-.151.627-.867 1.07-2.3 1.955-1.383.856-2.075 1.285-2.633 1.113a1.4 1.4 0 0 1-.61-.393c-.41-.45-.41-1.324-.41-3.07s0-2.62.41-3.07c.17-.186.38-.321.61-.392.558-.173 1.25.256 2.634 1.112 1.432.886 2.148 1.329 2.3 1.955a1.7 1.7 0 0 1 0 .79"
         />
         <Path
-          stroke="#707070"
+          stroke={color}
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
           d="M20.998 11 21 12.5c0 4.478 0 6.718-1.391 8.109S15.979 22 11.5 22c-4.478 0-6.718 0-8.109-1.391S2 16.979 2 12.5c0-4.478 0-6.718 1.391-8.109S7.021 3 11.5 3q.795 0 1.5.002"
         />
         <Path
-          stroke="#707070"
+          stroke={color}
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}

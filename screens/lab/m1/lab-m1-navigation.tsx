@@ -1,10 +1,12 @@
 import { Routes } from '@/utils/routes';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React from 'react';
-import { ScrollView, Text, View, Pressable, StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, Text, View, Pressable, StatusBar, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LayoutGrid, Package, Settings, FileText, ClipboardList, Briefcase, PlusCircle, Activity } from 'lucide-react-native';
+import api from '@/utils/api/axios-instance';
+import { ApiRoutes } from '@/utils/api/api';
 
 function Header({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -53,6 +55,34 @@ function SquareActionCard({
 
 export function LabM1Navigation() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchStats = async () => {
+    try {
+      const response = await api.get(ApiRoutes.lab.stats);
+      // @ts-ignore
+      if (response.status === 'success') {
+        // @ts-ignore
+        setStats(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch lab stats:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchStats();
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
@@ -62,6 +92,9 @@ export function LabM1Navigation() {
       <ScrollView
         contentContainerClassName="px-6 pb-10 pt-8"
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563eb" colors={["#2563eb"]} />
+        }
       >
         <View className="mb-6 flex-row items-center justify-end gap-4">
           <Text className="text-right text-xl font-black text-slate-800">الإجراءات السريعة</Text>
@@ -102,18 +135,24 @@ export function LabM1Navigation() {
           <Text className="text-right text-lg font-bold text-slate-800 mb-4">ملخص الأداء</Text>
           <View className="flex-row justify-between">
             <View className="items-center">
-              <Text className="text-2xl font-black text-blue-600">12</Text>
-              <Text className="text-xs text-slate-400">طلبات نشطة</Text>
+              <Text className="text-2xl font-black text-blue-600">
+                {loading ? <ActivityIndicator size="small" color="#2563eb" /> : stats?.orders?.pending || 0}
+              </Text>
+              <Text className="text-xs text-slate-400">طلبات جديدة</Text>
             </View>
             <View className="h-10 w-[1px] bg-slate-100 self-center" />
             <View className="items-center">
-              <Text className="text-2xl font-black text-teal-600">85</Text>
-              <Text className="text-xs text-slate-400">منتجات</Text>
+              <Text className="text-2xl font-black text-teal-600">
+                {loading ? <ActivityIndicator size="small" color="#0d9488" /> : stats?.inventory?.total || 0}
+              </Text>
+              <Text className="text-xs text-slate-400">المنتجات</Text>
             </View>
             <View className="h-10 w-[1px] bg-slate-100 self-center" />
             <View className="items-center">
-              <Text className="text-2xl font-black text-indigo-600">4.9</Text>
-              <Text className="text-xs text-slate-400">التقييم</Text>
+              <Text className="text-2xl font-black text-indigo-600">
+                {loading ? <ActivityIndicator size="small" color="#4f46e5" /> : (stats?.revenue?.total?.toLocaleString() || 0)}
+              </Text>
+              <Text className="text-xs text-slate-400">إجمالي الأرباح</Text>
             </View>
           </View>
         </View>

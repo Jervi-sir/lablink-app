@@ -18,8 +18,8 @@ const M5Icon: React.FC<type> = ({ color = '#111', size = 24, isActive = false })
       ?
       <>
         <Path
-          fill="#111"
-          stroke="#111"
+          fill={color}
+          stroke={color}
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
@@ -29,7 +29,7 @@ const M5Icon: React.FC<type> = ({ color = '#111', size = 24, isActive = false })
       :
       <>
         <Path
-          stroke="#707070"
+          stroke={color}
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}

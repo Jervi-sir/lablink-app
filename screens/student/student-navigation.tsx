@@ -1,12 +1,10 @@
-import { Dimensions, Platform, View } from 'react-native';
+import { Dimensions, Platform, StatusBar, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TouchableOpacity from '@/components/touchable-opacity';
 import Text from '@/components/text';
 import { Routes } from '@/utils/routes';
-import M1Icon from '@/assets/icons/menu/m1-icon';
-import M2Icon from '@/assets/icons/menu/m2-icon';
-import M4Icon from '@/assets/icons/menu/m4-icon';
+import { Store, FlaskConical, User } from 'lucide-react-native';
 import { StudentM1Navigation } from './m1/student-m1-navigation';
 import { StudentProfileScreen } from './m3/student-profile-screen';
 import OrderNavigation from '../commons/orders/order-navigation';
@@ -20,15 +18,15 @@ const translations = {
 
 function useTabScreens() {
   return [
-    { key: 'M1', label: 'الموردين', routeName: Routes.M1, component: StudentM1Navigation, icon: M1Icon },
+    { key: 'M1', label: 'الموردين', routeName: Routes.M1, component: StudentM1Navigation, icon: Store },
     {
       key: 'M2',
       label: 'المختبرات',
       routeName: Routes.M2,
       component: OrderNavigation,
-      icon: M2Icon,
+      icon: FlaskConical,
     },
-    { key: 'M4', label: 'الرسائل', routeName: Routes.M4, component: StudentProfileScreen, icon: M4Icon },
+    { key: 'M4', label: 'الملف الشخصي', routeName: Routes.M4, component: StudentProfileScreen, icon: User },
   ];
 }
 
@@ -37,73 +35,86 @@ const Tab = createBottomTabNavigator();
 export function StudentNavigation() {
   const insets = useSafeAreaInsets();
   const tabs = useTabScreens();
-  
-  // Base height for the tab bar content + safe area bottom + user requested 10
+
   const height = 60 + insets.bottom + 10;
 
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: '#ffffff',
-          height,
-          borderTopWidth: 1,
-          borderTopColor: '#e2e8f0',
-        },
-      }}>
-      {tabs.map((tab) => (
-        <Tab.Screen
-          key={tab.key}
-          name={tab.routeName}
-          component={tab.component}
-          options={{
-            tabBarButton: (props) => (
-              <CustomTabButton {...props} tab={tab} height={height} bottomInset={insets.bottom} />
-            ),
-          }}
-        />
-      ))}
-    </Tab.Navigator>
+    <>
+      <StatusBar barStyle="dark-content" />
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            backgroundColor: '#ffffff',
+            height,
+            borderTopWidth: 1,
+            borderTopColor: '#e2e8f0',
+          },
+        }}
+      >
+        {tabs.map((tab) => (
+          <Tab.Screen
+            key={tab.key}
+            name={tab.routeName}
+            component={tab.component}
+            options={{
+              tabBarIcon: ({ focused }) => (
+                <CustomTabIcon tab={tab} focused={focused} />
+              ),
+              tabBarItemStyle: {
+                flex: 1,
+                height,
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingBottom: insets.bottom,
+              },
+            }}
+          />
+        ))}
+      </Tab.Navigator>
+    </>
   );
 }
 
-const { width } = Dimensions.get('window');
-
-const CustomTabButton = ({ tab, height, bottomInset, ...props }: any) => {
-  const isFocused = props.accessibilityState?.selected;
-
+const CustomTabIcon = ({ tab, focused }: { tab: any; focused: boolean }) => {
   const activeColor = '#2563eb';
   const inactiveColor = '#64748b';
 
   return (
-    <TouchableOpacity
-      {...props}
-      style={[
-        props.style,
-        {
-          flex: 1,
-          height,
-          justifyContent: 'center',
-          alignItems: 'center',
-          paddingBottom: bottomInset,
-        },
-      ]}
-      activeOpacity={0.9}>
-      <View style={{ alignItems: 'center' }}>
-        <View style={{ width: 24, height: 24, marginBottom: 4 }}>
-          <tab.icon isActive={isFocused} color={isFocused ? activeColor : inactiveColor} />
-        </View>
-        <Text
-          style={{
-            fontSize: 12,
-            color: isFocused ? activeColor : inactiveColor,
-            fontWeight: isFocused ? '700' : '500',
-          }}>
-          {tab.label}
-        </Text>
+    <View className="items-center justify-center">
+      {focused && (
+        <View
+          className="absolute h-10 w-10 rounded-full opacity-10"
+        // style={{ backgroundColor: activeColor }}
+        />
+      )}
+
+      <View className="mb-1 h-6 w-6 items-center justify-center">
+        <tab.icon
+          color={focused ? activeColor : inactiveColor}
+          size={22}
+          strokeWidth={focused ? 2.5 : 2}
+        />
       </View>
-    </TouchableOpacity>
+
+      {/* <Text
+        style={{
+          fontSize: 10,
+          color: focused ? activeColor : inactiveColor,
+          fontWeight: focused ? '800' : '500',
+          marginTop: 2,
+        }}
+      >
+        {tab.label}
+      </Text> */}
+
+      {focused && (
+        <View
+          className="mt-1 h-1 w-1 rounded-full"
+          style={{ backgroundColor: activeColor }}
+        />
+      )}
+    </View>
   );
 };

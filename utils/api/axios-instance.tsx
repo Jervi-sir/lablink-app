@@ -37,37 +37,35 @@ export function createAxiosInstance(opts: CreateOpts = {}) {
 
   const instance = axios.create({
     baseURL,
-    timeout: 15000,
+    timeout: 30000,
     headers: {
       Accept: 'application/json',
-      'Content-Type': 'application/json',
     },
   });
 
-  // Attach bearer only if needed
   instance.interceptors.request.use((config) => {
     // Check offline status
     if (useNetworkStore.getState().isOffline) {
-      // Create a cancellation token or just reject
       const source = axios.CancelToken.source();
       config.cancelToken = source.token;
       source.cancel('OFFLINE_MODE');
-      // Alternatively, just reject directly, but standard way to 'stop' is cancel or reject.
-      // However, simply throwing here goes to request error handler? No, returns promise.
       return Promise.reject({ message: 'OFFLINE_MODE', isOffline: true });
     }
 
     let needsAuth = requiresAuth;
-    const h: any = config.headers || {};
-    if (h['X-Requires-Auth'] !== undefined) {
-      const v = h['X-Requires-Auth'];
-      needsAuth = v === false || v === 'false' || v === 0 || v === '0' ? false : true;
-      delete h['X-Requires-Auth'];
+    if (config.headers) {
+      const xAuth = config.headers['X-Requires-Auth'];
+      if (xAuth !== undefined) {
+        needsAuth = xAuth === false || xAuth === 'false' || xAuth === 0 || xAuth === '0' ? false : true;
+        delete config.headers['X-Requires-Auth'];
+      }
     }
+
     if (needsAuth && currentToken) {
-      h.Authorization = `Bearer ${currentToken}`;
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${currentToken}`;
     }
-    config.headers = h;
+
     return config;
   });
 

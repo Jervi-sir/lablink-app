@@ -1,7 +1,11 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { PanResponder, Pressable, ScrollView, Text, View } from 'react-native';
+import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
+import { PanResponder, Pressable, ScrollView, Text, View, Alert, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import api from '@/utils/api/axios-instance';
+import { ApiRoutes } from '@/utils/api/api';
+import { Routes } from '@/utils/routes';
 
 type OrderStatus = 'pending' | 'signed' | 'completed';
 
@@ -94,11 +98,81 @@ function SignaturePad({ onSignedChange }: { onSignedChange: (signed: boolean) =>
 }
 
 export function ContractSigningScreen({
-  onBack,
-  onSign,
-  order = defaultOrder,
+  onBack: propsOnBack,
+  onSign: propsOnSign,
 }: ContractSigningScreenProps) {
+  const navigation = useNavigation<any>();
+  const route = useRoute();
+  const { orderId, onRefresh } = route.params as { orderId: number, onRefresh?: () => void };
+
+  const [order, setOrder] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [hasSigned, setHasSigned] = useState(false);
+
+  useEffect(() => {
+    if (orderId) {
+      fetchOrderDetails();
+    }
+  }, [orderId]);
+
+  const fetchOrderDetails = async () => {
+    setLoading(true);
+    try {
+      const response: any = await api.get(`/orders/${orderId}`);
+      if (response.status === 'success') {
+        setOrder(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      Alert.alert('خطأ', 'تعذر تحميل بيانات العقد');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onBack = propsOnBack || (() => navigation.goBack());
+
+  const handleSign = async () => {
+    if (!hasSigned) return;
+
+    setSubmitting(true);
+    try {
+      const response: any = await api.post(`/orders/${orderId}/signature`);
+      if (response.status === 'success') {
+        Alert.alert('نجاح', 'تم توقيع العقد وتأكيد الطلب بنجاح', [
+          {
+            text: 'حسناً',
+            onPress: () => {
+              onRefresh?.();
+              navigation.goBack();
+            }
+          }
+        ]);
+      }
+    } catch (error) {
+      console.error('Error signing contract:', error);
+      Alert.alert('خطأ', 'حدث خطأ أثناء محاولة التوقيع');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-slate-50 items-center justify-center">
+        <ActivityIndicator size="large" color="#1d4ed8" />
+        <Text className="mt-4 text-slate-500 text-base">جاري تحميل بيانات العقد...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!order) return null;
+
+  const labName = order.lab?.lab?.brand_name || 'مخبر غير معروف';
+  const labIcon = order.lab?.lab?.icon || '🔬';
+  const orderDate = order.created_at.split('T')[0];
+  const orderItems = order.items.map((item: any) => item.product.name_ar);
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
@@ -129,11 +203,11 @@ export function ContractSigningScreen({
           }}>
           <View className="mb-4 flex-row items-center gap-4">
             <View className="h-16 w-16 items-center justify-center rounded-xl bg-teal-600">
-              <Text className="text-3xl">{order.labIcon}</Text>
+              <Text className="text-3xl">{labIcon}</Text>
             </View>
             <View>
-              <Text className="text-right text-lg font-bold text-slate-800">{order.labName}</Text>
-              <Text className="mt-1 text-right text-sm text-slate-500">{order.date}</Text>
+              <Text className="text-right text-lg font-bold text-slate-800">{labName}</Text>
+              <Text className="mt-1 text-right text-sm text-slate-500">{orderDate}</Text>
             </View>
           </View>
 
@@ -141,7 +215,7 @@ export function ContractSigningScreen({
             الخدمات المحجوزة:
           </Text>
           <View className="gap-2">
-            {order.services.map((service) => (
+            {orderItems.map((service: string) => (
               <View key={service} className="flex-row items-center gap-2">
                 <Text className="text-green-600">✓</Text>
                 <Text className="text-right text-sm text-slate-600">{service}</Text>
@@ -208,17 +282,21 @@ export function ContractSigningScreen({
 
         <Pressable
           accessibilityRole="button"
-          className={`rounded-[22px] px-5 py-4 ${hasSigned ? 'bg-blue-700' : 'bg-slate-200'}`}
-          disabled={!hasSigned}
-          onPress={onSign}
+          className={`rounded-[22px] px-5 py-4 ${hasSigned && !submitting ? 'bg-blue-700' : 'bg-slate-200'}`}
+          disabled={!hasSigned || submitting}
+          onPress={handleSign}
           style={({ pressed }) => ({
-            transform: [{ scale: pressed && hasSigned ? 0.98 : 1 }],
-            opacity: pressed && hasSigned ? 0.92 : 1,
+            transform: [{ scale: pressed && hasSigned && !submitting ? 0.98 : 1 }],
+            opacity: pressed && hasSigned && !submitting ? 0.92 : 1,
           })}>
-          <Text
-            className={`text-center text-lg font-bold ${hasSigned ? 'text-white' : 'text-slate-400'}`}>
-            تأكيد التوقيع
-          </Text>
+          {submitting ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text
+              className={`text-center text-lg font-bold ${hasSigned ? 'text-white' : 'text-slate-400'}`}>
+              تأكيد التوقيع
+            </Text>
+          )}
         </Pressable>
       </ScrollView>
     </SafeAreaView>

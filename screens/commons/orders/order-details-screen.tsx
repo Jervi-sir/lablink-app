@@ -4,14 +4,15 @@ import {
   Text,
   View,
   Pressable,
-  SafeAreaView,
   StatusBar,
+  Image,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Order } from './orders-screen';
-import { ChevronRight, Package, Calendar, FileText, Info } from 'lucide-react-native';
+import { ChevronRight, Package, Calendar, FileText, Info, ChevronLeft } from 'lucide-react-native';
 
 import { Routes } from '@/utils/routes';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const OrderDetailScreen = () => {
   const navigation = useNavigation<any>();
@@ -72,20 +73,20 @@ export const OrderDetailScreen = () => {
   const statusInfo = getStatusInfo(order.status);
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView className="bg-white shadow-sm">
+      <View className="bg-white shadow-sm">
         <View className="flex-row items-center justify-between px-6 py-4">
           <Pressable
             onPress={() => navigation.goBack()}
             className="h-10 w-10 items-center justify-center rounded-full bg-slate-100"
           >
-            <ChevronRight size={24} color="#1e293b" />
+            <ChevronLeft size={24} color="#1e293b" />
           </Pressable>
           <Text className="text-xl font-bold text-slate-800">تفاصيل الطلب</Text>
           <View className="w-10" />
         </View>
-      </SafeAreaView>
+      </View>
 
       <ScrollView
         className="flex-1"
@@ -99,8 +100,12 @@ export const OrderDetailScreen = () => {
           className="mb-6 overflow-hidden rounded-[32px] bg-white p-6 shadow-sm border border-slate-100"
         >
           <View className="flex-row items-center gap-4">
-            <View className="h-16 w-16 items-center justify-center rounded-2xl bg-teal-50">
-              <Text className="text-3xl">{order.lab.lab.icon || '🔬'}</Text>
+            <View className="h-16 w-16 items-center justify-center rounded-2xl bg-teal-50 overflow-hidden">
+              {order.lab.lab.icon && order.lab.lab.icon.startsWith('http') ? (
+                <Image source={{ uri: order.lab.lab.icon }} className="h-full w-full" />
+              ) : (
+                <Text className="text-3xl">{order.lab.lab.icon || '🔬'}</Text>
+              )}
             </View>
             <View className="flex-1">
               <Text className="text-right text-xl font-bold text-slate-900">{order.lab.lab.brand_name}</Text>
@@ -138,8 +143,12 @@ export const OrderDetailScreen = () => {
               className="mb-3 flex-row items-center justify-between rounded-2xl bg-white p-4 shadow-sm border border-slate-50"
             >
               <View className="flex-row items-center gap-4">
-                <View className="h-12 w-12 items-center justify-center rounded-xl bg-slate-50 border border-slate-100">
-                  <Text className="text-2xl">{item.product.image_url || '📦'}</Text>
+                <View className="h-12 w-12 items-center justify-center rounded-xl bg-slate-50 border border-slate-100 overflow-hidden">
+                  {item.product.image_url && item.product.image_url.startsWith('http') ? (
+                    <Image source={{ uri: item.product.image_url }} className="h-full w-full" />
+                  ) : (
+                    <Text className="text-2xl">{item.product.image_url || '📦'}</Text>
+                  )}
                 </View>
                 <View>
                   <Text className="text-right font-bold text-slate-800">{item.product.name_ar}</Text>
@@ -194,6 +203,6 @@ export const OrderDetailScreen = () => {
           </Text>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };

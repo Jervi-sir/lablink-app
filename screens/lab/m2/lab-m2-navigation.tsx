@@ -1,5 +1,5 @@
 import { Routes } from '@/utils/routes';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     ActivityIndicator,
     Pressable,
@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '@/utils/api/axios-instance';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ChevronLeft, Inbox, CheckCircle2, Clock, XCircle, AlertCircle } from 'lucide-react-native';
 import { Order, OrderStatus } from '@/screens/commons/orders/orders-screen';
 
@@ -39,9 +39,11 @@ export const LabM2Navigation = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState<'requests' | 'confirmed'>('requests');
 
-    useEffect(() => {
-        fetchOrders(activeTab);
-    }, [activeTab]);
+    useFocusEffect(
+        useCallback(() => {
+            fetchOrders(activeTab);
+        }, [activeTab])
+    );
 
     const fetchOrders = async (tab: string) => {
         setLoading(true);

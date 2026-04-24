@@ -104,7 +104,7 @@ export const LabProfileScreen = () => {
           {/* Form Fields */}
           <View className="gap-5">
             <View>
-              <View className="flex-row items-center gap-2 mb-2">
+              <View className="flex-row-reverse items-center gap-2 mb-2">
                 <Building2 size={16} color="#64748b" />
                 <Text className="text-right text-sm font-bold text-slate-700">اسم العلامة التجارية</Text>
               </View>
@@ -119,7 +119,7 @@ export const LabProfileScreen = () => {
             </View>
 
             <View>
-              <View className="flex-row items-center gap-2 mb-2">
+              <View className="flex-row-reverse items-center gap-2 mb-2">
                 <Mail size={16} color="#64748b" />
                 <Text className="text-right text-sm font-bold text-slate-700">البريد الإلكتروني</Text>
               </View>
@@ -135,7 +135,7 @@ export const LabProfileScreen = () => {
             </View>
 
             <View>
-              <View className="flex-row items-center gap-2 mb-2">
+              <View className="flex-row-reverse items-center gap-2 mb-2">
                 <Phone size={16} color="#64748b" />
                 <Text className="text-right text-sm font-bold text-slate-700">رقم الهاتف</Text>
               </View>

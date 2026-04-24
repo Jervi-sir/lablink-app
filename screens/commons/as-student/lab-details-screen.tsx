@@ -10,6 +10,7 @@ import {
   Text,
   TextInput,
   View,
+  Image,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -39,9 +40,11 @@ interface Product {
   id: number;
   name_ar: string;
   image_url: string;
+  images?: string[];
   is_available: boolean;
   price: string;
   type: 'equipment' | 'service';
+  description_ar?: string;
 }
 
 interface Review {
@@ -53,9 +56,6 @@ interface Review {
   date: string;
   isVerified: boolean;
 }
-
-const fallbackAccents = ['bg-teal-600', 'bg-amber-500', 'bg-rose-500', 'bg-blue-600', 'bg-violet-600'];
-const fallbackIcons = ['🔬', '💡', '🎯', '🏗️', '⚗️', '🧬'];
 
 function RatingModal({
   targetName,
@@ -166,6 +166,17 @@ function SkeletonPulse({ className, style }: { className?: string; style?: any }
   return <Animated.View className={`bg-slate-200 ${className}`} style={[style, animatedStyle]} />;
 }
 
+function ProductSkeleton() {
+  return (
+    <View className="mb-4 w-[48%] rounded-[24px] bg-white p-4">
+      <SkeletonPulse className="aspect-square rounded-[18px]" />
+      <SkeletonPulse className="mt-3 h-4 w-full rounded-lg" />
+      <SkeletonPulse className="mt-2 h-3 w-1/2 self-end rounded-lg" />
+      <SkeletonPulse className="mt-4 h-10 w-full rounded-lg" />
+    </View>
+  );
+}
+
 function LabDetailsSkeleton() {
   return (
     <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
@@ -196,12 +207,7 @@ function LabDetailsSkeleton() {
 
         <View className="mt-6 flex-row flex-wrap justify-between">
           {[1, 2, 3, 4].map((i) => (
-            <View key={i} className="mb-4 w-[48%] rounded-[24px] bg-white p-4">
-              <SkeletonPulse className="aspect-square rounded-[18px]" />
-              <SkeletonPulse className="mt-3 h-4 w-full rounded-lg" />
-              <SkeletonPulse className="mt-2 h-3 w-1/2 self-end rounded-lg" />
-              <SkeletonPulse className="mt-4 h-10 w-full rounded-lg" />
-            </View>
+            <ProductSkeleton key={i} />
           ))}
         </View>
       </ScrollView>
@@ -217,6 +223,7 @@ export function LabDetailsScreen() {
   const [lab, setLab] = useState<Lab | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tabLoading, setTabLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -250,6 +257,9 @@ export function LabDetailsScreen() {
 
   useEffect(() => {
     fetchLabInfo();
+  }, [labId]);
+
+  useEffect(() => {
     fetchProducts(1, true);
   }, [labId, activeTab]);
 
@@ -268,8 +278,13 @@ export function LabDetailsScreen() {
     if (pageNum === null && !isInitial) return;
 
     try {
-      if (isInitial) setLoading(true);
-      else setLoadingMore(true);
+      if (isInitial) {
+        if (!lab) setLoading(true);
+        else setTabLoading(true);
+        setProducts([]);
+      } else {
+        setLoadingMore(true);
+      }
 
       const response: any = await api.get(buildRoute(ApiRoutes.labs.products, { id: labId }), {
         params: {
@@ -289,6 +304,7 @@ export function LabDetailsScreen() {
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
+      setTabLoading(false);
       setLoadingMore(false);
       setRefreshing(false);
     }
@@ -308,64 +324,78 @@ export function LabDetailsScreen() {
   };
 
   const handleProductClick = (item: Product) => {
+    const mainImage = item.image_url || (item.images && item.images.length > 0 ? item.images[0] : '📦');
+
     // Map to ProductDetails format
     const mappedProduct = {
       id: item.id,
       labId: labId,
       name: item.name_ar,
-      image: item.image_url || '📦',
+      image: mainImage,
+      images: item.images || [mainImage],
       price: item.price + ' DA',
       supplierName: lab?.brand_name || 'مخبر معتمد',
-      supplierIcon: '🔬',
-      description: 'وصف المنتج...', // Can be fetched later
-      specifications: [],
+      supplierIcon: lab?.icon || '🔬',
+      description: item.description_ar || 'لا يوجد وصف متاح حالياً لهذا المنتج.',
+      specifications: (item as any).specifications || [],
       inStock: item.is_available,
+      deliveryTime: (item as any).working_hours || 'غير محدد',
+      warranty: (item as any).min_booking_time || 'غير محدد',
     };
-    navigation.navigate(Routes.ProductDetailsScreen, { product: mappedProduct });
+    navigation.navigate(Routes.ProductDetailsScreen, { product: mappedProduct, isBuy: true });
   };
 
-  const renderProductItem = ({ item }: { item: Product }) => (
-    <View
-      className="mb-4 w-[48%] rounded-[24px] bg-white px-4 py-4"
-      style={{
-        shadowColor: '#0f172a',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.1,
-        shadowRadius: 14,
-        elevation: 3,
-      }}>
-      <Pressable onPress={() => handleProductClick(item)}>
-        <View className="mb-3 aspect-square items-center justify-center rounded-[18px] bg-teal-50 w-full">
-          <Text className="text-6xl">{item.image_url || '📦'}</Text>
-        </View>
+  const renderProductItem = ({ item }: { item: Product }) => {
+    const mainImage = item.image_url || (item.images && item.images.length > 0 ? item.images[0] : null);
+    const isUri = mainImage && (mainImage.startsWith('http') || mainImage.startsWith('file'));
 
-        <Text className="min-h-[20px] text-right text-sm font-semibold leading-5 text-slate-800">
-          {item.name_ar}
-        </Text>
-
-        <Text
-          className={`mt-2 text-right text-xs font-medium ${item.is_available ? 'text-green-600' : 'text-orange-600'}`}>
-          {item.is_available ? 'متاح الآن' : 'محجوز'}
-        </Text>
-
-        <Pressable
-          accessibilityRole="button"
-          className="mt-4 rounded-lg bg-teal-500 py-3"
-          onPress={() => handleProductClick(item)}
-          style={({ pressed }) => ({
-            transform: [{ scale: pressed ? 0.97 : 1 }],
-            opacity: pressed ? 0.92 : 1,
-          })}>
-          <View className="flex-row items-center justify-center gap-2">
-            <Text className="text-lg font-bold text-white">+</Text>
-            <Text className="text-sm font-medium text-white">احجز الآن</Text>
+    return (
+      <View
+        className="mb-4 w-[48%] rounded-[24px] bg-white px-4 py-4"
+        style={{
+          shadowColor: '#0f172a',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.1,
+          shadowRadius: 14,
+          elevation: 3,
+        }}>
+        <Pressable onPress={() => handleProductClick(item)}>
+          <View className="mb-3 aspect-square items-center justify-center overflow-hidden rounded-[18px] bg-teal-50 w-full">
+            {isUri ? (
+              <Image source={{ uri: mainImage }} className="h-full w-full" resizeMode="cover" />
+            ) : (
+              <Text className="text-6xl">{mainImage || '📦'}</Text>
+            )}
           </View>
-        </Pressable>
-      </Pressable>
-    </View>
-  );
 
-  if (loading && !refreshing) {
+          <Text className="min-h-[20px] text-right text-sm font-semibold leading-5 text-slate-800">
+            {item.name_ar}
+          </Text>
+
+          <Text
+            className={`mt-2 text-right text-xs font-medium ${item.is_available ? 'text-green-600' : 'text-orange-600'}`}>
+            {item.is_available ? 'متاح الآن' : 'محجوز'}
+          </Text>
+
+          <Pressable
+            accessibilityRole="button"
+            className="mt-4 rounded-lg bg-teal-500 py-3"
+            onPress={() => handleProductClick(item)}
+            style={({ pressed }) => ({
+              transform: [{ scale: pressed ? 0.97 : 1 }],
+              opacity: pressed ? 0.92 : 1,
+            })}>
+            <View className="flex-row items-center justify-center gap-2">
+              <Text className="text-lg font-bold text-white">+</Text>
+              <Text className="text-sm font-medium text-white">احجز الآن</Text>
+            </View>
+          </Pressable>
+        </Pressable>
+      </View>
+    );
+  };
+
+  if (loading && !refreshing && !lab) {
     return <LabDetailsSkeleton />;
   }
 
@@ -428,7 +458,7 @@ export function LabDetailsScreen() {
             {/* Warnings/Info */}
             <View className="p-6 gap-3">
               <View className="rounded-[24px] border-2 border-yellow-400 bg-yellow-50 px-4 py-4">
-                <View className="flex-row items-start gap-3">
+                <View className="flex-row-reverse items-center gap-3">
                   <Text className="mt-0.5 text-xl text-yellow-600">⚠️</Text>
                   <Text className="flex-1 text-right font-medium leading-6 text-slate-800">
                     المبلغ يظهر عند قبول الطلب والثمن يكون في العقد
@@ -437,7 +467,7 @@ export function LabDetailsScreen() {
               </View>
 
               <View className="rounded-[24px] border-2 border-blue-400 bg-blue-50 px-4 py-4">
-                <View className="flex-row items-start gap-3">
+                <View className="flex-row-reverse items-center gap-3">
                   <Text className="mt-0.5 text-xl text-blue-600">ℹ️</Text>
                   <Text className="flex-1 text-right font-medium leading-6 text-slate-800">
                     يجب إجراء التجارب داخل المختبر فقط
@@ -475,7 +505,13 @@ export function LabDetailsScreen() {
           ) : null
         }
         ListEmptyComponent={
-          !loading ? (
+          tabLoading ? (
+            <View className="flex-row flex-wrap justify-between px-6">
+              {[1, 2, 3, 4].map((i) => (
+                <ProductSkeleton key={i} />
+              ))}
+            </View>
+          ) : !loading ? (
             <View className="mt-10 items-center justify-center px-6">
               <Text className="text-center text-slate-400">لا توجد أجهزة أو خدمات متاحة حالياً في هذا المخبر</Text>
             </View>

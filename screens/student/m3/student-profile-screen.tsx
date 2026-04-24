@@ -107,7 +107,7 @@ export const StudentProfileScreen = () => {
           {/* Form Fields */}
           <View className="gap-5">
             <View>
-              <View className="flex-row items-center gap-2 mb-2">
+              <View className="flex-row-reverse items-center gap-2 mb-2">
                 <UserIcon size={16} color="#64748b" />
                 <Text className="text-right text-sm font-bold text-slate-700">الاسم الكامل</Text>
               </View>
@@ -122,7 +122,7 @@ export const StudentProfileScreen = () => {
             </View>
 
             <View>
-              <View className="flex-row items-center gap-2 mb-2">
+              <View className="flex-row-reverse items-center gap-2 mb-2">
                 <BookOpen size={16} color="#64748b" />
                 <Text className="text-right text-sm font-bold text-slate-700">التخصص</Text>
               </View>
@@ -137,7 +137,7 @@ export const StudentProfileScreen = () => {
             </View>
 
             <View>
-              <View className="flex-row items-center gap-2 mb-2">
+              <View className="flex-row-reverse items-center gap-2 mb-2">
                 <Mail size={16} color="#64748b" />
                 <Text className="text-right text-sm font-bold text-slate-700">البريد الإلكتروني</Text>
               </View>
@@ -153,7 +153,7 @@ export const StudentProfileScreen = () => {
             </View>
 
             <View>
-              <View className="flex-row items-center gap-2 mb-2">
+              <View className="flex-row-reverse items-center gap-2 mb-2">
                 <Phone size={16} color="#64748b" />
                 <Text className="text-right text-sm font-bold text-slate-700">رقم الهاتف</Text>
               </View>
@@ -171,7 +171,7 @@ export const StudentProfileScreen = () => {
             {editing && (
               <>
                 <View className="mt-4 border-t border-slate-100 pt-6">
-                  <View className="flex-row items-center gap-2 mb-2">
+                  <View className="flex-row-reverse items-center gap-2 mb-2">
                     <Text className="text-right text-sm font-bold text-slate-700">تغيير كلمة المرور</Text>
                   </View>
                   <TextInput
@@ -201,7 +201,7 @@ export const StudentProfileScreen = () => {
             <Pressable
               onPress={handleSave}
               disabled={loading}
-              className={`mt-10 flex-row items-center justify-center gap-3 rounded-[24px] py-4 shadow-lg shadow-blue-200 ${loading ? 'bg-blue-300' : 'bg-blue-600'}`}
+              className={`mt-10 flex-row-reverse items-center justify-center gap-3 rounded-[24px] py-4 shadow-lg shadow-blue-200 ${loading ? 'bg-blue-300' : 'bg-blue-600'}`}
             >
               {loading ? (
                 <ActivityIndicator color="white" />

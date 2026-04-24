@@ -15,7 +15,7 @@ const inputClassName =
 export function LoginScreen() {
   const setAuth = useAuthStore((state) => state.setAuth);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const [phone, setPhone] = useState('0558054300');
+  const [phone, setPhone] = useState('0550000000');
   const [password, setPassword] = useState('password');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
