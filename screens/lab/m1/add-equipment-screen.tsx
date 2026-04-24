@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ScrollView,
   View,
@@ -11,13 +11,12 @@ import {
 } from 'react-native';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Routes } from '@/utils/routes';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Image } from 'react-native';
 import {
-  ArrowRight,
   Plus,
   Image as ImageIcon,
   Clock,
@@ -27,6 +26,7 @@ import {
   Check,
   X,
   Package,
+  ArrowLeft,
 } from 'lucide-react-native';
 
 interface NewEquipment {
@@ -44,19 +44,19 @@ interface NewEquipment {
 interface AddEquipmentScreenProps {
 }
 
-const availableIcons = ['🔬', '🧪', '⚗️', '🌡️', '💉', '🩺', '⚡', '🖥️', '📊', '⚖️', '🔥', '💧', '📦', '🧬', '💜'];
-
 const inputClassName = "w-full px-4 py-4 rounded-2xl border-2 border-slate-200 bg-white text-right text-base text-slate-800";
-const labelClassName = "mb-2 text-right text-sm font-semibold text-slate-700 flex-row-reverse items-center gap-2";
+const labelClassName = "mb-2 text-right text-sm font-semibold text-slate-700 flex-row items-center gap-2";
 
 export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const { productId } = route.params || {};
+  const isEditing = !!productId;
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState<'equipment' | 'service'>('equipment');
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState('🔬');
   const [isAvailable, setIsAvailable] = useState(true);
   const [location, setLocation] = useState('');
   const [supervisor, setSupervisor] = useState('');
@@ -65,12 +65,54 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
   const [specifications, setSpecifications] = useState<{ label: string; value: string }[]>([
     { label: '', value: '' }
   ]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (isEditing) {
+      fetchProductForEdit();
+    }
+  }, [productId]);
+
+  const fetchProductForEdit = async () => {
+    setLoading(true);
+    try {
+      const response: any = await api.get(`${ApiRoutes.products.index}/${productId}`);
+      if (response.status === 'success') {
+        const p = response.data;
+        setName(p.name_ar);
+        setDescription(p.description_ar);
+        setType(p.type);
+        setIsAvailable(p.is_available);
+        setLocation(p.location);
+        setSupervisor(p.supervisor);
+        setWorkingHours(p.working_hours);
+        setMinBookingTime(p.min_booking_time);
+        setSpecifications(p.specifications || [{ label: '', value: '' }]);
+        setExistingImages(p.images || []);
+      }
+    } catch (error) {
+      console.error('Error fetching product for edit:', error);
+      Alert.alert('خطأ', 'تعذر تحميل بيانات المنتج للتحرير');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const pickImages = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
+    if (images.length >= 3) {
+      Alert.alert('تنبيه', 'يمكنك إضافة 3 صور كحد أقصى');
+      return;
+    }
+    // Request camera permissions
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('تنبيه', 'نحتاج إلى إذن الوصول للكاميرا لالتقاط الصور');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
-      quality: 0.4, // Reduced quality significantly
+      quality: 0.4,
       allowsEditing: false,
     });
 
@@ -81,6 +123,10 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
 
   const removeImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
+  };
+
+  const removeExistingImage = (index: number) => {
+    setExistingImages(existingImages.filter((_, i) => i !== index));
   };
 
   const handleAddSpecification = () => {
@@ -107,6 +153,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
     try {
       // 1. Upload Images
       const mediaIds: number[] = [];
+      const imageUrls: string[] = [];
       for (const img of images) {
         // Resize image to ensure it's under 2MB (PHP limit)
         const manipulatedImage = await ImageManipulator.manipulateAsync(
@@ -122,12 +169,13 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
           name: 'photo.jpg',
         } as any);
 
-        const uploadRes = await api.post(ApiRoutes.uploads.temp, formData, {
+        const uploadRes: any = await api.post(ApiRoutes.uploads.temp, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
 
         if (uploadRes.status === 'success') {
           mediaIds.push(uploadRes.data.id);
+          imageUrls.push(uploadRes.data.url);
         }
       }
 
@@ -135,7 +183,8 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
       const payload = {
         name_ar: name,
         description_ar: description,
-        image_url: selectedIcon,
+        image_url: imageUrls.length > 0 ? imageUrls[0] : (existingImages.length > 0 ? existingImages[0] : null),
+        images: [...existingImages, ...imageUrls],
         specifications: specifications.filter(spec => spec.label && spec.value),
         is_available: isAvailable,
         location,
@@ -146,31 +195,19 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
         media_ids: mediaIds,
       };
 
-      const response: any = await api.post(ApiRoutes.products.store, payload);
+      let response: any;
+      if (isEditing) {
+        response = await api.post(`${ApiRoutes.products.index}/${productId}`, {
+          ...payload,
+          _method: 'PUT',
+        });
+      } else {
+        response = await api.post(ApiRoutes.products.store, payload);
+      }
 
       if (response.status === 'success') {
-        const createdProduct = response.data;
-
-        // Map backend product to what ProductDetailsScreen expects
-        const mappedProduct = {
-          id: createdProduct.id,
-          name: createdProduct.name_ar,
-          image: createdProduct.image_url, // emoji
-          price: createdProduct.price + ' DA',
-          supplierName: 'مخبرك', // Default for now
-          supplierIcon: '🔬',
-          description: createdProduct.description_ar,
-          specifications: createdProduct.specifications || [],
-          inStock: createdProduct.is_available,
-          deliveryTime: createdProduct.working_hours,
-          warranty: createdProduct.min_booking_time,
-        };
-
-        Alert.alert('نجاح', `تمت إضافة ${type === 'equipment' ? 'الجهاز' : 'الخدمة'} بنجاح`);
-
-        // Use replace so they can't go back to the form
+        Alert.alert('نجاح', isEditing ? 'تم تحديث البيانات بنجاح' : `تمت إضافة ${type === 'equipment' ? 'الجهاز' : 'الخدمة'} بنجاح`);
         navigation.goBack();
-        // navigation.replace(Routes.ProductDetailsScreen, { product: mappedProduct });
       }
     } catch (error) {
       console.error('Error saving item:', error);
@@ -188,16 +225,16 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
           onPress={() => {
             navigation.goBack()
           }}
-          className="mb-4 flex-row-reverse items-center gap-2 self-start rounded-full bg-white/10 px-4 py-2"
+          className="mb-4 flex-row items-center gap-2 self-start rounded-full bg-white/10 px-4 py-2"
         >
-          <ArrowRight size={24} color="white" />
+          <ArrowLeft size={24} color="white" />
           <Text className="text-base font-bold text-white">رجوع</Text>
         </Pressable>
-        <Text className="text-right text-2xl font-bold text-white">
-          {type === 'equipment' ? 'إضافة جهاز جديد' : 'إضافة خدمة جديدة'}
+        <Text className="text-right text-3xl font-black text-white">
+          {isEditing ? 'تعديل البيانات' : (type === 'equipment' ? 'إضافة جهاز' : 'إضافة خدمة')}
         </Text>
         <Text className="mt-1 text-right text-sm text-teal-100">
-          {type === 'equipment' ? 'أضف جهازاً جديداً إلى قائمة المعدات' : 'أضف خدمة جديدة إلى قائمة خدماتك'}
+          {isEditing ? 'تحديث معلومات المنتج أو الخدمة' : (type === 'equipment' ? 'أضف جهازاً جديداً إلى قائمة المعدات' : 'أضف خدمة جديدة إلى قائمة خدماتك')}
         </Text>
       </View>
 
@@ -209,7 +246,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
         {/* Type Selection */}
         <View className="mb-8">
           <Text className="mb-3 text-right text-sm font-semibold text-slate-700">نوع الإضافة</Text>
-          <View className="flex-row gap-3">
+          <View className="flex-row-reverse gap-3">
             <Pressable
               onPress={() => setType('equipment')}
               className={`flex-1 flex-row-reverse justify-center items-center py-4 rounded-2xl border-2 ${type === 'equipment' ? 'bg-teal-100 border-teal-500' : 'bg-white border-slate-200'}`}
@@ -246,16 +283,42 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
           <View className="mb-3 flex-row-reverse items-center justify-between">
             <View className="flex-row-reverse items-center gap-2">
               <ImageIcon size={18} color="#475569" />
-              <Text className="text-sm font-semibold text-slate-700">صور الجهاز</Text>
+              <Text className="text-sm font-semibold text-slate-700">صور الجهاز ({images.length + existingImages.length}/3)</Text>
             </View>
-            <Pressable onPress={pickImages} className="rounded-xl bg-teal-50 px-3 py-1">
-              <Text className="text-xs font-bold text-teal-600">إضافة صور</Text>
-            </Pressable>
+            {(images.length + existingImages.length) < 3 && (
+              <Pressable onPress={pickImages} className="rounded-xl bg-teal-50 px-3 py-1">
+                <Text className="text-xs font-bold text-teal-600">التقاط صورة</Text>
+              </Pressable>
+            )}
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row-reverse">
+            {/* Add More Button (Inline) */}
+            {(images.length + existingImages.length) > 0 && (images.length + existingImages.length) < 3 && (
+              <Pressable
+                onPress={pickImages}
+                className="h-24 w-24 items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 ml-3"
+              >
+                <Plus size={24} color="#64748b" />
+              </Pressable>
+            )}
+
+            {/* Existing Images */}
+            {existingImages.map((uri, idx) => (
+              <View key={`existing-${idx}`} className="ml-3 h-24 w-24 overflow-hidden rounded-2xl bg-slate-200">
+                <Image source={{ uri }} className="h-full w-full" />
+                <Pressable
+                  onPress={() => removeExistingImage(idx)}
+                  className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-red-500 shadow-sm"
+                >
+                  <X size={14} color="white" />
+                </Pressable>
+              </View>
+            ))}
+
+            {/* New Images */}
             {images.map((img, idx) => (
-              <View key={idx} className="mr-3 h-24 w-24 overflow-hidden rounded-2xl bg-slate-200">
+              <View key={`new-${idx}`} className="ml-3 h-24 w-24 overflow-hidden rounded-2xl bg-slate-200">
                 <Image source={{ uri: img.uri }} className="h-full w-full" />
                 <Pressable
                   onPress={() => removeImage(idx)}
@@ -265,37 +328,16 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
                 </Pressable>
               </View>
             ))}
-            {images.length === 0 && (
+
+            {images.length === 0 && existingImages.length === 0 && (
               <Pressable
                 onPress={pickImages}
                 className="h-24 w-full items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50"
               >
-                <Text className="text-sm text-slate-400">لم يتم اختيار أي صور</Text>
+                <Text className="text-sm text-slate-400">لم يتم التقاط أي صور</Text>
               </Pressable>
             )}
           </ScrollView>
-        </View>
-
-        {/* Icon Selection */}
-        <View className="mb-6">
-          <View className="mb-3 flex-row-reverse items-center gap-2">
-            <ImageIcon size={18} color="#475569" />
-            <Text className="text-sm font-semibold text-slate-700">اختر أيقونة الجهاز</Text>
-          </View>
-          <View className="flex-row flex-wrap justify-end gap-3">
-            {availableIcons.map((icon) => (
-              <Pressable
-                key={icon}
-                onPress={() => setSelectedIcon(icon)}
-                className={`h-14 w-14 items-center justify-center rounded-2xl border-2 transition-all ${selectedIcon === icon
-                  ? 'bg-teal-100 border-teal-500'
-                  : 'bg-white border-slate-200'
-                  }`}
-              >
-                <Text className="text-2xl">{icon}</Text>
-              </Pressable>
-            ))}
-          </View>
         </View>
 
         {/* Description */}
@@ -320,9 +362,9 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
         <View className="mb-6">
           <View className="mb-3 flex-row-reverse items-center gap-2">
             <Clock size={18} color="#475569" />
-            <Text className="text-sm font-semibold text-slate-700">حالة التوفر</Text>
+            <Text className="w-full text-sm text-right font-semibold text-slate-700">حالة التوفر</Text>
           </View>
-          <View className="flex-row gap-3">
+          <View className="flex-row-reverse gap-3">
             <Pressable
               onPress={() => setIsAvailable(true)}
               className={`flex-1 py-4 rounded-2xl border-2 items-center ${isAvailable
@@ -423,14 +465,14 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
         <View className="flex-row gap-3">
           <Pressable
             onPress={() => navigation.goBack()}
-            className="flex-1 bg-slate-100 py-4 rounded-2xl items-center"
+            className="flex-1 bg-slate-100 py-2 rounded-2xl items-center"
           >
             <Text className="text-lg font-bold text-slate-700">إلغاء</Text>
           </Pressable>
           <Pressable
             onPress={handleSave}
             disabled={loading}
-            className={`flex-2 py-4 rounded-2xl items-center flex-row justify-center gap-3 shadow-lg ${loading ? 'opacity-70' : ''}`}
+            className={`flex-1 py-2 rounded-2xl flex-row-reverse justify-center gap-3 shadow-lg ${loading ? 'opacity-70' : ''}`}
             style={{ backgroundColor: '#0d9488' }}
           >
             {loading ? (
@@ -438,7 +480,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
             ) : (
               <>
                 <Check size={24} color="white" strokeWidth={3} />
-                <Text className="text-lg font-bold text-white">حفظ الجهاز</Text>
+                <Text className="text-md font-bold text-white">حفظ الجهاز</Text>
               </>
             )}
           </Pressable>

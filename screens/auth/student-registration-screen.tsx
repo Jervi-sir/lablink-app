@@ -1,4 +1,5 @@
 import api, { apiPublic, setAxiosAuthToken } from '@/utils/api/axios-instance';
+import { registerAndSyncPushToken } from '@/utils/notifications/push-notifications';
 import { ApiRoutes, buildRoute } from '@/utils/api/api';
 import { Routes } from '@/utils/routes';
 import { useNavigation } from '@react-navigation/native';
@@ -89,6 +90,7 @@ export function StudentRegistrationScreen() {
       if (response.status === 'success') {
         const { token, user, student } = response.data;
         setAuth(token, user, student);
+        registerAndSyncPushToken();
         navigation.navigate(Routes.StudentNavigation);
       } else {
         Alert.alert('خطأ', response.message || 'فشل التسجيل');
@@ -232,7 +234,7 @@ export function StudentRegistrationScreen() {
           />
         </View>
 
-        <View className="flex-row-reverse items-start gap-3 rounded-2xl bg-slate-100 px-4 py-4">
+        <View className="flex-row items-start gap-3 rounded-2xl bg-slate-100 px-4 py-4">
           <Switch
             onValueChange={(value) => setField('acceptTerms', value)}
             thumbColor="#ffffff"
@@ -260,7 +262,7 @@ export function StudentRegistrationScreen() {
             <Text className="text-center text-lg font-bold text-white">متابعة</Text>
           )}
         </Pressable>
-        <View className="mt-4 flex-row-reverse items-center justify-center gap-2">
+        <View className="mt-4 flex-row items-center justify-center gap-2">
           <Text className="text-slate-600">لديك حساب بالفعل؟</Text>
           <Pressable onPress={() => navigation.navigate(Routes.LoginScreen)}>
             <Text className="font-bold text-blue-600">تسجيل الدخول</Text>

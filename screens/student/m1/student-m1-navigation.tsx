@@ -30,7 +30,7 @@ function Header({ title, subtitle }: { title: string; subtitle: string }) {
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <View className="mb-4 flex-row-reverse items-center justify-between">
+    <View className="mb-4 flex-row items-center justify-between">
       <Text className="text-right text-xl font-bold text-slate-800">{title}</Text>
       <Text className="text-xl text-blue-600">‹</Text>
     </View>

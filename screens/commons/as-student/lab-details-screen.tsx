@@ -6,10 +6,18 @@ import {
   Modal,
   Pressable,
   RefreshControl,
+  ScrollView,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import api from '@/utils/api/axios-instance';
@@ -75,7 +83,7 @@ function RatingModal({
             <Text className="mt-1 text-center text-sm text-slate-500">{targetName}</Text>
           </View>
 
-          <View className="mt-6 flex-row-reverse justify-center gap-2">
+          <View className="mt-6 flex-row justify-center gap-2">
             {[1, 2, 3, 4, 5].map((value) => (
               <Pressable key={value} onPress={() => setRating(value)}>
                 <Text
@@ -96,7 +104,7 @@ function RatingModal({
             value={comment}
           />
 
-          <View className="mt-6 flex-row-reverse gap-3">
+          <View className="mt-6 flex-row gap-3">
             <Pressable
               className="flex-1 rounded-2xl bg-slate-200 px-4 py-4"
               onPress={() => {
@@ -125,7 +133,7 @@ function RatingModal({
 
 function Stars({ rating, size = 'text-sm' }: { rating: number; size?: string }) {
   return (
-    <View className="flex-row-reverse gap-1">
+    <View className="flex-row gap-1">
       {[1, 2, 3, 4, 5].map((star) => (
         <Text
           key={star}
@@ -134,6 +142,70 @@ function Stars({ rating, size = 'text-sm' }: { rating: number; size?: string }) 
         </Text>
       ))}
     </View>
+  );
+}
+
+function SkeletonPulse({ className, style }: { className?: string; style?: any }) {
+  const opacity = useSharedValue(0.3);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.7, { duration: 800 }),
+        withTiming(0.3, { duration: 800 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return <Animated.View className={`bg-slate-200 ${className}`} style={[style, animatedStyle]} />;
+}
+
+function LabDetailsSkeleton() {
+  return (
+    <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
+      <View className="bg-teal-800/10 px-6 pb-8 pt-4">
+        <View className="mb-5 h-10 w-20 rounded-full bg-slate-200/50" />
+        <View className="flex-row items-start gap-4">
+          <SkeletonPulse className="h-16 w-16 rounded-full" />
+          <View className="flex-1 items-end">
+            <SkeletonPulse className="h-8 w-48 rounded-xl" />
+            <SkeletonPulse className="mt-2 h-4 w-32 rounded-lg" />
+            <View className="mt-4 flex-row items-center">
+              <SkeletonPulse className="h-4 w-24 rounded-lg" />
+            </View>
+          </View>
+        </View>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} className="p-6">
+        <SkeletonPulse className="mb-3 h-20 rounded-[24px]" />
+        <SkeletonPulse className="mb-6 h-20 rounded-[24px]" />
+
+        <View className="flex-row gap-3">
+          <SkeletonPulse className="h-14 flex-1 rounded-2xl" />
+          <SkeletonPulse className="h-14 flex-1 rounded-2xl" />
+        </View>
+
+        <SkeletonPulse className="mt-8 h-6 w-32 self-end rounded-lg" />
+
+        <View className="mt-6 flex-row flex-wrap justify-between">
+          {[1, 2, 3, 4].map((i) => (
+            <View key={i} className="mb-4 w-[48%] rounded-[24px] bg-white p-4">
+              <SkeletonPulse className="aspect-square rounded-[18px]" />
+              <SkeletonPulse className="mt-3 h-4 w-full rounded-lg" />
+              <SkeletonPulse className="mt-2 h-3 w-1/2 self-end rounded-lg" />
+              <SkeletonPulse className="mt-4 h-10 w-full rounded-lg" />
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -263,11 +335,11 @@ export function LabDetailsScreen() {
         elevation: 3,
       }}>
       <Pressable onPress={() => handleProductClick(item)}>
-        <View className="mb-3 aspect-square items-center justify-center rounded-[18px] bg-teal-50">
+        <View className="mb-3 aspect-square items-center justify-center rounded-[18px] bg-teal-50 w-full">
           <Text className="text-6xl">{item.image_url || '📦'}</Text>
         </View>
 
-        <Text className="min-h-[44px] text-right text-sm font-semibold leading-5 text-slate-800">
+        <Text className="min-h-[20px] text-right text-sm font-semibold leading-5 text-slate-800">
           {item.name_ar}
         </Text>
 
@@ -284,7 +356,7 @@ export function LabDetailsScreen() {
             transform: [{ scale: pressed ? 0.97 : 1 }],
             opacity: pressed ? 0.92 : 1,
           })}>
-          <View className="flex-row-reverse items-center justify-center gap-2">
+          <View className="flex-row items-center justify-center gap-2">
             <Text className="text-lg font-bold text-white">+</Text>
             <Text className="text-sm font-medium text-white">احجز الآن</Text>
           </View>
@@ -294,11 +366,7 @@ export function LabDetailsScreen() {
   );
 
   if (loading && !refreshing) {
-    return (
-      <View className="flex-1 items-center justify-center bg-slate-50">
-        <ActivityIndicator size="large" color="#0d9488" />
-      </View>
-    );
+    return <LabDetailsSkeleton />;
   }
 
   return (
@@ -326,7 +394,7 @@ export function LabDetailsScreen() {
                 <Text className="text-base font-medium text-white">رجوع</Text>
               </Pressable>
 
-              <View className="flex-row-reverse items-start gap-4">
+              <View className="flex-row items-start gap-4">
                 <View className={`h-16 w-16 items-center justify-center rounded-full bg-white/20`}>
                   <Text className="text-3xl">{lab?.icon || '🔬'}</Text>
                 </View>
@@ -339,7 +407,7 @@ export function LabDetailsScreen() {
                     {lab?.category?.ar || 'مخبر معتمد'}
                   </Text>
 
-                  <View className="mt-4 flex-row-reverse items-center">
+                  <View className="mt-4 flex-row items-center">
                     <Text className="mr-2 text-sm text-teal-100">(4.8 - 156 تقييم)</Text>
                     <Stars rating={5} size="text-base" />
                   </View>
@@ -348,7 +416,7 @@ export function LabDetailsScreen() {
                     accessibilityRole="button"
                     className="mt-4 self-end rounded-xl bg-white/20 px-4 py-2"
                     onPress={() => setShowRatingModal(true)}>
-                    <View className="flex-row-reverse items-center gap-2">
+                    <View className="flex-row items-center gap-2">
                       <Text className="text-white">★</Text>
                       <Text className="text-sm text-white">اكتب تقييمك</Text>
                     </View>
@@ -360,7 +428,7 @@ export function LabDetailsScreen() {
             {/* Warnings/Info */}
             <View className="p-6 gap-3">
               <View className="rounded-[24px] border-2 border-yellow-400 bg-yellow-50 px-4 py-4">
-                <View className="flex-row-reverse items-start gap-3">
+                <View className="flex-row items-start gap-3">
                   <Text className="mt-0.5 text-xl text-yellow-600">⚠️</Text>
                   <Text className="flex-1 text-right font-medium leading-6 text-slate-800">
                     المبلغ يظهر عند قبول الطلب والثمن يكون في العقد
@@ -369,7 +437,7 @@ export function LabDetailsScreen() {
               </View>
 
               <View className="rounded-[24px] border-2 border-blue-400 bg-blue-50 px-4 py-4">
-                <View className="flex-row-reverse items-start gap-3">
+                <View className="flex-row items-start gap-3">
                   <Text className="mt-0.5 text-xl text-blue-600">ℹ️</Text>
                   <Text className="flex-1 text-right font-medium leading-6 text-slate-800">
                     يجب إجراء التجارب داخل المختبر فقط
@@ -429,9 +497,9 @@ export function LabDetailsScreen() {
         <View className="absolute bottom-6 left-6 right-6">
           <Pressable
             onPress={() => navigation.navigate(Routes.CartScreen)}
-            className="flex-row-reverse items-center justify-between rounded-full bg-teal-600 px-6 py-4 shadow-lg shadow-teal-500/30"
+            className="flex-row items-center justify-between rounded-full bg-teal-600 px-6 py-4 shadow-lg shadow-teal-500/30"
           >
-            <View className="flex-row-reverse items-center gap-3">
+            <View className="flex-row items-center gap-3">
               <View className="h-8 w-8 items-center justify-center rounded-full bg-white">
                 <Text className="text-base font-bold text-teal-600">{getCartTotal()}</Text>
               </View>

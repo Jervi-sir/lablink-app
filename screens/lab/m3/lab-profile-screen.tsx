@@ -23,10 +23,10 @@ const inputClassName = "rounded-2xl border border-slate-200 bg-white px-4 py-4 t
 export const LabProfileScreen = () => {
   const { user, profile, clearAuth } = useAuthStore();
   const navigation = useNavigation<any>();
-  
+
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     brand_name: user?.lab?.brand_name || '',
     email: user?.email || '',
@@ -41,8 +41,8 @@ export const LabProfileScreen = () => {
       'هل أنت متأكد من رغبتك في تسجيل الخروج؟',
       [
         { text: 'إلغاء', style: 'cancel' },
-        { 
-          text: 'خروج', 
+        {
+          text: 'خروج',
           style: 'destructive',
           onPress: () => {
             clearAuth();
@@ -74,37 +74,37 @@ export const LabProfileScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
       <StatusBar barStyle="dark-content" />
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
-        <View className="bg-white px-6 pb-6 pt-5 border-b border-slate-100 flex-row-reverse items-center justify-between">
-           <Text className="text-2xl font-black text-slate-900">الملف الشخصي</Text>
-           <Pressable 
-              onPress={() => setEditing(!editing)}
-              className={`h-10 w-10 items-center justify-center rounded-full ${editing ? 'bg-amber-100' : 'bg-blue-100'}`}
-           >
-              {editing ? <Save size={20} color="#b45309" /> : <Edit2 size={20} color="#2563eb" />}
-           </Pressable>
+        <View className="bg-white px-6 pb-6 pt-5 border-b border-slate-100 flex-row items-center justify-between">
+          <Text className="text-2xl font-black text-slate-900">الملف الشخصي</Text>
+          <Pressable
+            onPress={() => setEditing(!editing)}
+            className={`h-10 w-10 items-center justify-center rounded-full ${editing ? 'bg-amber-100' : 'bg-blue-100'}`}
+          >
+            {editing ? <Save size={20} color="#b45309" /> : <Edit2 size={20} color="#2563eb" />}
+          </Pressable>
         </View>
 
         <ScrollView className="flex-1" contentContainerClassName="px-6 py-8 pb-12" showsVerticalScrollIndicator={false}>
           {/* Header Info */}
           <View className="items-center mb-8">
             <View className="h-24 w-24 items-center justify-center rounded-[32px] bg-blue-600 shadow-xl shadow-blue-200">
-               <Text className="text-5xl">{user?.lab?.icon || '🔬'}</Text>
+              <Text className="text-5xl">{user?.lab?.icon || '🔬'}</Text>
             </View>
             <Text className="mt-4 text-2xl font-bold text-slate-900">{user?.lab?.brand_name}</Text>
-            <View className="mt-1 flex-row-reverse items-center gap-1 rounded-full bg-slate-100 px-3 py-1">
-               <Shield size={12} color="#64748b" />
-               <Text className="text-xs text-slate-500 font-medium">مخبر معتمد</Text>
+            <View className="mt-1 flex-row items-center gap-1 rounded-full bg-slate-100 px-3 py-1">
+              <Shield size={12} color="#64748b" />
+              <Text className="text-xs text-slate-500 font-medium">مخبر معتمد</Text>
             </View>
           </View>
 
           {/* Form Fields */}
           <View className="gap-5">
             <View>
-              <View className="flex-row-reverse items-center gap-2 mb-2">
+              <View className="flex-row items-center gap-2 mb-2">
                 <Building2 size={16} color="#64748b" />
                 <Text className="text-right text-sm font-bold text-slate-700">اسم العلامة التجارية</Text>
               </View>
@@ -112,14 +112,14 @@ export const LabProfileScreen = () => {
                 className={`${inputClassName} ${!editing ? 'bg-slate-50 border-transparent text-slate-500' : ''}`}
                 editable={editing}
                 value={formData.brand_name}
-                onChangeText={(val) => setFormData({...formData, brand_name: val})}
+                onChangeText={(val) => setFormData({ ...formData, brand_name: val })}
                 placeholder="اسم المخبر"
                 textAlign="right"
               />
             </View>
 
             <View>
-              <View className="flex-row-reverse items-center gap-2 mb-2">
+              <View className="flex-row items-center gap-2 mb-2">
                 <Mail size={16} color="#64748b" />
                 <Text className="text-right text-sm font-bold text-slate-700">البريد الإلكتروني</Text>
               </View>
@@ -127,7 +127,7 @@ export const LabProfileScreen = () => {
                 className={`${inputClassName} ${!editing ? 'bg-slate-50 border-transparent text-slate-500' : ''}`}
                 editable={editing}
                 value={formData.email}
-                onChangeText={(val) => setFormData({...formData, email: val})}
+                onChangeText={(val) => setFormData({ ...formData, email: val })}
                 placeholder="email@example.com"
                 keyboardType="email-address"
                 textAlign="right"
@@ -135,7 +135,7 @@ export const LabProfileScreen = () => {
             </View>
 
             <View>
-              <View className="flex-row-reverse items-center gap-2 mb-2">
+              <View className="flex-row items-center gap-2 mb-2">
                 <Phone size={16} color="#64748b" />
                 <Text className="text-right text-sm font-bold text-slate-700">رقم الهاتف</Text>
               </View>
@@ -143,7 +143,7 @@ export const LabProfileScreen = () => {
                 className={`${inputClassName} ${!editing ? 'bg-slate-50 border-transparent text-slate-500' : ''}`}
                 editable={editing}
                 value={formData.phone_number}
-                onChangeText={(val) => setFormData({...formData, phone_number: val})}
+                onChangeText={(val) => setFormData({ ...formData, phone_number: val })}
                 placeholder="05XX XX XX XX"
                 keyboardType="phone-pad"
                 textAlign="right"
@@ -153,14 +153,14 @@ export const LabProfileScreen = () => {
             {editing && (
               <>
                 <View className="mt-4 border-t border-slate-100 pt-6">
-                  <View className="flex-row-reverse items-center gap-2 mb-2">
+                  <View className="flex-row items-center gap-2 mb-2">
                     <Text className="text-right text-sm font-bold text-slate-700">تغيير كلمة المرور</Text>
                   </View>
                   <TextInput
                     className={inputClassName}
                     secureTextEntry
                     value={formData.password}
-                    onChangeText={(val) => setFormData({...formData, password: val})}
+                    onChangeText={(val) => setFormData({ ...formData, password: val })}
                     placeholder="كلمة المرور الجديدة"
                     textAlign="right"
                   />
@@ -170,7 +170,7 @@ export const LabProfileScreen = () => {
                     className={inputClassName}
                     secureTextEntry
                     value={formData.password_confirmation}
-                    onChangeText={(val) => setFormData({...formData, password_confirmation: val})}
+                    onChangeText={(val) => setFormData({ ...formData, password_confirmation: val })}
                     placeholder="تأكيد كلمة المرور"
                     textAlign="right"
                   />
@@ -183,7 +183,7 @@ export const LabProfileScreen = () => {
             <Pressable
               onPress={handleSave}
               disabled={loading}
-              className={`mt-10 flex-row-reverse items-center justify-center gap-3 rounded-[24px] py-4 shadow-lg shadow-blue-200 ${loading ? 'bg-blue-300' : 'bg-blue-600'}`}
+              className={`mt-10 flex-row items-center justify-center gap-3 rounded-[24px] py-4 shadow-lg shadow-blue-200 ${loading ? 'bg-blue-300' : 'bg-blue-600'}`}
             >
               {loading ? (
                 <ActivityIndicator color="white" />
@@ -199,7 +199,7 @@ export const LabProfileScreen = () => {
           {/* Logout Button */}
           <Pressable
             onPress={handleLogout}
-            className="mt-10 flex-row-reverse items-center justify-center gap-3 rounded-[24px] bg-rose-50 border border-rose-100 py-4"
+            className="mt-10 flex-row items-center justify-center gap-3 rounded-[24px] bg-rose-50 border border-rose-100 py-4"
           >
             <LogOut size={20} color="#e11d48" />
             <Text className="text-lg font-bold text-rose-600">تسجيل الخروج</Text>

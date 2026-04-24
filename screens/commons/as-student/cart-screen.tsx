@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert, TextInput 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useCart } from '@/context/CartContext';
-import { ArrowRight, Trash2, Send } from 'lucide-react-native';
+import { Trash2, Send, ArrowLeft } from 'lucide-react-native';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes, buildRoute } from '@/utils/api/api';
 
@@ -60,9 +60,9 @@ export function CartScreen() {
       <View className="bg-teal-600 px-6 pb-6 pt-6 shadow-lg rounded-b-3xl">
         <Pressable
           onPress={() => navigation.goBack()}
-          className="mb-4 flex-row-reverse items-center gap-2 self-start rounded-full bg-white/10 px-4 py-2"
+          className="mb-4 flex-row items-center gap-2 self-start rounded-full bg-white/10 px-4 py-2"
         >
-          <ArrowRight size={24} color="white" />
+          <ArrowLeft size={24} color="white" />
           <Text className="text-base font-bold text-white">رجوع</Text>
         </Pressable>
         <Text className="text-right text-2xl font-bold text-white">السلة</Text>
@@ -73,7 +73,7 @@ export function CartScreen() {
 
       <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 100 }}>
         {items.map((item, index) => (
-          <View key={index} className="mb-4 bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex-row-reverse items-center">
+          <View key={index} className="mb-4 bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex-row items-center">
             <View className="h-16 w-16 bg-slate-50 rounded-xl items-center justify-center border border-slate-100 ml-4">
               <Text className="text-3xl">{item.product.image || '📦'}</Text>
             </View>
@@ -108,7 +108,7 @@ export function CartScreen() {
 
       {/* Bottom Action Bar */}
       <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-6 shadow-2xl">
-        <View className="flex-row-reverse items-center justify-between mb-4">
+        <View className="flex-row items-center justify-between mb-4">
           <Text className="text-lg font-bold text-slate-800">إجمالي العناصر:</Text>
           <Text className="text-2xl font-black text-teal-600">{getCartTotal()}</Text>
         </View>

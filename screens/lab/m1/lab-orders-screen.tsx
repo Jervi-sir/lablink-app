@@ -82,20 +82,20 @@ export const LabOrdersScreen = () => {
           transform: [{ scale: pressed ? 0.985 : 1 }],
           opacity: pressed ? 0.95 : 1,
         })}>
-        <View className="flex-row-reverse items-start gap-4">
+        <View className="flex-row items-start gap-4">
           <View className="h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
             <Text className="text-3xl">{studentIcon}</Text>
           </View>
 
           <View className="flex-1">
-            <View className="flex-row-reverse items-center justify-between">
+            <View className="flex-row items-center justify-between">
               <Text className="text-right text-lg font-bold text-slate-800">
                 {studentName}
               </Text>
               <Text className="text-[10px] text-slate-400 font-medium">{order.created_at.split('T')[0]}</Text>
             </View>
 
-            <View className="mb-3 mt-1 gap-1 flex-row-reverse flex-wrap">
+            <View className="mb-3 mt-1 gap-1 flex-row flex-wrap">
               {order.items.slice(0, 2).map((item, idx) => (
                 <Text key={item.id} className="text-right text-xs text-slate-500">
                   {item.product.name_ar}{idx < Math.min(order.items.length, 2) - 1 ? ' • ' : ''}
@@ -106,9 +106,9 @@ export const LabOrdersScreen = () => {
               )}
             </View>
 
-            <View className="flex-row-reverse items-center justify-between">
+            <View className="flex-row items-center justify-between">
               <View
-                className={`flex-row-reverse items-center gap-1.5 rounded-full px-3 py-1 ${statusInfo.tone}`}>
+                className={`flex-row items-center gap-1.5 rounded-full px-3 py-1 ${statusInfo.tone}`}>
                 {statusInfo.icon}
                 <Text className="text-[10px] font-bold">{statusInfo.text}</Text>
               </View>
@@ -121,7 +121,7 @@ export const LabOrdersScreen = () => {
 
         {order.status === 'request_estimation' && (
           <View className="mt-4 border-t border-slate-50 pt-4">
-            <View className="flex-row-reverse gap-2">
+            <View className="flex-row gap-2">
               <Pressable
                 className="flex-1 rounded-xl bg-blue-600 py-2.5 items-center justify-center"
                 onPress={() => navigation.navigate(Routes.LabOrderDetailScreen, { orderId: order.id })}
@@ -140,7 +140,7 @@ export const LabOrdersScreen = () => {
       <StatusBar barStyle="dark-content" />
       {/* Header */}
       <View className="bg-white px-6 pb-6 pt-5 border-b border-slate-100">
-        <View className="flex-row-reverse items-center justify-between">
+        <View className="flex-row items-center justify-between">
           <Text className="text-right text-2xl font-black text-slate-900">إدارة الطلبات</Text>
           <View className="h-10 w-10 items-center justify-center rounded-full bg-slate-50">
             <Inbox size={20} color="#64748b" />
@@ -150,7 +150,7 @@ export const LabOrdersScreen = () => {
       </View>
 
       {/* Tab Bar */}
-      <View className="mx-6 mt-6 flex-row-reverse rounded-2xl bg-slate-200 p-1">
+      <View className="mx-6 mt-6 flex-row rounded-2xl bg-slate-200 p-1">
         <Pressable
           onPress={() => setActiveTab('requests')}
           className={`flex-1 rounded-xl py-3 items-center`}

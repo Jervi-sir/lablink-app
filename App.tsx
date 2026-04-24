@@ -16,7 +16,7 @@ import { StudentRegistrationScreen } from './screens/auth/student-registration-s
 import { ServiceDetailsScreen } from './screens/commons/products/service-details-screen';
 import { LabDetailsScreen } from './screens/commons/as-student/lab-details-screen';
 import { ContractSigningScreen } from './screens/commons/as-student/contract-signing-screen';
-import { MyProductsScreen } from './screens/lab/m1/my-profile-screen';
+import { MyProductsScreen } from './screens/lab/m1/my-products-screen';
 import { AddEquipmentScreen } from './screens/lab/m1/add-equipment-screen';
 
 import { CartProvider } from './context/CartContext';
@@ -28,8 +28,29 @@ import { LabM2Navigation } from './screens/lab/m2/lab-m2-navigation';
 import { LabOrdersScreen } from './screens/lab/m1/lab-orders-screen';
 import { LabOrderDetailScreen } from './screens/lab/m1/lab-order-details-screen';
 import ProductDetailsScreen from './screens/commons/products/product-details-screen';
+import ProductStatsScreen from './screens/lab/m1/product-stats-screen';
+import { enableScreens } from 'react-native-screens';
+
+import { useEffect } from 'react';
+import * as Notifications from 'expo-notifications';
 
 export default function App() {
+  enableScreens();
+  useEffect(() => {
+    const notificationListener = Notifications.addNotificationReceivedListener(notification => {
+      console.log('Notification Received:', notification);
+    });
+
+    const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log('Notification Response Received:', response);
+    });
+
+    return () => {
+      notificationListener.remove();
+      responseListener.remove();
+    };
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <CartProvider>
@@ -57,7 +78,14 @@ const Navigation = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        animation: 'slide_from_right', // iOS default push
+        animationDuration: 350,
+        gestureEnabled: true, // swipe back
+        fullScreenGestureEnabled: true, // smoother swipe
+        gestureDirection: 'horizontal',
+        animationMatchesGesture: true, // 👈 important for smooth sync
       }}
+
       initialRouteName={Routes.BootScreen}>
       {[
         /**-- Navigation --*/
@@ -86,14 +114,12 @@ const Navigation = () => {
 
         // Products
         { name: Routes.ProductDetailsScreen, component: ProductDetailsScreen },
+        { name: Routes.ProductStatsScreen, component: ProductStatsScreen },
       ].map((item, index) => (
         <Stack.Screen
           key={index}
           name={item.name}
           component={item.component as any}
-          options={{
-            animation: 'slide_from_right',
-          }}
         />
       ))}
     </Stack.Navigator>

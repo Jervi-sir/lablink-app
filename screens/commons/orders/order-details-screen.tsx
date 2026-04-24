@@ -75,7 +75,7 @@ export const OrderDetailScreen = () => {
     <View className="flex-1 bg-slate-50">
       <StatusBar barStyle="dark-content" />
       <SafeAreaView className="bg-white shadow-sm">
-        <View className="flex-row-reverse items-center justify-between px-6 py-4">
+        <View className="flex-row items-center justify-between px-6 py-4">
           <Pressable
             onPress={() => navigation.goBack()}
             className="h-10 w-10 items-center justify-center rounded-full bg-slate-100"
@@ -98,22 +98,22 @@ export const OrderDetailScreen = () => {
           style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
           className="mb-6 overflow-hidden rounded-[32px] bg-white p-6 shadow-sm border border-slate-100"
         >
-          <View className="flex-row-reverse items-center gap-4">
+          <View className="flex-row items-center gap-4">
             <View className="h-16 w-16 items-center justify-center rounded-2xl bg-teal-50">
               <Text className="text-3xl">{order.lab.lab.icon || '🔬'}</Text>
             </View>
             <View className="flex-1">
               <Text className="text-right text-xl font-bold text-slate-900">{order.lab.lab.brand_name}</Text>
-              <View className="mt-1 flex-row-reverse items-center gap-1">
+              <View className="mt-1 flex-row items-center gap-1">
                 <Calendar size={14} color="#64748b" />
                 <Text className="text-right text-sm text-slate-500">{order.created_at.split('T')[0]}</Text>
               </View>
             </View>
           </View>
 
-          <View className="mt-6 flex-row-reverse items-center justify-between border-t border-slate-50 pt-4">
+          <View className="mt-6 flex-row items-center justify-between border-t border-slate-50 pt-4">
             <Text className="text-sm text-slate-500">حالة الطلب</Text>
-            <View className={`flex-row-reverse items-center gap-2 rounded-full px-4 py-1.5 ${statusInfo.tone}`}>
+            <View className={`flex-row items-center gap-2 rounded-full px-4 py-1.5 ${statusInfo.tone}`}>
               <Text className="text-xs">{statusInfo.icon}</Text>
               <Text className="text-xs font-bold">{statusInfo.text}</Text>
             </View>
@@ -122,7 +122,7 @@ export const OrderDetailScreen = () => {
 
         {/* Items List */}
         <View className="mb-6">
-          <View className="mb-4 flex-row-reverse items-center gap-2">
+          <View className="mb-4 flex-row items-center gap-2">
             <Package size={20} color="#0f172a" />
             <Text className="text-right text-lg font-bold text-slate-800">العناصر المطلوبة</Text>
           </View>
@@ -135,9 +135,9 @@ export const OrderDetailScreen = () => {
                 opacity: pressed ? 0.9 : 1,
                 transform: [{ scale: pressed ? 0.98 : 1 }]
               })}
-              className="mb-3 flex-row-reverse items-center justify-between rounded-2xl bg-white p-4 shadow-sm border border-slate-50"
+              className="mb-3 flex-row items-center justify-between rounded-2xl bg-white p-4 shadow-sm border border-slate-50"
             >
-              <View className="flex-row-reverse items-center gap-4">
+              <View className="flex-row items-center gap-4">
                 <View className="h-12 w-12 items-center justify-center rounded-xl bg-slate-50 border border-slate-100">
                   <Text className="text-2xl">{item.product.image_url || '📦'}</Text>
                 </View>
@@ -159,7 +159,7 @@ export const OrderDetailScreen = () => {
         {/* Notes Section */}
         {order.notes && (
           <View className="mb-6">
-            <View className="mb-4 flex-row-reverse items-center gap-2">
+            <View className="mb-4 flex-row items-center gap-2">
               <FileText size={20} color="#0f172a" />
               <Text className="text-right text-lg font-bold text-slate-800">ملاحظات إضافية</Text>
             </View>
@@ -172,12 +172,12 @@ export const OrderDetailScreen = () => {
         {/* Price Breakdown */}
         {order.total_price && (
           <View className="mt-4 rounded-[32px] bg-slate-900 p-8">
-            <View className="flex-row-reverse items-center justify-between mb-4">
+            <View className="flex-row items-center justify-between mb-4">
               <Text className="text-slate-400">المجموع الفرعي</Text>
               <Text className="font-bold text-white">{order.total_price} DA</Text>
             </View>
             <View className="h-[1px] bg-slate-800 mb-4" />
-            <View className="flex-row-reverse items-center justify-between">
+            <View className="flex-row items-center justify-between">
               <Text className="text-lg font-bold text-white">إجمالي السعر</Text>
               <View>
                 <Text className="text-2xl font-black text-teal-400">{order.total_price} DA</Text>
@@ -187,7 +187,7 @@ export const OrderDetailScreen = () => {
         )}
 
         {/* Info Box */}
-        <View className="mt-8 flex-row-reverse items-start gap-3 rounded-2xl bg-blue-50 p-4 border border-blue-100">
+        <View className="mt-8 flex-row items-start gap-3 rounded-2xl bg-blue-50 p-4 border border-blue-100">
           <Info size={20} color="#2563eb" />
           <Text className="flex-1 text-right text-xs leading-5 text-blue-700">
             يمكنك متابعة حالة الطلب من هنا. سيتم إشعارك فور قيام المخبر بتحديث الحالة أو تقديم عرض سعر جديد.

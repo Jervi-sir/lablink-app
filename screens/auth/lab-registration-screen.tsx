@@ -1,5 +1,6 @@
 import * as DocumentPicker from 'expo-document-picker';
 import api, { apiPublic, setAxiosAuthToken } from '@/utils/api/axios-instance';
+import { registerAndSyncPushToken } from '@/utils/notifications/push-notifications';
 import { ApiRoutes, buildRoute } from '@/utils/api/api';
 import { Routes } from '@/utils/routes';
 import { useNavigation } from '@react-navigation/native';
@@ -55,7 +56,7 @@ function UploadField({
       <Text className="mb-2 text-right text-sm font-semibold text-slate-700">{label}</Text>
       <Pressable
         accessibilityRole="button"
-        className="flex-row-reverse items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-300 bg-white px-4 py-5"
+        className="flex-row items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-300 bg-white px-4 py-5"
         disabled={isLoading}
         onPress={onPress}>
         {isLoading ? (
@@ -202,6 +203,7 @@ export function LabRegistrationScreen() {
       if (response.status === 'success') {
         const { token, user, lab } = response.data;
         setAuth(token, user, lab);
+        registerAndSyncPushToken();
         navigation.navigate(Routes.LabNavigation);
       } else {
         Alert.alert('خطأ', response.message || 'فشل التسجيل');
@@ -392,7 +394,7 @@ export function LabRegistrationScreen() {
           placeholder="رفع قائمة المعدات"
         />
 
-        <View className="flex-row-reverse items-start gap-3 rounded-2xl bg-slate-100 px-4 py-4">
+        <View className="flex-row items-start gap-3 rounded-2xl bg-slate-100 px-4 py-4">
           <Switch
             onValueChange={(value) => setField('acceptTerms', value)}
             thumbColor="#ffffff"
@@ -420,7 +422,7 @@ export function LabRegistrationScreen() {
             <Text className="text-center text-lg font-bold text-white">متابعة</Text>
           )}
         </Pressable>
-        <View className="mt-4 flex-row-reverse items-center justify-center gap-2">
+        <View className="mt-4 flex-row items-center justify-center gap-2">
           <Text className="text-slate-600">لديك حساب بالفعل؟</Text>
           <Pressable onPress={() => navigation.navigate(Routes.LoginScreen)}>
             <Text className="font-bold text-blue-600">تسجيل الدخول</Text>

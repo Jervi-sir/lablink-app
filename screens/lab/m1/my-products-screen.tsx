@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,11 @@ import {
   ActivityIndicator,
   RefreshControl,
   Image as RNImage,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowRight, Plus, Package, ChevronLeft, Search } from 'lucide-react-native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { Plus, Package, ChevronLeft, Search, ArrowLeft } from 'lucide-react-native';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
 import { Routes } from '@/utils/routes';
@@ -24,9 +25,11 @@ export function MyProductsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchProducts();
-  }, [type]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchProducts();
+    }, [type])
+  );
 
   const fetchProducts = async () => {
     try {
@@ -52,34 +55,24 @@ export function MyProductsScreen() {
   };
 
   const handleProductClick = (item: any) => {
-    // Map to ProductDetails format
-    const mappedProduct = {
-      id: item.id,
-      name: item.name_ar,
-      image: item.image_url || '📦',
-      price: item.price + ' DA',
-      supplierName: 'مخبرك',
-      supplierIcon: '🔬',
-      description: item.description_ar,
-      specifications: item.specifications || [],
-      inStock: item.is_available,
-      deliveryTime: item.working_hours,
-      warranty: item.min_booking_time,
-    };
-    navigation.navigate(Routes.ProductDetailsScreen, { product: mappedProduct });
+    navigation.navigate(Routes.ProductStatsScreen, { productId: item.id });
   };
 
   const renderProduct = ({ item }: { item: any }) => (
     <Pressable
       onPress={() => handleProductClick(item)}
-      className="mb-4 flex-row-reverse items-center rounded-[24px] bg-white p-4 shadow-sm"
+      className="mb-4 flex-row items-center rounded-[24px] bg-white p-4 shadow-sm"
     >
-      <View className="h-20 w-20 items-center justify-center rounded-2xl bg-slate-50 border border-slate-100 ml-4">
-        <Text className="text-4xl">{item.image_url || '🔬'}</Text>
+      <View className="h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-slate-50 border border-slate-100 mr-4">
+        {item.image_url ? (
+          <Image source={{ uri: item.image_url }} className="h-full w-full" resizeMode="cover" />
+        ) : (
+          <Text className="text-4xl">🔬</Text>
+        )}
       </View>
 
       <View className="flex-1">
-        <View className="flex-row-reverse items-center justify-between">
+        <View className="flex-row items-center justify-between">
           <Text className="text-right text-lg font-bold text-slate-800" numberOfLines={1}>
             {item.name_ar}
           </Text>
@@ -94,8 +87,7 @@ export function MyProductsScreen() {
           {item.description_ar}
         </Text>
 
-        <View className="mt-2 flex-row-reverse items-center justify-between">
-          <Text className="text-sm font-bold text-teal-600">{item.price} DA</Text>
+        <View className="mt-2 flex-row items-center justify-between">
           <View className="flex-row items-center gap-1">
             <Package size={14} color="#94a3b8" />
             <Text className="text-xs text-slate-400">{item.type === 'equipment' ? 'جهاز' : 'خدمة'}</Text>
@@ -108,13 +100,13 @@ export function MyProductsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
       {/* Header */}
-      <View className="flex-row-reverse items-center justify-between px-6 py-4">
-        <View className="flex-row-reverse items-center gap-4">
+      <View className="flex-row items-center justify-between px-6 py-4">
+        <View className="flex-row items-center gap-4">
           <Pressable
             onPress={() => navigation.goBack()}
             className="h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm"
           >
-            <ArrowRight size={24} color="#1e293b" />
+            <ArrowLeft size={24} color="#1e293b" />
           </Pressable>
           <Text className="text-xl font-bold text-slate-800">
             {type === 'equipment' ? 'منتجاتي' : type === 'service' ? 'خدماتي' : 'معداتي وخدماتي'}

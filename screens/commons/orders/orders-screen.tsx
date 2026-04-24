@@ -41,6 +41,7 @@ export interface Order {
     };
   };
   items: OrderItem[];
+  student?: any | null
 }
 
 interface OrdersScreenProps {
@@ -94,7 +95,7 @@ function RatingModal({
             <Text className="mt-1 text-center text-sm text-slate-500">{targetName}</Text>
           </View>
 
-          <View className="mt-6 flex-row-reverse justify-center gap-2">
+          <View className="mt-6 flex-row justify-center gap-2">
             {[1, 2, 3, 4, 5].map((value) => (
               <Pressable key={value} onPress={() => setRating(value)}>
                 <Text
@@ -115,7 +116,7 @@ function RatingModal({
             value={comment}
           />
 
-          <View className="mt-6 flex-row-reverse gap-3">
+          <View className="mt-6 flex-row gap-3">
             <Pressable
               className="flex-1 rounded-2xl bg-slate-200 px-4 py-4"
               onPress={() => {
@@ -210,7 +211,7 @@ export const OrdersScreen = () => {
           shadowRadius: 14,
           elevation: 3,
         })}>
-        <View className="flex-row-reverse items-start gap-4">
+        <View className="flex-row items-start gap-4">
           <View className="h-16 w-16 items-center justify-center rounded-xl bg-teal-600">
             <Text className="text-3xl">{labIcon}</Text>
           </View>
@@ -220,7 +221,7 @@ export const OrdersScreen = () => {
               {labName}
             </Text>
 
-            <View className="mb-3 mt-2 gap-1 flex-row-reverse flex-wrap">
+            <View className="mb-3 mt-2 gap-1 flex-row flex-wrap">
               {order.items.slice(0, 2).map((item, idx) => (
                 <Text key={item.id} className="text-right text-xs text-slate-600">
                   {item.product.name_ar}{idx < Math.min(order.items.length, 2) - 1 ? ' • ' : ''}
@@ -231,9 +232,9 @@ export const OrdersScreen = () => {
               )}
             </View>
 
-            <View className="flex-row-reverse items-center justify-between">
+            <View className="flex-row items-center justify-between">
               <View
-                className={`flex-row-reverse items-center gap-2 rounded-lg px-3 py-1.5 ${statusInfo.tone}`}>
+                className={`flex-row items-center gap-2 rounded-lg px-3 py-1.5 ${statusInfo.tone}`}>
                 <Text>{statusInfo.icon}</Text>
                 <Text className="text-xs font-medium">{statusInfo.text}</Text>
               </View>
@@ -262,7 +263,7 @@ export const OrdersScreen = () => {
                 setSelectedLab({ name: labName, icon: labIcon });
                 setShowRatingModal(true);
               }}>
-              <View className="flex-row-reverse items-center justify-center gap-2">
+              <View className="flex-row items-center justify-center gap-2">
                 <Text className="text-slate-600">★</Text>
                 <Text className="text-sm font-medium text-slate-700">تقييم التجربة</Text>
               </View>
@@ -282,7 +283,7 @@ export const OrdersScreen = () => {
       </View>
 
       {/* Tab Bar */}
-      <View className="mx-6 mt-4 flex-row-reverse rounded-2xl bg-slate-200 p-1">
+      <View className="mx-6 mt-4 flex-row rounded-2xl bg-slate-200 p-1">
         <Pressable
           onPress={() => handleTabChange('requests')}
           className={`flex-1 rounded-xl py-3 items-center`}

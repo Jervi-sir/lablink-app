@@ -1,6 +1,7 @@
 import { getStoredToken } from '../async-storage/auth-async-storage';
 import { ApiRoutes, buildRoute } from './api';
 import api from './axios-instance';
+import { registerAndSyncPushToken } from '../notifications/push-notifications';
 
 // helpers
 function getStatus(err: any): number | null {
@@ -23,6 +24,9 @@ export async function bootstrapAuth(): Promise<BootstrapResult> {
     });
 
     const { user, profile, type } = res.data;
+    setTimeout(() => {
+      registerAndSyncPushToken();
+    }, 5000);
     return { ok: true, token, user: { ...user, profile, type } };
   } catch (err: any) {
     const status = getStatus(err);

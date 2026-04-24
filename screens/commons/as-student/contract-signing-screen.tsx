@@ -127,7 +127,7 @@ export function ContractSigningScreen({
             shadowRadius: 14,
             elevation: 3,
           }}>
-          <View className="mb-4 flex-row-reverse items-center gap-4">
+          <View className="mb-4 flex-row items-center gap-4">
             <View className="h-16 w-16 items-center justify-center rounded-xl bg-teal-600">
               <Text className="text-3xl">{order.labIcon}</Text>
             </View>
@@ -142,7 +142,7 @@ export function ContractSigningScreen({
           </Text>
           <View className="gap-2">
             {order.services.map((service) => (
-              <View key={service} className="flex-row-reverse items-center gap-2">
+              <View key={service} className="flex-row items-center gap-2">
                 <Text className="text-green-600">✓</Text>
                 <Text className="text-right text-sm text-slate-600">{service}</Text>
               </View>
@@ -159,7 +159,7 @@ export function ContractSigningScreen({
             shadowRadius: 14,
             elevation: 3,
           }}>
-          <View className="mb-3 flex-row-reverse items-center gap-2">
+          <View className="mb-3 flex-row items-center gap-2">
             <Text className="text-blue-600">📄</Text>
             <Text className="text-lg font-bold text-slate-800">نص العقد</Text>
           </View>

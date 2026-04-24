@@ -4,6 +4,7 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes, buildRoute } from '@/utils/api/api';
+import { useAuthStore } from '@/zustand/auth-store';
 
 // ─── Configure notification handler ───────────────────────
 Notifications.setNotificationHandler({
@@ -73,10 +74,17 @@ export async function registerForPushNotificationsAsync(): Promise<string | unde
   }
 }
 
+
+
 // ─── Send token to backend ────────────────────────────────
 export async function sendPushTokenToServer(token: string): Promise<void> {
   try {
-    await api.post(buildRoute(ApiRoutes.auth.student.pushToken), {
+    const user = useAuthStore.getState().user;
+    const route = user?.type === 'lab' 
+      ? ApiRoutes.auth.business.pushToken 
+      : ApiRoutes.auth.student.pushToken;
+
+    await api.post(buildRoute(route), {
       expo_push_token: token,
     });
     console.log('[PushNotifications] Token sent to server');

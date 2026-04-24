@@ -1,4 +1,5 @@
 import { apiPublic } from '@/utils/api/axios-instance';
+import { registerAndSyncPushToken } from '@/utils/notifications/push-notifications';
 import { ApiRoutes } from '@/utils/api/api';
 import { Routes } from '@/utils/routes';
 import { useNavigation } from '@react-navigation/native';
@@ -35,6 +36,7 @@ export function LoginScreen() {
         const { token, user, profile, type } = response.data;
         // Merge profile and type into user object for simpler state or keep separate
         setAuth(token, { ...user, type }, profile);
+        registerAndSyncPushToken();
 
         if (type === 'student') {
           navigation.replace(Routes.StudentNavigation);
@@ -119,7 +121,7 @@ export function LoginScreen() {
             )}
           </Pressable>
 
-          <View className="mt-4 flex-row-reverse items-center justify-center gap-2">
+          <View className="mt-4 flex-row items-center justify-center gap-2">
             <Text className="text-slate-600">ليس لديك حساب؟</Text>
             <Pressable onPress={() => navigation.navigate(Routes.UserTypeSelection)}>
               <Text className="font-bold text-blue-600">سجل الآن</Text>

@@ -63,7 +63,7 @@ export function LabM1Navigation() {
         contentContainerClassName="px-6 pb-10 pt-8"
         showsVerticalScrollIndicator={false}
       >
-        <View className="mb-6 flex-row-reverse items-center justify-between">
+        <View className="mb-6 flex-row items-center justify-end gap-4">
           <Text className="text-right text-xl font-black text-slate-800">الإجراءات السريعة</Text>
           <LayoutGrid size={20} color="#64748b" />
         </View>
@@ -77,6 +77,12 @@ export function LabM1Navigation() {
             badge="جديد"
           />
           <SquareActionCard
+            accent="bg-amber-600"
+            icon={<Activity size={28} color="white" />}
+            onPress={() => navigation.navigate(Routes.AddEquipmentScreen)}
+            title="إضافة منتج"
+          />
+          <SquareActionCard
             accent="bg-teal-600"
             icon={<Package size={28} color="white" />}
             onPress={() => navigation.navigate(Routes.MyProductsScreen, { type: 'equipment' })}
@@ -88,18 +94,13 @@ export function LabM1Navigation() {
             onPress={() => navigation.navigate(Routes.MyProductsScreen, { type: 'service' })}
             title="قائمة الخدمات"
           />
-          <SquareActionCard
-            accent="bg-amber-600"
-            icon={<Activity size={28} color="white" />}
-            onPress={() => navigation.navigate(Routes.AddEquipmentScreen)}
-            title="إضافة منتج"
-          />
+
         </View>
 
         {/* Stats Section or similar */}
         <View className="mt-10 rounded-[32px] bg-white p-6 shadow-sm border border-slate-100">
           <Text className="text-right text-lg font-bold text-slate-800 mb-4">ملخص الأداء</Text>
-          <View className="flex-row-reverse justify-between">
+          <View className="flex-row justify-between">
             <View className="items-center">
               <Text className="text-2xl font-black text-blue-600">12</Text>
               <Text className="text-xs text-slate-400">طلبات نشطة</Text>

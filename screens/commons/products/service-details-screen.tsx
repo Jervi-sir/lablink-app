@@ -1,7 +1,7 @@
 import React from 'react';
-import { Pressable, ScrollView, Text, View, Platform } from 'react-native';
+import { Pressable, ScrollView, Text, View, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowRight, Star, Plus } from 'lucide-react-native';
+import { Star, Plus, ArrowLeft } from 'lucide-react-native';
 
 interface Supplier {
   id: number;
@@ -53,15 +53,19 @@ export function ServiceDetailsScreen({
         <Pressable
           accessibilityRole="button"
           onPress={onBack}
-          className="mb-6 flex-row-reverse items-center gap-2 self-start rounded-full bg-white/10 px-4 py-2"
+          className="mb-6 flex-row items-center gap-2 self-start rounded-full bg-white/10 px-4 py-2"
         >
-          <ArrowRight size={20} color="white" />
+          <ArrowLeft size={20} color="white" />
           <Text className="text-base font-bold text-white">رجوع</Text>
         </Pressable>
 
-        <View className="flex-row-reverse items-start gap-4 mb-4">
-          <View className={`w-16 h-16 rounded-3xl bg-white/20 items-center justify-center shadow-lg`}>
-            <Text className="text-3xl">{supplier.icon}</Text>
+        <View className="flex-row items-start gap-4 mb-4">
+          <View className={`w-16 h-16 rounded-3xl bg-white/20 items-center justify-center overflow-hidden shadow-lg`}>
+            {supplier.icon && (supplier.icon.startsWith('http') || supplier.icon.startsWith('file')) ? (
+              <Image source={{ uri: supplier.icon }} className="h-full w-full" resizeMode="cover" />
+            ) : (
+              <Text className="text-3xl">{supplier.icon || '🔬'}</Text>
+            )}
           </View>
           <View className="flex-1">
             <Text className="text-right text-2xl font-bold text-white mb-1">{supplier.name}</Text>
@@ -69,7 +73,7 @@ export function ServiceDetailsScreen({
           </View>
         </View>
 
-        <View className="flex-row-reverse items-center gap-1 mb-3">
+        <View className="flex-row items-center gap-1 mb-3">
           {[1, 2, 3, 4, 5].map((star) => (
             <Star key={star} size={16} color="#facc15" fill="#facc15" />
           ))}
@@ -100,15 +104,19 @@ export function ServiceDetailsScreen({
               elevation: 2,
             }}
           >
-            <View className="w-full aspect-square bg-slate-50 rounded-2xl items-center justify-center mb-3">
-              <Text className="text-6xl">{product.image}</Text>
+            <View className="w-full aspect-square bg-slate-50 rounded-2xl items-center justify-center overflow-hidden mb-3">
+              {product.image && (product.image.startsWith('http') || product.image.startsWith('file')) ? (
+                <Image source={{ uri: product.image }} className="h-full w-full" resizeMode="cover" />
+              ) : (
+                <Text className="text-6xl">{product.image || '🔬'}</Text>
+              )}
             </View>
 
             <Text className="text-right text-sm text-slate-800 font-bold mb-3 leading-5 h-10 overflow-hidden">
               {product.name}
             </Text>
 
-            <View className="flex-row-reverse items-center justify-between">
+            <View className="flex-row items-center justify-between">
               <Text className="text-sm font-extrabold text-blue-700">{product.price}</Text>
               <Pressable
                 onPress={() => onAddToCart(product)}

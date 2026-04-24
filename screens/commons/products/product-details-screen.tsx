@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   ScrollView,
   View,
@@ -8,10 +8,13 @@ import {
   Platform,
   Share,
   Alert,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useEffect, useState } from 'react';
+import api from '@/utils/api/axios-instance';
+import { ApiRoutes } from '@/utils/api/api';
 import {
-  ArrowRight,
   Star,
   Plus,
   Heart,
@@ -21,6 +24,7 @@ import {
   Package,
   Info,
   ChevronLeft,
+  ArrowLeft,
 } from 'lucide-react-native';
 
 interface Product {
@@ -52,13 +56,49 @@ export default function ProductDetailsScreen({
   route,
   navigation: stackNavigation
 }: any) {
-  const product = route?.params?.product || propsProduct;
   const onBack = propsOnBack || (() => stackNavigation?.goBack());
-  const navigation = stackNavigation;
   const { addToCart } = useCart();
-
+  
+  const [product, setProduct] = useState<any>(route?.params?.product || propsProduct);
+  const [loading, setLoading] = useState(!product?.description_ar && !product?.description); 
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    if (product?.id && !product.description_ar && !product.description) {
+      fetchProduct();
+    }
+  }, [product?.id]);
+
+  const fetchProduct = async () => {
+    setLoading(true);
+    try {
+      const response: any = await api.get(`${ApiRoutes.products.index}/${product.id}`);
+      if (response.status === 'success') {
+        const p = response.data;
+        // Map backend product to what screen expects
+        setProduct({
+          id: p.id,
+          name: p.name_ar,
+          image: p.image_url || (p.images && p.images[0]),
+          price: p.price + ' DA',
+          supplierName: p.user?.lab?.name || 'مخبرك',
+          supplierIcon: p.user?.lab?.logo_url || '🔬',
+          description: p.description_ar,
+          specifications: p.specifications || [],
+          inStock: p.is_available,
+          deliveryTime: p.working_hours,
+          warranty: p.min_booking_time,
+          labId: p.user_id,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      Alert.alert('خطأ', 'تعذر تحميل بيانات المنتج');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleQuantityChange = (delta: number) => {
     const newQuantity = quantity + delta;
@@ -115,12 +155,12 @@ export default function ProductDetailsScreen({
     <View className="flex-1 bg-slate-50">
       {/* Header */}
       <View className="bg-blue-600 px-6 pb-4 pt-12 shadow-lg">
-        <View className="flex-row-reverse items-center justify-between">
+        <View className="flex-row items-center justify-between">
           <Pressable
             onPress={onBack}
-            className="flex-row-reverse items-center gap-2"
+            className="flex-row items-center gap-2"
           >
-            <ArrowRight size={24} color="white" />
+            <ArrowLeft size={24} color="white" />
             <Text className="text-lg font-bold text-white">رجوع</Text>
           </Pressable>
           <View className="flex-row gap-3">
@@ -144,11 +184,20 @@ export default function ProductDetailsScreen({
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-        {/* Product Image */}
+      {loading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#2563eb" />
+          <Text className="mt-4 text-slate-500">جاري تحميل البيانات...</Text>
+        </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         <View className="bg-slate-100 p-8">
-          <View className="mx-auto aspect-square w-full max-w-[300px] items-center justify-center rounded-[40px] bg-white shadow-xl">
-            <Text className="text-9xl">{product.image}</Text>
+          <View className="mx-auto aspect-square w-full max-w-[300px] items-center justify-center overflow-hidden rounded-[40px] bg-white shadow-xl">
+            {product.image && (product.image.startsWith('http') || product.image.startsWith('file')) ? (
+              <Image source={{ uri: product.image }} className="h-full w-full" resizeMode="cover" />
+            ) : (
+              <Text className="text-9xl">{product.image || '🔬'}</Text>
+            )}
           </View>
         </View>
 
@@ -159,8 +208,8 @@ export default function ProductDetailsScreen({
             <Text className="text-right text-2xl font-bold text-slate-800">
               {product.name}
             </Text>
-            <View className="mt-2 flex-row-reverse items-center gap-2">
-              <View className="flex-row-reverse items-center gap-1">
+            <View className="mt-2 flex-row items-center gap-2">
+              <View className="flex-row items-center gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
@@ -175,10 +224,7 @@ export default function ProductDetailsScreen({
               </Text>
             </View>
 
-            <View className="mt-4 flex-row-reverse items-center justify-between">
-              <Text className="text-3xl font-extrabold text-blue-700">
-                {product.price}
-              </Text>
+            <View className="mt-4 flex-row items-center justify-between">
               <View
                 className={`rounded-xl px-4 py-2 ${product.inStock ? 'bg-green-100' : 'bg-red-100'}`}
               >
@@ -193,9 +239,13 @@ export default function ProductDetailsScreen({
 
           {/* Supplier Info */}
           <View className="mb-6 rounded-3xl bg-blue-50 p-5">
-            <View className="flex-row-reverse items-center gap-4">
-              <View className="h-14 w-14 items-center justify-center rounded-full bg-blue-600 shadow-md">
-                <Text className="text-2xl">{product.supplierIcon}</Text>
+            <View className="flex-row items-center gap-4">
+              <View className="h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-blue-600 shadow-md">
+                {product.supplierIcon && (product.supplierIcon.startsWith('http') || product.supplierIcon.startsWith('file')) ? (
+                  <Image source={{ uri: product.supplierIcon }} className="h-full w-full" resizeMode="cover" />
+                ) : (
+                  <Text className="text-2xl">{product.supplierIcon || '🔬'}</Text>
+                )}
               </View>
               <View className="flex-1">
                 <Text className="text-right text-xs font-semibold text-blue-600">المورد</Text>
@@ -227,7 +277,7 @@ export default function ProductDetailsScreen({
 
           {/* Description */}
           <View className="mb-6">
-            <View className="mb-3 flex-row-reverse items-center gap-2">
+            <View className="mb-3 flex-row items-center gap-2">
               <Info size={20} color="#2563eb" />
               <Text className="text-lg font-bold text-slate-800">الوصف</Text>
             </View>
@@ -248,7 +298,7 @@ export default function ProductDetailsScreen({
               {product.specifications.map((spec, index) => (
                 <View
                   key={index}
-                  className={`flex-row-reverse items-center justify-between p-4 ${index !== product.specifications.length - 1 ? 'border-b border-slate-50' : ''}`}
+                  className={`flex-row items-center justify-between p-4 ${index !== product.specifications.length - 1 ? 'border-b border-slate-50' : ''}`}
                 >
                   <Text className="text-sm font-semibold text-slate-500">{spec.label}</Text>
                   <Text className="text-sm font-bold text-slate-800">{spec.value}</Text>
@@ -259,8 +309,8 @@ export default function ProductDetailsScreen({
 
           {/* Reviews Section */}
           <View className="mb-10">
-            <View className="mb-4 flex-row-reverse items-center justify-between">
-              <View className="flex-row-reverse items-center gap-2">
+            <View className="mb-4 flex-row items-center justify-between">
+              <View className="flex-row items-center gap-2">
                 <Star size={20} color="#eab308" fill="#eab308" />
                 <Text className="text-lg font-bold text-slate-800">آراء العملاء ({reviews.length})</Text>
               </View>
@@ -271,13 +321,13 @@ export default function ProductDetailsScreen({
             <View className="gap-4">
               {reviews.map((review) => (
                 <View key={review.id} className="rounded-3xl bg-white p-5 shadow-sm">
-                  <View className="flex-row-reverse items-start gap-3">
+                  <View className="flex-row items-start gap-3">
                     <View className="h-12 w-12 items-center justify-center rounded-2xl bg-slate-100">
                       <Text className="text-xl">{review.userIcon}</Text>
                     </View>
                     <View className="flex-1">
-                      <View className="flex-row-reverse items-center justify-between">
-                        <View className="flex-row-reverse items-center gap-2">
+                      <View className="flex-row items-center justify-between">
+                        <View className="flex-row items-center gap-2">
                           <Text className="text-base font-bold text-slate-800">{review.userName}</Text>
                           {review.isVerified && (
                             <View className="rounded-full bg-blue-100 px-2 py-0.5">
@@ -286,8 +336,8 @@ export default function ProductDetailsScreen({
                           )}
                         </View>
                       </View>
-                      <View className="mt-1 flex-row-reverse items-center gap-2">
-                        <View className="flex-row-reverse items-center">
+                      <View className="mt-1 flex-row items-center gap-2">
+                        <View className="flex-row items-center">
                           {[1, 2, 3, 4, 5].map((s) => (
                             <Star
                               key={s}
@@ -310,6 +360,7 @@ export default function ProductDetailsScreen({
           </View>
         </View>
       </ScrollView>
+      )}
 
       {/* Bottom Action Bar */}
       <View
@@ -318,7 +369,7 @@ export default function ProductDetailsScreen({
         }}
         className="absolute bottom-0 left-0 right-0 border-t border-slate-200 bg-white px-6 pt-4 shadow-2xl"
       >
-        <View className="mb-4 flex-row-reverse items-center justify-between">
+        <View className="mb-4 flex-row items-center justify-between">
           <Text className="text-lg font-bold text-slate-700">الكمية:</Text>
           <View className="flex-row items-center gap-4 rounded-2xl bg-slate-100 p-1">
             <Pressable

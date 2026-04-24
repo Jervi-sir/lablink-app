@@ -31,4 +31,5 @@ export const Routes = {
   OrderDetailScreen: 'OrderDetailScreen',
   LabOrdersScreen: 'LabOrdersScreen',
   LabOrderDetailScreen: 'LabOrderDetailScreen',
+  ProductStatsScreen: 'ProductStatsScreen',
 };
