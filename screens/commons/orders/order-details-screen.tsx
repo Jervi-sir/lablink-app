@@ -50,7 +50,7 @@ export const OrderDetailScreen = () => {
       icon: order.lab.lab.icon || '🔬',
       color: '#0f172a',
     };
-    navigation.navigate(Routes.ServiceDetailsScreen, { supplier });
+    navigation.navigate(Routes.LabDetailsScreen, { labId: order.lab.id })
   };
 
   const getStatusInfo = (status: Order['status']) => {

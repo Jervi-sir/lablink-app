@@ -1,17 +1,17 @@
 import { useAuthStore } from '@/zustand/auth-store';
 import { bootstrapAuth } from '@/utils/api/bootstrap-auth';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StatusBar, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Routes } from '@/utils/routes';
-import Animated, { 
-  FadeInDown, 
-  FadeInRight, 
-  FadeInUp, 
-  FadeOut, 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withSequence, 
+import Animated, {
+  FadeInDown,
+  FadeInRight,
+  FadeInUp,
+  FadeOut,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
   withTiming,
   withSpring
 } from 'react-native-reanimated';
@@ -69,6 +69,7 @@ export function BootScreen({ navigation }: { navigation?: { navigate: (route: st
 
   return (
     <SafeAreaView className="flex-1 bg-slate-950">
+      <StatusBar barStyle='light-content' />
       <View className="flex-1 justify-between overflow-hidden px-6 pb-12 pt-6">
         {/* Decorative Blobs */}
         <Animated.View
@@ -120,7 +121,7 @@ export function BootScreen({ navigation }: { navigation?: { navigate: (route: st
             entering={FadeInDown.delay(1000).duration(800)}
             className="mt-6 text-right text-base leading-7 text-slate-300"
           >
-            احجز الخدمات المخبرية، تواصل مع الموردين، وتابع العقود والطلبات من واجهة موحدة وسريعة.
+            احجز الخدمات المخبرية، وتابع العقود والطلبات من واجهة موحدة وسريعة.
           </Animated.Text>
         </Animated.View>
 
@@ -162,7 +163,7 @@ export function BootScreen({ navigation }: { navigation?: { navigate: (route: st
                 <Text className="text-center text-lg font-bold text-white">تسجيل الدخول</Text>
               </Pressable>
 
-              <Animated.Text 
+              <Animated.Text
                 entering={FadeInDown.delay(400)}
                 className="mt-6 text-center text-sm tracking-wide text-slate-500 uppercase font-medium"
               >

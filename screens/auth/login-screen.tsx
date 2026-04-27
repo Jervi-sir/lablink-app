@@ -5,7 +5,7 @@ import { Routes } from '@/utils/routes';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StatusBar, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/zustand/auth-store';
 
@@ -15,9 +15,10 @@ const inputClassName =
 export function LoginScreen() {
   const setAuth = useAuthStore((state) => state.setAuth);
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const [phone, setPhone] = useState('0550000000');
   const [password, setPassword] = useState('password');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userType, setUserType] = useState<'student' | 'lab'>('student');
+  const [phone, setPhone] = useState(userType === 'lab' ? '0550000001' : '0550000000');
 
   const handleLogin = async () => {
     if (!phone.trim() || !password.trim()) {
@@ -57,6 +58,7 @@ export function LoginScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-900">
+      <StatusBar barStyle='light-content' />
       <View className='flex-1 bg-white'>
         <View className="bg-slate-900 px-6 pb-10 pt-6">
           <Pressable
@@ -74,6 +76,53 @@ export function LoginScreen() {
           className="flex-1"
           contentContainerClassName="gap-6 px-6 pb-10 pt-8"
           showsVerticalScrollIndicator={false}>
+
+          <View className="mb-2 flex-row gap-2 rounded-2xl bg-slate-100 p-1.5">
+            <Pressable
+              onPress={() => {
+                setUserType('lab');
+                setPhone('0550000001');
+              }}
+              className="flex-1 rounded-xl py-3"
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.7 : 1,
+                ...(userType === 'lab' && {
+                  shadowColor: '#0f172a',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
+                  elevation: 3,
+                }),
+              })}>
+              <Text
+                className="text-center font-bold"
+                style={{ color: userType === 'lab' ? '#2563eb' : '#64748b' }}>
+                مخبر
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setUserType('student');
+                setPhone('0550000000');
+              }}
+              className="flex-1 rounded-xl py-3"
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.7 : 1,
+                ...(userType === 'student' && {
+                  shadowColor: '#0f172a',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
+                  elevation: 3,
+                }),
+              })}>
+              <Text
+                className="text-center font-bold"
+                style={{ color: userType === 'student' ? '#2563eb' : '#64748b' }}>
+                طالب
+              </Text>
+            </Pressable>
+          </View>
 
           <View>
             <Text className="mb-2 text-right text-sm font-semibold text-slate-700">

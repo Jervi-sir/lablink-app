@@ -1,20 +1,11 @@
-import { Dimensions, Platform, StatusBar, View } from 'react-native';
+import { Platform, StatusBar, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import TouchableOpacity from '@/components/touchable-opacity';
-import Text from '@/components/text';
 import { Routes } from '@/utils/routes';
 import { Store, FlaskConical, User } from 'lucide-react-native';
 import { StudentM1Navigation } from './m1/student-m1-navigation';
 import { StudentProfileScreen } from './m3/student-profile-screen';
 import OrderNavigation from '../commons/orders/order-navigation';
-
-const translations = {
-  suppliers: { en: 'Suppliers', fr: 'Fournisseurs', ar: 'الموردين' },
-  laboratories: { en: 'Laboratories', fr: 'Laboratoires', ar: 'المختبرات' },
-  orders: { en: 'Orders', fr: 'Commandes', ar: 'الطلبات' },
-  inbox: { en: 'Inbox', fr: 'Messagerie', ar: 'الرسائل' },
-};
 
 function useTabScreens() {
   return [
@@ -47,7 +38,8 @@ export function StudentNavigation() {
           tabBarShowLabel: false,
           tabBarStyle: {
             backgroundColor: '#ffffff',
-            height,
+            height: Platform.OS === 'android' ? height : 80,
+            paddingTop: 16,
             borderTopWidth: 1,
             borderTopColor: '#e2e8f0',
           },

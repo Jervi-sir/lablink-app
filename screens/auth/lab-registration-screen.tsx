@@ -96,13 +96,11 @@ export function LabRegistrationScreen() {
     const fetchTaxonomies = async () => {
       try {
         const response = await apiPublic.get(ApiRoutes.taxonomies, { params: { types: 'wilayas,lab_categories' } });
-        if (response.status === 'success') {
-          if (response.data.wilayas) {
-            setWilayas(response.data.wilayas);
-          }
-          if (response.data.lab_categories) {
-            setLabCategories(response.data.lab_categories);
-          }
+        if (response.wilayas) {
+          setWilayas(response.wilayas);
+        }
+        if (response.lab_categories) {
+          setLabCategories(response.lab_categories);
         }
       } catch (error) {
         console.error('Failed to fetch taxonomies:', error);

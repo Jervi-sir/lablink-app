@@ -86,7 +86,7 @@ export function LabM1Navigation() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <Header title="لوحة التحكم" subtitle="إدارة المخبر والطلبات" />
 
       <ScrollView

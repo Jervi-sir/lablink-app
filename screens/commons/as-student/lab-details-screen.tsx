@@ -47,16 +47,6 @@ interface Product {
   description_ar?: string;
 }
 
-interface Review {
-  id: number;
-  userName: string;
-  userIcon: string;
-  rating: number;
-  comment: string;
-  date: string;
-  isVerified: boolean;
-}
-
 function RatingModal({
   targetName,
   targetIcon,

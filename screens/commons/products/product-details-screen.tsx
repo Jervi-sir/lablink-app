@@ -119,40 +119,6 @@ export default function ProductDetailsScreen({
     }
   };
 
-  // Sample reviews
-  const reviews = [
-    {
-      id: 1,
-      userName: 'د. يوسف بن عمر',
-      userIcon: '👨‍🔬',
-      rating: 5,
-      comment: 'منتج ممتاز، جودة عالية جداً ومطابق للمواصفات',
-      date: '2026-04-15',
-      isVerified: true,
-    },
-    {
-      id: 2,
-      userName: 'سارة محمد',
-      userIcon: '👩‍🔬',
-      rating: 5,
-      comment: 'استلمت المنتج في الوقت المحدد، التعامل راقي',
-      date: '2026-04-10',
-      isVerified: true,
-    },
-    {
-      id: 3,
-      userName: 'أحمد الصديق',
-      userIcon: '👨‍🎓',
-      rating: 4,
-      comment: 'جيد جداً لكن السعر مرتفع قليلاً',
-      date: '2026-04-05',
-      isVerified: true,
-    },
-  ];
-
-  const averageRating = 4.7;
-  const totalReviews = 58;
-
   return (
     <View className="flex-1 bg-slate-50">
       {/* Header */}
@@ -245,7 +211,7 @@ export default function ProductDetailsScreen({
                   )}
                 </View>
                 <View className="flex-1">
-                  <Text className="text-right text-xs font-semibold text-blue-600">المورد</Text>
+                  <Text className="text-right text-xs font-semibold text-blue-600">المخبر</Text>
                   <Text className="text-right text-lg font-bold text-slate-800">
                     {product.supplierName}
                   </Text>

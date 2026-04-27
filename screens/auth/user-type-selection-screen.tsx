@@ -1,6 +1,7 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, StatusBar, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft } from 'lucide-react-native';
 
 import { Routes } from 'utils/routes';
 
@@ -8,7 +9,7 @@ type UserType = 'student' | 'lab' | 'supplier';
 
 interface UserTypeSelectionScreenProps {
   onSelectUserType?: (type: UserType) => void;
-  navigation?: { navigate: (route: string) => void };
+  navigation?: { navigate: (route: string) => void; goBack: () => void };
 }
 
 interface UserTypeOption {
@@ -61,6 +62,7 @@ export function UserTypeSelectionScreen({
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
+      <StatusBar barStyle='dark-content' />
       <View className="bg-blue-700 px-6 pb-10 pt-6">
         <View className="rounded-[28px] border border-white/15 bg-blue-600 px-6 py-8">
           <Text className="text-center text-4xl font-extrabold tracking-[4px] text-white">
@@ -107,6 +109,19 @@ export function UserTypeSelectionScreen({
               </View>
             </Pressable>
           ))}
+        </View>
+
+        <View className="mt-auto items-center pb-2">
+          <Pressable
+            onPress={() => navigation?.goBack()}
+            className="flex-row items-center gap-2 rounded-2xl bg-slate-100 px-8 py-4"
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.7 : 1,
+              transform: [{ scale: pressed ? 0.98 : 1 }],
+            })}>
+            <ArrowLeft size={20} color="#64748b" />
+            <Text className="font-semibold text-slate-600">العودة </Text>
+          </Pressable>
         </View>
       </View>
     </SafeAreaView>

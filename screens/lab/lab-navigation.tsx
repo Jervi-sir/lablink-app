@@ -1,8 +1,6 @@
 import { Platform, StatusBar, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import TouchableOpacity from '@/components/touchable-opacity';
-import Text from '@/components/text';
 import { Routes } from '@/utils/routes';
 import { LayoutGrid, ClipboardList, User } from 'lucide-react-native';
 import { LabM1Navigation } from './m1/lab-m1-navigation';
@@ -52,7 +50,8 @@ export function LabNavigation() {
           tabBarShowLabel: false,
           tabBarStyle: {
             backgroundColor: '#ffffff',
-            height,
+            height: Platform.OS === 'android' ? height : 80,
+            paddingTop: 16,
             borderTopWidth: 1,
             borderTopColor: '#e2e8f0',
           },

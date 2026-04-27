@@ -1,28 +1,17 @@
-import React from 'react';
 import { Pressable, ScrollView, Text, View, Platform, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Star, Plus, ArrowLeft } from 'lucide-react-native';
 
-interface Supplier {
-  id: number;
-  name: string;
-  description: string;
-  icon: string;
-  color: string;
-}
+/**
+ * --------------------------------------------------------------------------
+ * DEPRECATED
+ * --------------------------------------------------------------------------
+ */
 
 interface Product {
   id: number;
   name: string;
   image: string;
   price: string;
-}
-
-interface ServiceDetailsScreenProps {
-  supplier: Supplier;
-  onBack: () => void;
-  onAddToCart: (product: Product) => void;
-  onProductClick?: (product: Product) => void;
 }
 
 const products: Product[] = [

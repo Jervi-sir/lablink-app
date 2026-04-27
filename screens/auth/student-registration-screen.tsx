@@ -44,9 +44,7 @@ export function StudentRegistrationScreen() {
     const fetchTaxonomies = async () => {
       try {
         const response = await apiPublic.get(ApiRoutes.taxonomies, { params: { types: 'wilayas' } });
-        if (response.status === 'success' && response.data.wilayas) {
-          setWilayas(response.data.wilayas);
-        }
+        setWilayas(response.wilayas);
       } catch (error) {
         console.error('Failed to fetch wilayas:', error);
       } finally {
@@ -242,8 +240,8 @@ export function StudentRegistrationScreen() {
             value={formData.acceptTerms}
           />
           <Text className="flex-1 text-right text-sm leading-6 text-slate-700">
-            أوافق على <Text className="font-semibold text-blue-600">الشروط والأحكام</Text> وسياسة
-            الخصوصية الخاصة بمنصة LabLink
+            أوافق على جميع بياناتي الشخصية و معالجتها وفقًا للقانون رقم
+            {' '} <Text className="font-semibold text-blue-600">07-18</Text>
           </Text>
         </View>
 
