@@ -15,7 +15,7 @@ import { LabRegistrationScreen } from './screens/auth/lab-registration-screen';
 import { StudentRegistrationScreen } from './screens/auth/student-registration-screen';
 import { ServiceDetailsScreen } from './screens/commons/products/service-details-screen';
 import { LabDetailsScreen } from './screens/commons/as-student/lab-details-screen';
-import { ContractSigningScreen } from './screens/commons/as-student/contract-signing-screen';
+import { ContractSigningScreen } from './screens/commons/orders/contract-signing-screen';
 import { MyProductsScreen } from './screens/lab/m1/my-products-screen';
 import { AddEquipmentScreen } from './screens/lab/m1/add-equipment-screen';
 

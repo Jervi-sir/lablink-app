@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
-import { PanResponder, Pressable, ScrollView, Text, View, Alert, ActivityIndicator } from 'react-native';
+import { PanResponder, Pressable, ScrollView, Text, View, Alert, ActivityIndicator, Image } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -33,7 +33,15 @@ const defaultOrder: Order = {
   date: '2026-04-01',
 };
 
-function SignaturePad({ onSignedChange }: { onSignedChange: (signed: boolean) => void }) {
+function SignaturePad({
+  onSignedChange,
+  onBeginDrawing,
+  onEndDrawing,
+}: {
+  onSignedChange: (signed: boolean) => void;
+  onBeginDrawing?: () => void;
+  onEndDrawing?: () => void;
+}) {
   const [paths, setPaths] = useState<string[]>([]);
   const currentPath = useRef('');
 
@@ -43,6 +51,7 @@ function SignaturePad({ onSignedChange }: { onSignedChange: (signed: boolean) =>
         onStartShouldSetPanResponder: () => true,
         onMoveShouldSetPanResponder: () => true,
         onPanResponderGrant: (event) => {
+          onBeginDrawing?.();
           const { locationX, locationY } = event.nativeEvent;
           currentPath.current = `M ${locationX} ${locationY}`;
           setPaths((current) => [...current, currentPath.current]);
@@ -57,8 +66,14 @@ function SignaturePad({ onSignedChange }: { onSignedChange: (signed: boolean) =>
             return next;
           });
         },
+        onPanResponderRelease: () => {
+          onEndDrawing?.();
+        },
+        onPanResponderTerminate: () => {
+          onEndDrawing?.();
+        },
       }),
-    [onSignedChange]
+    [onSignedChange, onBeginDrawing, onEndDrawing]
   );
 
   return (
@@ -109,6 +124,7 @@ export function ContractSigningScreen({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [hasSigned, setHasSigned] = useState(false);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
 
   useEffect(() => {
     if (orderId) {
@@ -171,8 +187,10 @@ export function ContractSigningScreen({
 
   const labName = order.lab?.lab?.brand_name || 'مخبر غير معروف';
   const labIcon = order.lab?.lab?.icon || '🔬';
+  const orderNotes = order.notes;
   const orderDate = order.created_at.split('T')[0];
-  const orderItems = order.items.map((item: any) => item.product.name_ar);
+  const orderItems = order.items;
+  const totalPrice = order.total_price;
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
@@ -191,6 +209,7 @@ export function ContractSigningScreen({
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-6 px-6 pb-10 pt-6"
+        scrollEnabled={scrollEnabled}
         showsVerticalScrollIndicator={false}>
         <View
           className="rounded-[24px] bg-white px-5 py-5"
@@ -202,27 +221,81 @@ export function ContractSigningScreen({
             elevation: 3,
           }}>
           <View className="mb-4 flex-row items-center gap-4">
-            <View className="h-16 w-16 items-center justify-center rounded-xl bg-teal-600">
-              <Text className="text-3xl">{labIcon}</Text>
+            <View className="h-16 w-16 items-center justify-center rounded-2xl bg-teal-50 overflow-hidden border border-teal-100">
+              {labIcon && labIcon.startsWith('http') ? (
+                <Image source={{ uri: labIcon }} className="h-full w-full" />
+              ) : (
+                <Text className="text-3xl">{labIcon}</Text>
+              )}
             </View>
-            <View>
-              <Text className="text-right text-lg font-bold text-slate-800">{labName}</Text>
-              <Text className="mt-1 text-right text-sm text-slate-500">{orderDate}</Text>
+            <View className="flex-1">
+              <Text className="text-right text-xl font-bold text-slate-900">{labName}</Text>
+              <View className="mt-1 flex-row items-center justify-end gap-1">
+                <Text className="text-right text-sm text-slate-500">{orderDate}</Text>
+                <Text className="text-slate-400">📅</Text>
+              </View>
             </View>
           </View>
 
-          <Text className="mb-3 text-right text-sm font-medium text-slate-700">
-            الخدمات المحجوزة:
+          <Text className="mb-4 text-right text-sm font-bold text-slate-800 uppercase tracking-wider">
+            الخدمات المحجوزة
           </Text>
-          <View className="gap-2">
-            {orderItems.map((service: string) => (
-              <View key={service} className="flex-row items-center gap-2">
-                <Text className="text-green-600">✓</Text>
-                <Text className="text-right text-sm text-slate-600">{service}</Text>
+          <View className="gap-3">
+            {orderItems.map((item: any) => (
+              <View key={item.id} className="flex-row items-center justify-between rounded-2xl bg-slate-50 p-3 border border-slate-100">
+                <View className="flex-row items-center gap-3">
+                  <View className="h-10 w-10 items-center justify-center rounded-lg bg-white border border-slate-100">
+                    <Text className="text-xl">{item.product.image_url || '📦'}</Text>
+                  </View>
+                  <View>
+                    <Text className="text-right text-sm font-bold text-slate-800">{item.product.name_ar}</Text>
+                    <Text className="text-right text-[10px] text-slate-500">الكمية: {item.quantity}</Text>
+                  </View>
+                </View>
+                {item.price && (
+                  <Text className="text-sm font-bold text-teal-600">{item.price} DA</Text>
+                )}
               </View>
             ))}
           </View>
         </View>
+
+        {totalPrice && (
+          <View
+            className="rounded-[32px] bg-slate-900 p-6 shadow-xl"
+            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 12 },
+              shadowOpacity: 0.2,
+              shadowRadius: 16,
+              elevation: 8,
+            }}>
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-slate-400 text-sm">المجموع الفرعي</Text>
+              <Text className="font-bold text-white">{totalPrice} DA</Text>
+            </View>
+            <View className="h-[1px] bg-slate-800 mb-4" />
+            <View className="flex-row items-center justify-between">
+              <View>
+                <Text className="text-xs font-medium text-teal-400 mb-1">الإجمالي المستحق</Text>
+                <Text className="text-2xl font-black text-white">{totalPrice} DA</Text>
+              </View>
+              <View className="h-12 w-12 items-center justify-center rounded-full bg-teal-500/10 border border-teal-500/20">
+                <Text className="text-xl">💰</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+
+        {orderNotes && (
+          <View className="mb-2">
+            <Text className="mb-3 text-right text-sm font-bold text-slate-800 uppercase tracking-wider">ملاحظات إضافية</Text>
+            <View className="rounded-[24px] bg-amber-50 p-5 border border-amber-100 shadow-sm">
+              <Text className="text-right text-sm leading-6 text-amber-900">{orderNotes}</Text>
+            </View>
+          </View>
+        )}
 
         <View
           className="rounded-[24px] bg-white px-5 py-5"
@@ -233,9 +306,9 @@ export function ContractSigningScreen({
             shadowRadius: 14,
             elevation: 3,
           }}>
-          <View className="mb-3 flex-row items-center gap-2">
-            <Text className="text-blue-600">📄</Text>
+          <View className="mb-3 flex-row items-center justify-end gap-2">
             <Text className="text-lg font-bold text-slate-800">نص العقد</Text>
+            <Text className="text-blue-600 text-xl">📄</Text>
           </View>
 
           <View className="max-h-56 gap-2">
@@ -277,7 +350,11 @@ export function ContractSigningScreen({
             elevation: 3,
           }}>
           <Text className="mb-3 text-right text-lg font-bold text-slate-800">التوقيع</Text>
-          <SignaturePad onSignedChange={setHasSigned} />
+          <SignaturePad
+            onBeginDrawing={() => setScrollEnabled(false)}
+            onEndDrawing={() => setScrollEnabled(true)}
+            onSignedChange={setHasSigned}
+          />
         </View>
 
         <Pressable
@@ -294,10 +371,17 @@ export function ContractSigningScreen({
           ) : (
             <Text
               className={`text-center text-lg font-bold ${hasSigned ? 'text-white' : 'text-slate-400'}`}>
-              تأكيد التوقيع
+              تأكيد التوقيع والموافقة
             </Text>
           )}
         </Pressable>
+
+        <View className="flex-row items-start gap-3 rounded-2xl bg-blue-50 p-4 border border-blue-100 mb-4">
+          <Text className="flex-1 text-right text-xs leading-5 text-blue-700">
+            بتوقيعك على هذا العقد، فإنك توافق على الشروط المذكورة أعلاه وتلتزم بدفع المبلغ المحدد عند إتمام الخدمة.
+          </Text>
+          <Text className="text-blue-600">ℹ️</Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

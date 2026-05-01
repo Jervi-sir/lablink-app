@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useEffect, useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
 import {
@@ -58,6 +59,7 @@ export default function ProductDetailsScreen({
 }: any) {
   const onBack = propsOnBack || (() => stackNavigation?.goBack());
   const { addToCart } = useCart();
+  const insets = useSafeAreaInsets();
 
   const [product, setProduct] = useState<any>(route?.params?.product || propsProduct);
   const isBuy = route?.params?.isBuy || false; // Default to true if not explicitly false
@@ -279,7 +281,7 @@ export default function ProductDetailsScreen({
       {isBuy && (
         <View
           style={{
-            paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+            paddingBottom: Platform.OS === 'android' ? 60 + insets.bottom + 10 : (Platform.OS === 'ios' ? 34 : 20),
           }}
           className="absolute bottom-0 left-0 right-0 border-t border-slate-200 bg-white px-6 pt-4 shadow-2xl"
         >

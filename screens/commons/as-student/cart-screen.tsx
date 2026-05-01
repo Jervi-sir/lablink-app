@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert, TextInput, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert, TextInput, Image, Platform } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useCart } from '@/context/CartContext';
 import { Trash2, Send, ArrowLeft } from 'lucide-react-native';
@@ -9,6 +9,7 @@ import { ApiRoutes, buildRoute } from '@/utils/api/api';
 
 export function CartScreen() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const { items, labId, getCartTotal, clearCart, removeFromCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState('');
@@ -111,7 +112,10 @@ export function CartScreen() {
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-6 shadow-2xl">
+      <View
+        className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 pt-6 shadow-2xl"
+        style={{ paddingBottom: Platform.OS === 'android' ? 60 + insets.bottom + 10 : 24 }}
+      >
         <View className="flex-row-reverse items-center gap-4 mb-4">
           <Text className="text-lg font-bold text-slate-800">إجمالي العناصر:</Text>
           <Text className="text-2xl font-black text-teal-600">{getCartTotal()}</Text>

@@ -11,6 +11,7 @@ import {
   TextInput,
   View,
   Image,
+  Platform,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -19,7 +20,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes, buildRoute } from '@/utils/api/api';
@@ -209,6 +210,7 @@ export function LabDetailsScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { labId } = route.params || {};
+  const insets = useSafeAreaInsets();
 
   const [lab, setLab] = useState<Lab | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -520,7 +522,10 @@ export function LabDetailsScreen() {
 
       {/* Floating Cart Button */}
       {!isCartEmpty && cartLabId === labId && (
-        <View className="absolute bottom-6 left-6 right-6">
+        <View 
+          className="absolute left-6 right-6"
+          style={{ bottom: Platform.OS === 'android' ? 60 + insets.bottom + 10 : 24 }}
+        >
           <Pressable
             onPress={() => navigation.navigate(Routes.CartScreen)}
             className="flex-row items-center justify-between rounded-full bg-teal-600 px-6 py-4 shadow-lg shadow-teal-500/30"

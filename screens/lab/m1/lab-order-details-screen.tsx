@@ -24,6 +24,8 @@ export const LabOrderDetailScreen = () => {
   const [loading, setLoading] = useState(true);
   const [prices, setPrices] = useState<{ [key: number]: string }>({});
   const [submitting, setSubmitting] = useState(false);
+  const [suggestedPrice, setSuggestedPrice] = useState('');
+  const [isNegotiating, setIsNegotiating] = useState(false);
 
   useEffect(() => {
     fetchOrderDetail();
@@ -103,6 +105,41 @@ export const LabOrderDetailScreen = () => {
       }
     } catch (error) {
       console.error('Error completing order:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSuggestPrice = async () => {
+    if (!suggestedPrice) return;
+    setSubmitting(true);
+    try {
+      const response: any = await api.post(`/lab/orders/${orderId}/negotiate`, { suggested_price: suggestedPrice });
+      if (response.status === 'success') {
+        Alert.alert('نجاح', 'تم إرسال اقتراح السعر بنجاح');
+        setIsNegotiating(false);
+        setSuggestedPrice('');
+        fetchOrderDetail();
+      }
+    } catch (error: any) {
+      Alert.alert('خطأ', error.response?.data?.message || 'حدث خطأ أثناء إرسال الاقتراح');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAcceptPrice = async () => {
+    const studentPrice = order?.negotiations?.filter((n:any) => n.suggested_by === 'student').pop()?.suggested_price;
+    if (!studentPrice) return;
+    setSubmitting(true);
+    try {
+      const response: any = await api.post(`/lab/orders/${orderId}/negotiate`, { suggested_price: studentPrice });
+      if (response.status === 'success') {
+        Alert.alert('نجاح', 'تم قبول السعر بنجاح وتم إرساله للطالب للتأكيد');
+        fetchOrderDetail();
+      }
+    } catch (error: any) {
+      Alert.alert('خطأ', error.response?.data?.message || 'حدث خطأ أثناء إرسال السعر');
     } finally {
       setSubmitting(false);
     }
@@ -215,6 +252,67 @@ export const LabOrderDetailScreen = () => {
             <View className="rounded-2xl bg-amber-50 p-4 border border-amber-100">
               <Text className="text-right text-sm text-amber-800">{order.notes}</Text>
             </View>
+          </View>
+        )}
+
+        {/* Negotiation History */}
+        {order.negotiations && order.negotiations.length > 0 && (
+          <View className="mb-6 px-2">
+            <Text className="text-right text-lg font-bold text-slate-800 mb-3">تاريخ التفاوض</Text>
+            {order.negotiations.map((neg: any) => (
+              <View key={neg.id} className={`mb-3 rounded-2xl p-4 ${neg.suggested_by === 'lab' ? 'bg-indigo-50 border border-indigo-100 ml-8' : 'bg-orange-50 border border-orange-100 mr-8'}`}>
+                <Text className="text-right text-xs text-slate-500 mb-1">
+                  {neg.suggested_by === 'lab' ? 'اقتراحك' : 'اقتراح الطالب'}
+                </Text>
+                <Text className={`text-right font-bold text-lg ${neg.suggested_by === 'lab' ? 'text-indigo-700' : 'text-orange-700'}`}>
+                  {neg.suggested_price} DA
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Negotiation Actions */}
+        {order.status === 'student_negotiation' && (
+          <View className="mb-6 rounded-[32px] bg-white p-6 shadow-sm border border-slate-100">
+            <Text className="text-right text-lg font-bold text-slate-800 mb-4">اقتراح سعر جديد من الطالب</Text>
+            <View className="flex-row gap-3">
+              <Pressable
+                className={`flex-1 rounded-xl bg-teal-600 py-3 items-center ${submitting ? 'opacity-50' : ''}`}
+                onPress={handleAcceptPrice}
+                disabled={submitting}
+              >
+                <Text className="text-sm font-bold text-white">قبول السعر</Text>
+              </Pressable>
+              
+              {(!order.negotiations || order.negotiations.filter((n:any) => n.suggested_by === 'lab').length < 3) && (
+                <Pressable
+                  className="flex-1 rounded-xl bg-white border border-rose-500 py-3 items-center"
+                  onPress={() => setIsNegotiating(!isNegotiating)}>
+                  <Text className="text-sm font-bold text-rose-600">رفض واقتراح سعر</Text>
+                </Pressable>
+              )}
+            </View>
+
+            {isNegotiating && (
+              <View className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <Text className="text-right text-sm text-slate-700 mb-2 font-medium">أدخل السعر المقترح (DA):</Text>
+                <TextInput
+                  value={suggestedPrice}
+                  onChangeText={setSuggestedPrice}
+                  keyboardType="numeric"
+                  placeholder="مثال: 15000"
+                  className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-right text-base mb-3"
+                />
+                <Pressable
+                  className={`rounded-xl bg-indigo-600 py-3 items-center ${submitting ? 'opacity-50' : ''}`}
+                  onPress={handleSuggestPrice}
+                  disabled={submitting}
+                >
+                  <Text className="text-sm font-bold text-white">إرسال الاقتراح</Text>
+                </Pressable>
+              </View>
+            )}
           </View>
         )}
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ScrollView,
   Text,
@@ -6,18 +6,78 @@ import {
   Pressable,
   StatusBar,
   Image,
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  TextInput,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Order } from './orders-screen';
 import { ChevronRight, Package, Calendar, FileText, Info, ChevronLeft } from 'lucide-react-native';
 
 import { Routes } from '@/utils/routes';
+import api from '@/utils/api/axios-instance';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const OrderDetailScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute();
-  const { order } = route.params as { order: Order };
+  const { order: initialOrder, orderId } = route.params as { order?: Order; orderId?: number };
+
+  const [order, setOrder] = useState<Order | null>(initialOrder || null);
+  const [loading, setLoading] = useState(!initialOrder);
+  const [suggestedPrice, setSuggestedPrice] = useState('');
+  const [isNegotiating, setIsNegotiating] = useState(false);
+
+  useEffect(() => {
+    fetchOrderDetails();
+  }, [orderId, initialOrder?.id]);
+
+  const fetchOrderDetails = async () => {
+    const id = orderId || initialOrder?.id;
+    if (!id) return;
+
+    if (!initialOrder) setLoading(true);
+    try {
+      const response: any = await api.get(`/orders/${id}`);
+      if (response.status === 'success') {
+        setOrder(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      Alert.alert('خطأ', 'تعذر تحميل بيانات الطلب');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSuggestPrice = async () => {
+    if (!suggestedPrice) return;
+    try {
+      const response: any = await api.post(`/orders/${order!.id}/negotiate`, { suggested_price: suggestedPrice });
+      if (response.status === 'success') {
+        Alert.alert('نجاح', 'تم إرسال اقتراح السعر بنجاح');
+        setIsNegotiating(false);
+        setSuggestedPrice('');
+        fetchOrderDetails();
+      }
+    } catch (error: any) {
+      Alert.alert('خطأ', error.response?.data?.message || 'حدث خطأ أثناء إرسال الاقتراح');
+    }
+  };
+
+  const onRefresh = () => {
+    fetchOrderDetails();
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-slate-50 items-center justify-center">
+        <ActivityIndicator size="large" color="#2563eb" />
+        <Text className="mt-4 text-slate-500 text-base">جاري تحميل تفاصيل الطلب...</Text>
+      </SafeAreaView>
+    );
+  }
 
   if (!order) return null;
 
@@ -42,15 +102,8 @@ export const OrderDetailScreen = () => {
   };
 
   const handleLabClick = () => {
-    // Map Lab info to Supplier interface expected by ServiceDetailsScreen
-    const supplier = {
-      id: order.lab_id,
-      name: order.lab.lab.brand_name,
-      description: 'مخبر متخصص في التحاليل والخدمات المخبرية.',
-      icon: order.lab.lab.icon || '🔬',
-      color: '#0f172a',
-    };
-    navigation.navigate(Routes.LabDetailsScreen, { labId: order.lab.id })
+
+    navigation.navigate(Routes.LabDetailsScreen, { labId: order?.lab?.id })
   };
 
   const getStatusInfo = (status: Order['status']) => {
@@ -59,6 +112,10 @@ export const OrderDetailScreen = () => {
         return { text: 'طلب تسعير', tone: 'bg-slate-100 text-slate-700', icon: '📝' };
       case 'estimation_provided':
         return { text: 'تم التسعير', tone: 'bg-orange-100 text-orange-700', icon: '🕒' };
+      case 'student_negotiation':
+        return { text: 'في انتظار رد المخبر', tone: 'bg-purple-100 text-purple-700', icon: '⏳' };
+      case 'lab_negotiation':
+        return { text: 'تسعير جديد من المخبر', tone: 'bg-orange-100 text-orange-700', icon: '🔄' };
       case 'confirmed':
         return { text: 'طلب مؤكد', tone: 'bg-blue-100 text-blue-700', icon: '📄' };
       case 'rejected':
@@ -92,6 +149,7 @@ export const OrderDetailScreen = () => {
         className="flex-1"
         contentContainerClassName="px-6 py-8 pb-12"
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} colors={['#2563eb']} />}
       >
         {/* Lab Info Card */}
         <Pressable
@@ -192,6 +250,66 @@ export const OrderDetailScreen = () => {
                 <Text className="text-2xl font-black text-teal-400">{order.total_price} DA</Text>
               </View>
             </View>
+          </View>
+        )}
+
+
+        {/* Negotiation History */}
+        {order.negotiations && order.negotiations.length > 0 && (
+          <View className="mt-6 mb-2 px-2">
+            <Text className="text-right text-lg font-bold text-slate-800 mb-3">تاريخ التفاوض</Text>
+            {order.negotiations.map((neg: any) => (
+              <View key={neg.id} className={`mb-3 rounded-2xl p-4 ${neg.suggested_by === 'student' ? 'bg-indigo-50 border border-indigo-100 ml-8' : 'bg-orange-50 border border-orange-100 mr-8'}`}>
+                <Text className="text-right text-xs text-slate-500 mb-1">
+                  {neg.suggested_by === 'student' ? 'اقتراحك' : 'اقتراح المخبر'}
+                </Text>
+                <Text className={`text-right font-bold text-lg ${neg.suggested_by === 'student' ? 'text-indigo-700' : 'text-orange-700'}`}>
+                  {neg.suggested_price} DA
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {(order.status === 'estimation_provided' || order.status === 'lab_negotiation') && (
+          <View className="mt-4 border-t border-slate-100 pt-6">
+            <Text className="text-right font-medium text-slate-600 mb-4">ما هو قرارك بشأن هذا التسعير؟</Text>
+            
+            <View className="flex-row gap-3 mb-4">
+              <Pressable
+                className="flex-1 rounded-xl bg-blue-600 py-3 items-center"
+                onPress={() => {
+                  navigation.navigate(Routes.ContractSigningScreen, { orderId: order.id, onRefresh: onRefresh });
+                }}>
+                <Text className="text-sm font-bold text-white">مراجعة وتوقيع</Text>
+              </Pressable>
+              
+              {(!order.negotiations || order.negotiations.filter((n:any) => n.suggested_by === 'student').length < 3) && (
+                <Pressable
+                  className="flex-1 rounded-xl bg-white border border-rose-500 py-3 items-center"
+                  onPress={() => setIsNegotiating(!isNegotiating)}>
+                  <Text className="text-sm font-bold text-rose-600">رفض واقتراح سعر</Text>
+                </Pressable>
+              )}
+            </View>
+
+            {isNegotiating && (
+              <View className="mt-2 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <Text className="text-right text-sm text-slate-700 mb-2 font-medium">أدخل السعر المقترح (DA):</Text>
+                <TextInput
+                  value={suggestedPrice}
+                  onChangeText={setSuggestedPrice}
+                  keyboardType="numeric"
+                  placeholder="مثال: 15000"
+                  className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-right text-base mb-3"
+                />
+                <Pressable
+                  className="rounded-xl bg-indigo-600 py-3 items-center"
+                  onPress={handleSuggestPrice}>
+                  <Text className="text-sm font-bold text-white">إرسال الاقتراح</Text>
+                </Pressable>
+              </View>
+            )}
           </View>
         )}
 

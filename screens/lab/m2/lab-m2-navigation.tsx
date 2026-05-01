@@ -21,6 +21,10 @@ function getStatusInfo(status: OrderStatus) {
             return { text: 'طلب تسعير جديد', tone: 'bg-amber-50 text-amber-700', icon: <Clock size={14} color="#b45309" /> };
         case 'estimation_provided':
             return { text: 'تم تقديم السعر', tone: 'bg-blue-50 text-blue-700', icon: <Clock size={14} color="#1d4ed8" /> };
+        case 'student_negotiation':
+            return { text: 'تلقيت اقتراح جديد', tone: 'bg-purple-50 text-purple-700', icon: <AlertCircle size={14} color="#7e22ce" /> };
+        case 'lab_negotiation':
+            return { text: 'في انتظار رد الطالب', tone: 'bg-orange-50 text-orange-700', icon: <Clock size={14} color="#c2410c" /> };
         case 'confirmed':
             return { text: 'طلب مؤكد', tone: 'bg-indigo-50 text-indigo-700', icon: <CheckCircle2 size={14} color="#4338ca" /> };
         case 'rejected':
@@ -121,14 +125,16 @@ export const LabM2Navigation = () => {
                     </View>
                 </View>
 
-                {order.status === 'request_estimation' && (
+                {(order.status === 'request_estimation' || order.status === 'student_negotiation') && (
                     <View className="mt-4 border-t border-slate-50 pt-4">
                         <View className="flex-row gap-2">
                             <Pressable
                                 className="flex-1 rounded-xl bg-blue-600 py-2.5 items-center justify-center"
                                 onPress={() => navigation.navigate(Routes.LabOrderDetailScreen, { orderId: order.id })}
                             >
-                                <Text className="text-xs font-bold text-white">تقديم عرض سعر</Text>
+                                <Text className="text-xs font-bold text-white">
+                                    {order.status === 'student_negotiation' ? 'الرد على الاقتراح' : 'تقديم عرض سعر'}
+                                </Text>
                             </Pressable>
                         </View>
                     </View>

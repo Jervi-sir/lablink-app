@@ -15,7 +15,7 @@ import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
 import { useNavigation } from '@react-navigation/native';
 
-export type OrderStatus = 'request_estimation' | 'estimation_provided' | 'confirmed' | 'rejected' | 'completed';
+export type OrderStatus = 'request_estimation' | 'estimation_provided' | 'student_negotiation' | 'lab_negotiation' | 'confirmed' | 'rejected' | 'completed';
 
 export interface OrderItem {
   id: number;
@@ -36,12 +36,14 @@ export interface Order {
   created_at: string;
   lab: {
     lab: {
+      id: number;
       brand_name: string;
       icon?: string;
-    };
+    }
   };
   items: OrderItem[];
-  student?: any | null
+  student?: any | null;
+  negotiations?: any[];
 }
 
 interface OrdersScreenProps {
@@ -55,6 +57,10 @@ function getStatusInfo(status: OrderStatus) {
       return { text: 'طلب تسعير', tone: 'bg-slate-50 text-slate-600', icon: '📝' };
     case 'estimation_provided':
       return { text: 'تم التسعير', tone: 'bg-orange-50 text-orange-600', icon: '🕒' };
+    case 'student_negotiation':
+      return { text: 'في انتظار رد المخبر', tone: 'bg-purple-50 text-purple-600', icon: '⏳' };
+    case 'lab_negotiation':
+      return { text: 'تسعير جديد من المخبر', tone: 'bg-orange-50 text-orange-600', icon: '🔄' };
     case 'confirmed':
       return { text: 'طلب مؤكد', tone: 'bg-blue-50 text-blue-600', icon: '📄' };
     case 'rejected':
