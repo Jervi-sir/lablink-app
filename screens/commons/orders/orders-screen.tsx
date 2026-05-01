@@ -200,6 +200,10 @@ export const OrdersScreen = () => {
     (o) => isOrderNew(o, 'student') && (o.status === 'estimation_provided' || o.status === 'lab_negotiation')
   ).length;
 
+  const confirmedUnseenCount = confirmedOrders.filter(
+    (o) => isOrderNew(o, 'student')
+  ).length;
+
   const currentOrders = activeTab === 'requests' ? requestsOrders : confirmedOrders;
 
   const handleOrderPress = async (order: Order) => {
@@ -337,9 +341,14 @@ export const OrdersScreen = () => {
         </Pressable>
         <Pressable
           onPress={() => setActiveTab('confirmed')}
-          className={`flex-1 rounded-xl py-3 items-center`}
+          className={`flex-1 flex-row items-center justify-center gap-2 rounded-xl py-3`}
           style={{ backgroundColor: activeTab === 'confirmed' ? 'white' : 'transparent' }}
         >
+          {confirmedUnseenCount > 0 && (
+            <View className="bg-red-500 rounded-full min-w-[20px] h-[20px] px-1 items-center justify-center">
+              <Text className="text-white text-xs font-bold">{confirmedUnseenCount}</Text>
+            </View>
+          )}
           <Text className={`font-bold ${activeTab === 'confirmed' ? 'text-blue-700' : 'text-slate-500'}`}>
             الطلبات المؤكدة
           </Text>

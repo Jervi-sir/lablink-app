@@ -1,4 +1,4 @@
-import { Platform, StatusBar, View } from 'react-native';
+import { Platform, StatusBar, View, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Routes } from '@/utils/routes';
@@ -6,8 +6,47 @@ import { Store, FlaskConical, User } from 'lucide-react-native';
 import { StudentM1Navigation } from './m1/student-m1-navigation';
 import { StudentProfileScreen } from './m3/student-profile-screen';
 import OrderNavigation from '../commons/orders/order-navigation';
+import { useEffect, useState } from 'react';
+import api from '@/utils/api/axios-instance';
+import { ApiRoutes } from '@/utils/api/api';
+import { Order } from '../commons/orders/orders-screen';
+
+function isOrderNew(order: Order, type: 'student' | 'lab') {
+  const lastViewed = type === 'student' ? order.student_last_viewed_at : order.lab_last_viewed_at;
+  if (!lastViewed) return true;
+  return new Date(order.updated_at) > new Date(lastViewed);
+}
 
 function useTabScreens() {
+  const [totalUnseen, setTotalUnseen] = useState(0);
+
+  useEffect(() => {
+    const fetchTotalUnseen = async () => {
+      try {
+        const [reqRes, confRes]: any = await Promise.all([
+          api.get(ApiRoutes.orders.index, { params: { tab: 'requests' } }),
+          api.get(ApiRoutes.orders.index, { params: { tab: 'confirmed' } })
+        ]);
+
+        let count = 0;
+        if (reqRes.status === 'success') {
+          count += reqRes.data.filter((o: Order) => 
+            isOrderNew(o, 'student') && (o.status === 'estimation_provided' || o.status === 'lab_negotiation')
+          ).length;
+        }
+        if (confRes.status === 'success') {
+          count += confRes.data.filter((o: Order) => isOrderNew(o, 'student')).length;
+        }
+        setTotalUnseen(count);
+      } catch (error) {
+        console.error('Error fetching unseen orders count:', error);
+      }
+    };
+
+    fetchTotalUnseen();
+    // Refresh every minute or so? Or just on mount.
+  }, []);
+
   return [
     { key: 'M1', label: 'الموردين', routeName: Routes.M1, component: StudentM1Navigation, icon: Store },
     {
@@ -16,6 +55,7 @@ function useTabScreens() {
       routeName: Routes.M2,
       component: OrderNavigation,
       icon: FlaskConical,
+      badgeCount: totalUnseen,
     },
     { key: 'M4', label: 'الملف الشخصي', routeName: Routes.M4, component: StudentProfileScreen, icon: User },
   ];
@@ -88,6 +128,13 @@ const CustomTabIcon = ({ tab, focused }: { tab: any; focused: boolean }) => {
           size={22}
           strokeWidth={focused ? 2.5 : 2}
         />
+        {tab.badgeCount > 0 && (
+          <View
+            className="absolute -top-2 -right-2 bg-red-500 rounded-full min-w-[16px] h-[16px] px-1 items-center justify-center border-2 border-white"
+          >
+            <Text className="text-white text-[8px] font-bold">{tab.badgeCount}</Text>
+          </View>
+        )}
       </View>
 
       {/* <Text
