@@ -87,6 +87,7 @@ export const ApiRoutes = {
     show: 'orders/:id',
     updateStatus: 'orders/:id/status',
     sign: 'orders/:id/signature',
+    read: 'orders/:id/read',
     contract: 'orders/:id/contract',
     businessIndex: 'business/orders',
     laboratoryIndex: 'laboratory/orders',

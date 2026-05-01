@@ -34,6 +34,9 @@ export interface Order {
   total_price: string | null;
   notes: string | null;
   created_at: string;
+  updated_at: string;
+  student_last_viewed_at: string | null;
+  lab_last_viewed_at: string | null;
   lab: {
     lab: {
       id: number;
@@ -49,6 +52,12 @@ export interface Order {
 interface OrdersScreenProps {
   onOrderClick?: (order: Order) => void;
   navigation: any;
+}
+
+function isOrderNew(order: Order, type: 'student' | 'lab') {
+  const lastViewed = type === 'student' ? order.student_last_viewed_at : order.lab_last_viewed_at;
+  if (!lastViewed) return true;
+  return new Date(order.updated_at) > new Date(lastViewed);
 }
 
 function getStatusInfo(status: OrderStatus) {
@@ -152,7 +161,8 @@ function RatingModal({
 
 export const OrdersScreen = () => {
   const navigation = useNavigation<any>();
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [requestsOrders, setRequestsOrders] = useState<Order[]>([]);
+  const [confirmedOrders, setConfirmedOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'requests' | 'confirmed'>('requests');
@@ -160,27 +170,14 @@ export const OrdersScreen = () => {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedLab, setSelectedLab] = useState<{ name: string; icon: string } | null>(null);
 
-  // Replace the tab switching handlers — use a single handler
-  const handleTabChange = (tab: 'requests' | 'confirmed') => {
-    if (tab === activeTab) return;
-    setOrders([]); // clear stale data
-    setActiveTab(tab);
-  };
-
-  // Add a useEffect that reacts to activeTab changes
-  useEffect(() => {
-    fetchOrders(activeTab);
-  }, [activeTab]);
-
-  const fetchOrders = async (tab: string) => {
-    setLoading(true);
+  const fetchAllOrders = async () => {
     try {
-      const response: any = await api.get(ApiRoutes.orders.index, {
-        params: { tab }
-      });
-      if (response.status === 'success') {
-        setOrders(response.data);
-      }
+      const [reqRes, confRes]: any = await Promise.all([
+        api.get(ApiRoutes.orders.index, { params: { tab: 'requests' } }),
+        api.get(ApiRoutes.orders.index, { params: { tab: 'confirmed' } })
+      ]);
+      if (reqRes.status === 'success') setRequestsOrders(reqRes.data);
+      if (confRes.status === 'success') setConfirmedOrders(confRes.data);
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
@@ -189,25 +186,52 @@ export const OrdersScreen = () => {
     }
   };
 
+  useEffect(() => {
+    setLoading(true);
+    fetchAllOrders();
+  }, []);
+
   const onRefresh = () => {
     setRefreshing(true);
-    fetchOrders(activeTab);
+    fetchAllOrders();
   };
 
+  const incomingCount = requestsOrders.filter(
+    (o) => isOrderNew(o, 'student') && (o.status === 'estimation_provided' || o.status === 'lab_negotiation')
+  ).length;
+
+  const currentOrders = activeTab === 'requests' ? requestsOrders : confirmedOrders;
+
+  const handleOrderPress = async (order: Order) => {
+    // Optimistic update
+    if (isOrderNew(order, 'student')) {
+      const updatedOrder = { ...order, student_last_viewed_at: new Date().toISOString() };
+      if (activeTab === 'requests') {
+        setRequestsOrders(prev => prev.map(o => o.id === order.id ? updatedOrder : o));
+      } else {
+        setConfirmedOrders(prev => prev.map(o => o.id === order.id ? updatedOrder : o));
+      }
+      try {
+        await api.post(ApiRoutes.orders.read.replace(':id', order.id.toString()));
+      } catch (e) {
+        console.error('Failed to mark order as read', e);
+      }
+    }
+    navigation.navigate(Routes.OrderDetailScreen, { order });
+  };
 
   const renderOrder = (order: Order) => {
     const statusInfo = getStatusInfo(order.status);
     const labName = order.lab?.lab?.brand_name || 'مخبر غير معروف';
     const labIcon = order.lab?.lab?.icon || '🔬';
+    const isNew = isOrderNew(order, 'student') && (order.status === 'estimation_provided' || order.status === 'lab_negotiation');
 
     return (
       <Pressable
         key={order.id}
         accessibilityRole="button"
         className="mb-4 rounded-[24px] bg-white px-5 py-5"
-        onPress={() => {
-          navigation.navigate(Routes.OrderDetailScreen, { order });
-        }}
+        onPress={() => handleOrderPress(order)}
         style={({ pressed }) => ({
           transform: [{ scale: pressed ? 0.985 : 1 }],
           opacity: pressed ? 0.95 : 1,
@@ -223,9 +247,16 @@ export const OrdersScreen = () => {
           </View>
 
           <View className="flex-1">
-            <Text className="text-right text-lg font-bold text-slate-800">
-              {labName}
-            </Text>
+            <View className="flex-row items-center justify-end gap-2">
+              {isNew && (
+                <View className="bg-red-500 px-2 py-0.5 rounded-full">
+                  <Text className="text-[10px] text-white font-bold">جديد</Text>
+                </View>
+              )}
+              <Text className="text-right text-lg font-bold text-slate-800">
+                {labName}
+              </Text>
+            </View>
 
             <View className="mb-3 mt-2 gap-1 flex-row flex-wrap">
               {order.items.slice(0, 2).map((item, idx) => (
@@ -291,22 +322,25 @@ export const OrdersScreen = () => {
       {/* Tab Bar */}
       <View className="mx-6 mt-4 flex-row rounded-2xl bg-slate-200 p-1">
         <Pressable
-          onPress={() => handleTabChange('requests')}
-          className={`flex-1 rounded-xl py-3 items-center`}
+          onPress={() => setActiveTab('requests')}
+          className={`flex-1 flex-row items-center justify-center gap-2 rounded-xl py-3`}
           style={{ backgroundColor: activeTab === 'requests' ? 'white' : 'transparent' }}
         >
+          {incomingCount > 0 && (
+            <View className="bg-red-500 rounded-full min-w-[20px] h-[20px] px-1 items-center justify-center">
+              <Text className="text-white text-xs font-bold">{incomingCount}</Text>
+            </View>
+          )}
           <Text className={`font-bold ${activeTab === 'requests' ? 'text-blue-700' : 'text-slate-500'}`}>
             طلبات التسعير
           </Text>
         </Pressable>
         <Pressable
-          onPress={() => handleTabChange('confirmed')}
+          onPress={() => setActiveTab('confirmed')}
           className={`flex-1 rounded-xl py-3 items-center`}
           style={{ backgroundColor: activeTab === 'confirmed' ? 'white' : 'transparent' }}
         >
-          <Text className={`font-bold`}
-            style={{ color: activeTab === 'confirmed' ? 'blue' : 'black' }}
-          >
+          <Text className={`font-bold ${activeTab === 'confirmed' ? 'text-blue-700' : 'text-slate-500'}`}>
             الطلبات المؤكدة
           </Text>
         </Pressable>
@@ -321,8 +355,8 @@ export const OrdersScreen = () => {
           <View className="mt-20 items-center justify-center">
             <ActivityIndicator size="large" color="#2563eb" />
           </View>
-        ) : orders.length > 0 ? (
-          orders.map(renderOrder)
+        ) : currentOrders.length > 0 ? (
+          currentOrders.map(renderOrder)
         ) : (
           <View className="mt-20 items-center justify-center px-10">
             <Text className="text-center text-lg font-bold text-slate-400">لا توجد طلبات حالياً</Text>

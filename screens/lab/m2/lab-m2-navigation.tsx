@@ -36,28 +36,28 @@ function getStatusInfo(status: OrderStatus) {
     }
 }
 
+function isOrderNew(order: Order, type: 'student' | 'lab') {
+    const lastViewed = type === 'student' ? order.student_last_viewed_at : order.lab_last_viewed_at;
+    if (!lastViewed) return true;
+    return new Date(order.updated_at) > new Date(lastViewed);
+}
+
 export const LabM2Navigation = () => {
     const navigation = useNavigation<any>();
-    const [orders, setOrders] = useState<Order[]>([]);
+    const [requestsOrders, setRequestsOrders] = useState<Order[]>([]);
+    const [confirmedOrders, setConfirmedOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState<'requests' | 'confirmed'>('requests');
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchOrders(activeTab);
-        }, [activeTab])
-    );
-
-    const fetchOrders = async (tab: string) => {
-        setLoading(true);
+    const fetchAllOrders = async () => {
         try {
-            const response: any = await api.get('/lab/orders', {
-                params: { tab }
-            });
-            if (response.status === 'success') {
-                setOrders(response.data);
-            }
+            const [reqRes, confRes]: any = await Promise.all([
+                api.get('/lab/orders', { params: { tab: 'requests' } }),
+                api.get('/lab/orders', { params: { tab: 'confirmed' } })
+            ]);
+            if (reqRes.status === 'success') setRequestsOrders(reqRes.data);
+            if (confRes.status === 'success') setConfirmedOrders(confRes.data);
         } catch (error) {
             console.error('Error fetching lab orders:', error);
         } finally {
@@ -66,24 +66,52 @@ export const LabM2Navigation = () => {
         }
     };
 
+    useFocusEffect(
+        useCallback(() => {
+            setLoading(true);
+            fetchAllOrders();
+        }, [])
+    );
+
     const onRefresh = () => {
         setRefreshing(true);
-        fetchOrders(activeTab);
+        fetchAllOrders();
+    };
+
+    const newRequestsCount = requestsOrders.filter(o => isOrderNew(o, 'lab') && o.status === 'request_estimation').length;
+    const newNegotiationsCount = confirmedOrders.filter(o => isOrderNew(o, 'lab') && o.status === 'student_negotiation').length;
+
+    const currentOrders = activeTab === 'requests' ? requestsOrders : confirmedOrders;
+
+    const handleOrderPress = async (order: Order) => {
+        // Optimistic update
+        if (isOrderNew(order, 'lab')) {
+            const updatedOrder = { ...order, lab_last_viewed_at: new Date().toISOString() };
+            if (activeTab === 'requests') {
+                setRequestsOrders(prev => prev.map(o => o.id === order.id ? updatedOrder : o));
+            } else {
+                setConfirmedOrders(prev => prev.map(o => o.id === order.id ? updatedOrder : o));
+            }
+            try {
+                await api.post(`/lab/orders/${order.id}/read`);
+            } catch (e) {
+                console.error('Failed to mark order as read', e);
+            }
+        }
+        navigation.navigate(Routes.LabOrderDetailScreen, { orderId: order.id });
     };
 
     const renderOrder = (order: Order) => {
         const statusInfo = getStatusInfo(order.status);
         const studentName = order.student?.full_name || 'طالب غير معروف';
         const studentIcon = order.student?.icon || '👨‍🎓';
+        const isNew = isOrderNew(order, 'lab') && (order.status === 'request_estimation' || order.status === 'student_negotiation');
 
         return (
             <Pressable
                 key={order.id}
                 className="mb-4 rounded-[28px] bg-white p-5 shadow-sm border border-slate-100"
-                onPress={() => {
-                    // We will create a LabOrderDetailScreen later
-                    navigation.navigate(Routes.LabOrderDetailScreen, { orderId: order.id });
-                }}
+                onPress={() => handleOrderPress(order)}
                 style={({ pressed }) => ({
                     transform: [{ scale: pressed ? 0.985 : 1 }],
                     opacity: pressed ? 0.95 : 1,
@@ -95,10 +123,17 @@ export const LabM2Navigation = () => {
 
                     <View className="flex-1">
                         <View className="flex-row items-center justify-between">
-                            <Text className="text-right text-lg font-bold text-slate-800">
-                                {studentName}
-                            </Text>
                             <Text className="text-[10px] text-slate-400 font-medium">{order.created_at.split('T')[0]}</Text>
+                            <View className="flex-row items-center gap-2">
+                                {isNew && (
+                                    <View className="bg-red-500 px-2 py-0.5 rounded-full">
+                                        <Text className="text-[10px] text-white font-bold">جديد</Text>
+                                    </View>
+                                )}
+                                <Text className="text-right text-lg font-bold text-slate-800">
+                                    {studentName}
+                                </Text>
+                            </View>
                         </View>
 
                         <View className="mb-3 mt-1 gap-1 flex-row flex-wrap">
@@ -161,18 +196,28 @@ export const LabM2Navigation = () => {
             <View className="mx-6 mt-2 flex-row rounded-2xl bg-slate-200 p-1">
                 <Pressable
                     onPress={() => setActiveTab('requests')}
-                    className={`flex-1 rounded-xl py-3 items-center`}
+                    className={`flex-1 flex-row items-center justify-center gap-2 rounded-xl py-3`}
                     style={{ backgroundColor: activeTab === 'requests' ? 'white' : 'transparent' }}
                 >
+                    {newRequestsCount > 0 && (
+                        <View className="bg-red-500 rounded-full min-w-[18px] h-[18px] px-1 items-center justify-center">
+                            <Text className="text-white text-[10px] font-bold">{newRequestsCount}</Text>
+                        </View>
+                    )}
                     <Text className={`text-xs font-bold ${activeTab === 'requests' ? 'text-blue-700' : 'text-slate-500'}`}>
                         طلبات التسعير
                     </Text>
                 </Pressable>
                 <Pressable
                     onPress={() => setActiveTab('confirmed')}
-                    className={`flex-1 rounded-xl py-3 items-center`}
+                    className={`flex-1 flex-row items-center justify-center gap-2 rounded-xl py-3`}
                     style={{ backgroundColor: activeTab === 'confirmed' ? 'white' : 'transparent' }}
                 >
+                    {newNegotiationsCount > 0 && (
+                        <View className="bg-red-500 rounded-full min-w-[18px] h-[18px] px-1 items-center justify-center">
+                            <Text className="text-white text-[10px] font-bold">{newNegotiationsCount}</Text>
+                        </View>
+                    )}
                     <Text className={`text-xs font-bold ${activeTab === 'confirmed' ? 'text-blue-700' : 'text-slate-500'}`}>
                         الطلبات والتعاقدات
                     </Text>

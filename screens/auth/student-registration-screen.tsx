@@ -241,7 +241,7 @@ export function StudentRegistrationScreen() {
           />
           <Text className="flex-1 text-right text-sm leading-6 text-slate-700">
             أوافق على جميع بياناتي الشخصية و معالجتها وفقًا للقانون رقم
-            {' '} <Text className="font-semibold text-blue-600">07-18</Text>
+            {' '} <Text className="font-semibold text-blue-600">18-07</Text>
           </Text>
         </View>
 

@@ -224,11 +224,6 @@ export default function ProductDetailsScreen({
             {/* Delivery & Warranty Info */}
             <View className="mb-6 flex-row gap-3">
               <View className="flex-1 items-center rounded-3xl bg-white p-4 shadow-sm">
-                <Truck size={24} color="#2563eb" />
-                <Text className="mt-1 text-[10px] text-slate-500">التوصيل</Text>
-                <Text className="text-xs font-bold text-slate-800">{product.deliveryTime}</Text>
-              </View>
-              <View className="flex-1 items-center rounded-3xl bg-white p-4 shadow-sm">
                 <Package size={24} color="#16a34a" />
                 <Text className="mt-1 text-[10px] text-slate-500">الضمان</Text>
                 <Text className="text-xs font-bold text-slate-800">{product.warranty}</Text>
