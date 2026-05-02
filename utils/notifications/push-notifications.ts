@@ -53,23 +53,25 @@ export async function registerForPushNotificationsAsync(): Promise<string | unde
   }
 
   const projectId =
-    Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+    Constants?.expoConfig?.extra?.eas?.projectId ?? 
+    Constants?.easConfig?.projectId ??
+    Constants?.projectId;
 
   console.log('[PushNotifications] projectId:', projectId);
 
-  if (!projectId || projectId === 'YOUR_EAS_PROJECT_ID') {
-    console.warn('[PushNotifications] ❌ Project ID not found or still placeholder. Run: npx eas-cli init');
+  if (!projectId) {
+    console.warn('[PushNotifications] ❌ Project ID not found. Ensure it is defined in app.json.');
     return undefined;
   }
 
   try {
     const pushTokenString = (
-      await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined)
+      await Notifications.getExpoPushTokenAsync({ projectId })
     ).data;
     console.log('[PushNotifications] ✅ Token:', pushTokenString);
     return pushTokenString;
-  } catch (e: unknown) {
-    console.warn('[PushNotifications] ❌ Failed to get push token:', e);
+  } catch (e: any) {
+    console.warn('[PushNotifications] ❌ Failed to get push token:', e.message || e);
     return undefined;
   }
 }

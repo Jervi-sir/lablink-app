@@ -11,15 +11,13 @@ npm-debug.*
 web-build/
 
 notification-services.json
-google-services.json
+# google-services.json <-- REMOVED FROM IGNORE FOR EAS BUILD
 
 ios
 android
 
 # macOS
 .DS_Store
-
-*.apk
 
 # Temporary files created by Metro to check the health of the file watcher
 .metro-health-check*

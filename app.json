@@ -9,7 +9,7 @@
     "experiments": {
       "tsconfigPaths": true
     },
-    "plugins": [],
+    "plugins": ["expo-notifications"],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -28,7 +28,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.jervi.lablink"
+      "package": "com.jervi.lablink",
+      "googleServicesFile": "./google-services.json"
     },
     "extra": {
       "eas": {

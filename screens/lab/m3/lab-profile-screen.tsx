@@ -16,7 +16,9 @@ import { useAuthStore } from '@/zustand/auth-store';
 import { useNavigation } from '@react-navigation/native';
 import { Routes } from '@/utils/routes';
 import api from '@/utils/api/axios-instance';
-import { User, LogOut, Mail, Phone, Building2, Save, Edit2, Shield } from 'lucide-react-native';
+import { User, LogOut, Mail, Phone, Building2, Save, Edit2, Shield, Copy, Bell, CheckCircle2 } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
+import { registerForPushNotificationsAsync } from '@/utils/notifications/push-notifications';
 
 const inputClassName = "rounded-2xl border border-slate-200 bg-white px-4 py-4 text-right text-base text-slate-900";
 
@@ -205,9 +207,65 @@ export const LabProfileScreen = () => {
             <Text className="text-lg font-bold text-rose-600">تسجيل الخروج</Text>
           </Pressable>
 
-          <Text className="mt-10 text-center text-xs text-slate-400">LabLink v1.0.0 • الإصدار التجريبي</Text>
+          {/* Debug Info / Push Token Section */}
+          <View className="mt-10 pt-6 border-t border-slate-100 items-center">
+            <PushTokenDebug />
+            <Text className="mt-4 text-center text-xs text-slate-400">LabLink v1.0.0 • الإصدار التجريبي</Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+};
+
+const PushTokenDebug = () => {
+  const [token, setToken] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const fetchToken = async () => {
+    try {
+      const t = await registerForPushNotificationsAsync();
+      setToken(t || 'لم يتم العثور على رمز');
+    } catch (e) {
+      setToken('خطأ في جلب الرمز');
+    }
+  };
+
+  const copyToClipboard = async () => {
+    if (token) {
+      await Clipboard.setStringAsync(token);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  if (!token) {
+    return (
+      <Pressable onPress={fetchToken} className="flex-row items-center gap-2 bg-slate-100 px-4 py-2 rounded-full">
+        <Bell size={14} color="#64748b" />
+        <Text className="text-xs text-slate-500 font-bold">عرض رمز الإشعارات (للتجربة)</Text>
+      </Pressable>
+    );
+  }
+
+  return (
+    <View className="w-full bg-slate-100 p-4 rounded-2xl border border-slate-200">
+      <View className="flex-row items-center justify-between mb-2">
+        <Text className="text-xs font-bold text-slate-500 text-right">رمز Expo Push</Text>
+        <Pressable onPress={copyToClipboard} className="flex-row items-center gap-1">
+          {copied ? (
+            <CheckCircle2 size={14} color="#22c55e" />
+          ) : (
+            <Copy size={14} color="#2563eb" />
+          )}
+          <Text className={`text-[10px] font-bold ${copied ? 'text-green-600' : 'text-blue-600'}`}>
+            {copied ? 'تم النسخ' : 'نسخ الرمز'}
+          </Text>
+        </Pressable>
+      </View>
+      <Text selectable numberOfLines={1} className="text-[10px] text-slate-400 font-mono">
+        {token}
+      </Text>
+    </View>
   );
 };
