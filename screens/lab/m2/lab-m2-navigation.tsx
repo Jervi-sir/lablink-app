@@ -233,8 +233,8 @@ export const LabM2Navigation = () => {
                     <View className="mt-20 items-center justify-center">
                         <ActivityIndicator size="large" color="#2563eb" />
                     </View>
-                ) : orders.length > 0 ? (
-                    orders.map(renderOrder)
+                ) : currentOrders.length > 0 ? (
+                    currentOrders.map(renderOrder)
                 ) : (
                     <View className="mt-20 items-center justify-center px-10">
                         <View className="h-20 w-20 items-center justify-center rounded-full bg-slate-100 mb-4">

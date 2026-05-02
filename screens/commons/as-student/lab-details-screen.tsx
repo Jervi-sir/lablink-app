@@ -490,11 +490,13 @@ export function LabDetailsScreen() {
           </View>
         }
         ListFooterComponent={
-          loadingMore ? (
-            <View className="py-6">
-              <ActivityIndicator color="#0d9488" />
-            </View>
-          ) : null
+          <View style={{ height: 100 }}>
+            {loadingMore && (
+              <View className="py-6">
+                <ActivityIndicator color="#0d9488" />
+              </View>
+            )}
+          </View>
         }
         ListEmptyComponent={
           tabLoading ? (

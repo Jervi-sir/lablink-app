@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -49,6 +50,7 @@ const labelClassName = "mb-2 text-right text-sm font-semibold text-slate-700 fle
 export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const insets = useSafeAreaInsets();
   const { productId } = route.params || {};
   const isEditing = !!productId;
   const [loading, setLoading] = useState(false);
@@ -466,10 +468,10 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
 
       {/* Bottom Action Bar */}
       <View
-        className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-2xl"
-        style={{ paddingBottom: Platform.OS === 'ios' ? 34 : 20 }}
+        className="absolute left-6 right-6"
+        style={{ bottom: Platform.OS === 'android' ? 60 + insets.bottom + 10 : 24 }}
       >
-        <View className="flex-row gap-3">
+        <View className="flex-row gap-3 bg-white border border-slate-200 p-4 rounded-[28px] shadow-2xl">
           <Pressable
             onPress={() => navigation.goBack()}
             className="flex-1 bg-slate-100 py-2 rounded-2xl items-center"
