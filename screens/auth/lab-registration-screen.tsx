@@ -7,8 +7,9 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuthStore } from '@/zustand/auth-store';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, Text, TextInput, View, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Pressable, ScrollView, Switch, Text, TextInput, View, Platform } from 'react-native';
+import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface FormData {
   labName: string;
@@ -72,6 +73,9 @@ function UploadField({
 
 export function LabRegistrationScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const insets = useSafeAreaInsets();
+  const wilayaSheetRef = React.useRef<ActionSheetRef>(null);
+  const specialtySheetRef = React.useRef<ActionSheetRef>(null);
   const [formData, setFormData] = useState<FormData>({
     labName: '',
     email: 'lab@lablink.org',
@@ -84,10 +88,8 @@ export function LabRegistrationScreen() {
     acceptTerms: false,
   });
   const setAuth = useAuthStore((state) => state.setAuth);
-  const [showSpecialties, setShowSpecialties] = useState(false);
   const [wilayas, setWilayas] = useState<any[]>([]);
   const [labCategories, setLabCategories] = useState<any[]>([]);
-  const [showStateOptions, setShowStateOptions] = useState(false);
   const [isLoadingTaxonomies, setIsLoadingTaxonomies] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
@@ -202,22 +204,27 @@ export function LabRegistrationScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
-      <View className="bg-teal-700 px-6 pb-6 pt-4">
-        <Pressable
-          accessibilityRole="button"
-          className="mb-5 self-start rounded-full border border-white/20 bg-white/10 px-4 py-2"
-          onPress={() => navigation.goBack()}>
-          <Text className="text-base font-medium text-white">رجوع</Text>
-        </Pressable>
-
-        <Text className="text-right text-3xl font-bold text-white">تسجيل مخبر</Text>
-        <Text className="mt-2 text-right text-sm text-teal-100">Laboratory Registration</Text>
-      </View>
-
-      <ScrollView
+      <KeyboardAvoidingView
         className="flex-1"
-        contentContainerClassName="gap-5 px-6 pb-10 pt-6"
-        showsVerticalScrollIndicator={false}>
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 24}>
+        <View className="bg-teal-700 px-6 pb-6 pt-4">
+          <Pressable
+            accessibilityRole="button"
+            className="mb-5 self-start rounded-full border border-white/20 bg-white/10 px-4 py-2"
+            onPress={() => navigation.goBack()}>
+            <Text className="text-base font-medium text-white">رجوع</Text>
+          </Pressable>
+
+          <Text className="text-right text-3xl font-bold text-white">تسجيل مخبر</Text>
+          <Text className="mt-2 text-right text-sm text-teal-100">Laboratory Registration</Text>
+        </View>
+
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="gap-5 px-6 pb-10 pt-6"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
         <View>
           <Text className="mb-2 text-right text-sm font-semibold text-slate-700">
             اسم المخبر <Text className="text-red-500">*</Text>
@@ -256,7 +263,7 @@ export function LabRegistrationScreen() {
             accessibilityRole="button"
             className={inputClassName}
             disabled={isLoadingTaxonomies}
-            onPress={() => setShowStateOptions((current) => !current)}>
+            onPress={() => wilayaSheetRef.current?.show()}>
             {isLoadingTaxonomies ? (
               <ActivityIndicator color="#0f766e" size="small" />
             ) : (
@@ -266,22 +273,6 @@ export function LabRegistrationScreen() {
               </Text>
             )}
           </Pressable>
-
-          {showStateOptions ? (
-            <View className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-              {wilayas.map((state) => (
-                <Pressable
-                  key={state.id}
-                  className="border-b border-slate-100 px-4 py-3 last:border-b-0"
-                  onPress={() => {
-                    setField('state', state.id);
-                    setShowStateOptions(false);
-                  }}>
-                  <Text className="text-right text-base text-slate-700">{state.number} - {state.ar}</Text>
-                </Pressable>
-              ))}
-            </View>
-          ) : null}
         </View>
 
         <View>
@@ -291,28 +282,13 @@ export function LabRegistrationScreen() {
           <Pressable
             accessibilityRole="button"
             className={inputClassName}
-            onPress={() => setShowSpecialties((current) => !current)}>
+            disabled={isLoadingTaxonomies}
+            onPress={() => specialtySheetRef.current?.show()}>
             <Text
               className={`${formData.specialty ? 'text-slate-900' : 'text-slate-400'} text-right text-base`}>
               {labCategories.find(c => c.id === formData.specialty)?.ar || 'اختر التخصص'}
             </Text>
           </Pressable>
-
-          {showSpecialties ? (
-            <View className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-              {labCategories.map((cat) => (
-                <Pressable
-                  key={cat.id}
-                  className="border-b border-slate-100 px-4 py-3 last:border-b-0"
-                  onPress={() => {
-                    setField('specialty', cat.id);
-                    setShowSpecialties(false);
-                  }}>
-                  <Text className="text-right text-base text-slate-700">{cat.ar}</Text>
-                </Pressable>
-              ))}
-            </View>
-          ) : null}
         </View>
 
         <View>
@@ -402,7 +378,46 @@ export function LabRegistrationScreen() {
             <Text className="font-bold text-blue-600">تسجيل الدخول</Text>
           </Pressable>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <ActionSheet containerStyle={{ borderTopLeftRadius: 24, borderTopRightRadius: 24 }} gestureEnabled ref={wilayaSheetRef} snapPoints={[50]}>
+        <View className="px-5 pb-8 pt-4">
+          <Text className="mb-4 text-right text-lg font-bold text-slate-900">اختر الولاية</Text>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {wilayas.map((state) => (
+              <Pressable
+                key={state.id}
+                className="border-b border-slate-100 px-2 py-4 last:border-b-0"
+                onPress={() => {
+                  setField('state', state.id);
+                  wilayaSheetRef.current?.hide();
+                }}>
+                <Text className="text-right text-base text-slate-700">{state.number} - {state.ar}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      </ActionSheet>
+
+      <ActionSheet containerStyle={{ borderTopLeftRadius: 24, borderTopRightRadius: 24 }} gestureEnabled ref={specialtySheetRef} snapPoints={[50]}>
+        <View className="px-5 pb-8 pt-4">
+          <Text className="mb-4 text-right text-lg font-bold text-slate-900">اختر التخصص</Text>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {labCategories.map((cat) => (
+              <Pressable
+                key={cat.id}
+                className="border-b border-slate-100 px-2 py-4 last:border-b-0"
+                onPress={() => {
+                  setField('specialty', cat.id);
+                  specialtySheetRef.current?.hide();
+                }}>
+                <Text className="text-right text-base text-slate-700">{cat.ar}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      </ActionSheet>
     </SafeAreaView>
   );
 }

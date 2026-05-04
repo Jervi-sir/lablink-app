@@ -29,6 +29,8 @@ export interface Lab {
   wilaya_id: number;
   lab_category_id: number;
   brand_name: string;
+  avatar_url?: string;
+  icon?: string;
   nif: string;
   permission_path_url: string;
   equipments_path_url: string;
@@ -70,20 +72,51 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   setAuth: (token: string, user: User, profile: Student | Lab | null) => void;
+  updateUser: (user: User) => void;
+  updateProfile: (profile: Student | Lab | null) => void;
   clearAuth: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+const mergeUserProfile = (user: User, profile: Student | Lab | null): User => {
+  if (!profile) {
+    return user;
+  }
+
+  if (user.type === 'lab') {
+    return { ...user, lab: profile as Lab, profile };
+  }
+
+  return { ...user, student: profile as Student, profile };
+};
+
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   profile: null,
   token: null,
   isAuthenticated: false,
 
   setAuth: (token, user, profile) => {
-    set({ token, user, profile, isAuthenticated: true });
+    const normalizedUser = mergeUserProfile(user, profile);
+    set({ token, user: normalizedUser, profile, isAuthenticated: true });
     setCachedAuthToken(token);
-    setCachedAuthData(user, profile);
+    setCachedAuthData(normalizedUser, profile);
     setAxiosAuthToken(token);
+  },
+
+  updateUser: (user) => {
+    const profile = user.lab || user.student || get().profile;
+    const normalizedUser = mergeUserProfile(user, profile);
+    set({ user: normalizedUser, profile });
+    setCachedAuthData(normalizedUser, profile);
+  },
+
+  updateProfile: (profile) => {
+    const user = get().user;
+    const normalizedUser = user ? mergeUserProfile(user, profile) : null;
+    set({ profile, user: normalizedUser });
+    if (normalizedUser) {
+      setCachedAuthData(normalizedUser, profile);
+    }
   },
 
   clearAuth: () => {

@@ -8,13 +8,15 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
 } from 'react-native';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import * as Device from 'expo-device';
 import { Image } from 'react-native';
 import {
   Plus,
@@ -104,18 +106,33 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
       Alert.alert('تنبيه', 'يمكنك إضافة 3 صور كحد أقصى');
       return;
     }
-    // Request camera permissions
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+    const isPhysicalDevice = Device.isDevice;
+    const { status } = isPhysicalDevice
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+
     if (status !== 'granted') {
-      Alert.alert('تنبيه', 'نحتاج إلى إذن الوصول للكاميرا لالتقاط الصور');
+      Alert.alert(
+        'تنبيه',
+        isPhysicalDevice
+          ? 'نحتاج إلى إذن الوصول للكاميرا لالتقاط الصور'
+          : 'نحتاج إلى إذن الوصول إلى الصور لاختيار صورة'
+      );
       return;
     }
 
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.4,
-      allowsEditing: false,
-    });
+    const result = isPhysicalDevice
+      ? await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.4,
+        allowsEditing: false,
+      })
+      : await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.4,
+        allowsEditing: false,
+      });
 
     if (!result.canceled) {
       setImages([...images, ...result.assets]);
@@ -227,7 +244,11 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
   };
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <KeyboardAvoidingView
+      className="flex-1 bg-slate-50"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 24}
+    >
       {/* Header */}
       <View className="bg-teal-600 px-6 pb-6 pt-12 shadow-lg">
         <Pressable
@@ -251,6 +272,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
         className="flex-1"
         contentContainerClassName="p-6 pb-40"
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Type Selection */}
         <View className="mb-8">
@@ -296,7 +318,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
             </View>
             {(images.length + existingImages.length) < 3 && (
               <Pressable onPress={pickImages} className="rounded-xl bg-teal-50 px-3 py-1">
-                <Text className="text-xs font-bold text-teal-600">التقاط صورة</Text>
+                <Text className="text-xs font-bold text-teal-600">إضافة صورة</Text>
               </Pressable>
             )}
           </View>
@@ -495,6 +517,6 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
           </Pressable>
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

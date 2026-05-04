@@ -23,21 +23,32 @@ import { registerForPushNotificationsAsync } from '@/utils/notifications/push-no
 const inputClassName = "rounded-2xl border border-slate-200 bg-white px-4 py-4 text-right text-base text-slate-900";
 
 export const StudentProfileScreen = () => {
-  const { user, clearAuth } = useAuthStore();
+  const { user, profile, clearAuth } = useAuthStore();
   const navigation = useNavigation<any>();
+  const studentProfile = (profile && 'full_name' in profile ? profile : user?.student) || null;
 
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
 
   const [formData, setFormData] = useState({
-    full_name: user?.student?.full_name || '',
+    full_name: studentProfile?.full_name || '',
     email: user?.email || '',
     phone_number: user?.phone_number || '',
-    specialty: user?.student?.specialty || '',
+    specialty: studentProfile?.specialty || '',
     university: 'جامعة وهران للعلوم والتكنولوجيا', // Placeholder if not in model
     password: '',
     password_confirmation: ''
   });
+
+  useEffect(() => {
+    setFormData((current) => ({
+      ...current,
+      full_name: studentProfile?.full_name || '',
+      email: user?.email || '',
+      phone_number: user?.phone_number || '',
+      specialty: studentProfile?.specialty || '',
+    }));
+  }, [studentProfile?.full_name, studentProfile?.specialty, user?.email, user?.phone_number]);
 
   const handleLogout = () => {
     Alert.alert(
@@ -97,12 +108,12 @@ export const StudentProfileScreen = () => {
           {/* Header Info */}
           <View className="items-center mb-8">
             <View className="h-24 w-24 items-center justify-center rounded-full bg-blue-600 shadow-xl shadow-blue-200">
-              <Text className="text-5xl">{user?.student?.icon || '👨‍🎓'}</Text>
+              <Text className="text-5xl">{(studentProfile as any)?.icon || '👨‍🎓'}</Text>
             </View>
-            <Text className="mt-4 text-2xl font-bold text-slate-900">{user?.student?.full_name}</Text>
+            <Text className="mt-4 text-2xl font-bold text-slate-900">{studentProfile?.full_name}</Text>
             <View className="mt-1 flex-row items-center gap-1 rounded-full bg-slate-100 px-3 py-1">
               <GraduationCap size={12} color="#64748b" />
-              <Text className="text-xs text-slate-500 font-medium">{user?.student?.specialty || 'طالب باحث'}</Text>
+              <Text className="text-xs text-slate-500 font-medium">{studentProfile?.specialty || 'طالب باحث'}</Text>
             </View>
           </View>
 

@@ -1,5 +1,5 @@
 export const SERVER_IP = 'lablink.jervi.dev';
-// export const SERVER_IP = '192.168.1.108:8000';
+// export const SERVER_IP = '192.168.1.105:8000';
 export const SERVER_URL = 'https://' + SERVER_IP;
 
 export const BASE_URL = SERVER_URL + '/api/';
