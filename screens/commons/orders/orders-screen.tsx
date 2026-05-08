@@ -2,6 +2,7 @@ import { Routes } from '@/utils/routes';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   Pressable,
   RefreshControl,
@@ -47,11 +48,6 @@ export interface Order {
   items: OrderItem[];
   student?: any | null;
   negotiations?: any[];
-}
-
-interface OrdersScreenProps {
-  onOrderClick?: (order: Order) => void;
-  navigation: any;
 }
 
 function isOrderNew(order: Order, type: 'student' | 'lab') {
@@ -224,6 +220,27 @@ export const OrdersScreen = () => {
     navigation.navigate(Routes.OrderDetailScreen, { order });
   };
 
+  const handleDeleteRejectedOrder = (order: Order) => {
+    Alert.alert('حذف الطلب', 'هل أنت متأكد من حذف هذا الطلب المرفوض نهائياً؟', [
+      { text: 'إلغاء', style: 'cancel' },
+      {
+        text: 'حذف',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const response: any = await api.delete(`/orders/${order.id}`);
+            if (response.status === 'success') {
+              setRequestsOrders((prev) => prev.filter((item) => item.id !== order.id));
+              setConfirmedOrders((prev) => prev.filter((item) => item.id !== order.id));
+            }
+          } catch (error: any) {
+            Alert.alert('خطأ', error.response?.data?.message || 'تعذر حذف الطلب');
+          }
+        },
+      },
+    ]);
+  };
+
   const renderOrder = (order: Order) => {
     const statusInfo = getStatusInfo(order.status);
     const labName = order.lab?.lab?.brand_name || 'مخبر غير معروف';
@@ -284,14 +301,18 @@ export const OrdersScreen = () => {
           </View>
         </View>
 
-        {order.status === 'estimation_provided' && (
+        {(order.status === 'estimation_provided' || order.status === 'lab_negotiation') && (
           <View className="mt-4 border-t border-slate-100 pt-4">
             <Pressable
               className="rounded-xl bg-blue-600 py-3 items-center"
-              onPress={() => {
-                navigation.navigate(Routes.ContractSigningScreen, { orderId: order.id, onRefresh: onRefresh });
-              }}>
-              <Text className="text-sm font-bold text-white">مراجعة التسعير والتوقيع</Text>
+              onPress={() => handleOrderPress(order)}
+            // onPress={() => {
+            //   navigation.navigate(Routes.ContractSigningScreen, { orderId: order.id, onRefresh: onRefresh });
+            // }}
+            >
+              <Text className="text-sm font-bold text-white">
+                {order.status === 'lab_negotiation' ? 'مراجعة السعر النهائي والتوقيع' : 'مراجعة التسعير والتوقيع'}
+              </Text>
             </Pressable>
           </View>
         )}
@@ -308,6 +329,16 @@ export const OrdersScreen = () => {
                 <Text className="text-slate-600">★</Text>
                 <Text className="text-sm font-medium text-slate-700">تقييم التجربة</Text>
               </View>
+            </Pressable>
+          </View>
+        )}
+
+        {order.status === 'rejected' && (
+          <View className="mt-4 border-t border-slate-100 pt-4">
+            <Pressable
+              className="rounded-xl bg-rose-50 py-3 items-center border border-rose-200"
+              onPress={() => handleDeleteRejectedOrder(order)}>
+              <Text className="text-sm font-bold text-rose-700">حذف الطلب المرفوض</Text>
             </Pressable>
           </View>
         )}
@@ -389,4 +420,3 @@ export const OrdersScreen = () => {
     </SafeAreaView>
   );
 }
-

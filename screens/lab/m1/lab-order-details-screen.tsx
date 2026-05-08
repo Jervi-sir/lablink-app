@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronRight, Package, Calendar, User, CreditCard, Send, CheckCircle } from 'lucide-react-native';
+import { Package, Calendar, Send, CheckCircle, ChevronLeft } from 'lucide-react-native';
 import api from '@/utils/api/axios-instance';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Order, OrderItem } from '@/screens/commons/orders/orders-screen';
@@ -112,9 +112,34 @@ export const LabOrderDetailScreen = () => {
 
   const handleSuggestPrice = async () => {
     if (!suggestedPrice) return;
+
+    const nextPrice = parseFloat(suggestedPrice);
+    const currentStudentPrice = parseFloat(String(latestNegotiation?.suggested_price ?? 0));
+    const firstLabNegotiation = order?.negotiations?.find((n: any) => n.suggested_by === 'lab');
+    const baseLabPrice = parseFloat(String(firstLabNegotiation?.suggested_price ?? order?.total_price ?? 0));
+    const maxAllowedLabPrice = baseLabPrice + 100;
+
+    if (Number.isNaN(nextPrice) || nextPrice <= 0) {
+      Alert.alert('تنبيه', 'يرجى إدخال سعر صالح');
+      return;
+    }
+
+    if (currentStudentPrice > 0 && nextPrice < currentStudentPrice) {
+      Alert.alert('تنبيه', 'يجب أن يكون اقتراح المخبر أعلى من سعر الطالب الحالي');
+      return;
+    }
+
+    if (baseLabPrice > 0 && nextPrice > maxAllowedLabPrice) {
+      Alert.alert('تنبيه', `لا تجعل السعر أعلى من عرضك الأساسي بأكثر من الحد الأقصى  ${maxAllowedLabPrice - 100} DA`);
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const response: any = await api.post(`/lab/orders/${orderId}/negotiate`, { suggested_price: suggestedPrice });
+      const response: any = await api.post(`/lab/orders/${orderId}/negotiate`, {
+        action: 'counter',
+        suggested_price: suggestedPrice,
+      });
       if (response.status === 'success') {
         Alert.alert('نجاح', 'تم إرسال اقتراح السعر بنجاح');
         setIsNegotiating(false);
@@ -129,11 +154,9 @@ export const LabOrderDetailScreen = () => {
   };
 
   const handleAcceptPrice = async () => {
-    const studentPrice = order?.negotiations?.filter((n:any) => n.suggested_by === 'student').pop()?.suggested_price;
-    if (!studentPrice) return;
     setSubmitting(true);
     try {
-      const response: any = await api.post(`/lab/orders/${orderId}/negotiate`, { suggested_price: studentPrice });
+      const response: any = await api.post(`/lab/orders/${orderId}/negotiate`, { action: 'accept' });
       if (response.status === 'success') {
         Alert.alert('نجاح', 'تم قبول السعر بنجاح وتم إرساله للطالب للتأكيد');
         fetchOrderDetail();
@@ -143,6 +166,44 @@ export const LabOrderDetailScreen = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleRejectNegotiation = async () => {
+    setSubmitting(true);
+    try {
+      const response: any = await api.post(`/lab/orders/${orderId}/negotiate`, { action: 'reject' });
+      if (response.status === 'success') {
+        Alert.alert('تم', 'تم رفض اقتراح الطالب');
+        fetchOrderDetail();
+      }
+    } catch (error: any) {
+      Alert.alert('خطأ', error.response?.data?.message || 'حدث خطأ أثناء الرفض');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const confirmSuggestPrice = () => {
+    if (!suggestedPrice) return;
+
+    Alert.alert('تأكيد الاقتراح', 'هل أنت متأكد من إرسال هذا السعر المقترح؟', [
+      { text: 'إلغاء', style: 'cancel' },
+      { text: 'تأكيد', onPress: handleSuggestPrice },
+    ]);
+  };
+
+  const confirmAcceptPrice = () => {
+    Alert.alert('تأكيد القبول', 'هل أنت متأكد من قبول سعر الطالب الحالي؟', [
+      { text: 'إلغاء', style: 'cancel' },
+      { text: 'تأكيد', onPress: handleAcceptPrice },
+    ]);
+  };
+
+  const confirmRejectNegotiation = () => {
+    Alert.alert('تأكيد الرفض', 'هل أنت متأكد من الرفض النهائي لاقتراح الطالب؟', [
+      { text: 'إلغاء', style: 'cancel' },
+      { text: 'تأكيد', style: 'destructive', onPress: handleRejectNegotiation },
+    ]);
   };
 
   if (loading) {
@@ -157,6 +218,12 @@ export const LabOrderDetailScreen = () => {
 
   const isEstimationRequest = order.status === 'request_estimation';
   const isConfirmed = order.status === 'confirmed';
+  const latestNegotiation = order.negotiations?.[order.negotiations.length - 1];
+  const labNegotiationCount = order.negotiations?.filter((n: any) => n.suggested_by === 'lab').length || 0;
+  const labNegotiationsLeft = Math.max(0, 3 - labNegotiationCount);
+  const canLabCounter = labNegotiationsLeft > 0;
+  const firstLabNegotiation = order.negotiations?.find((n: any) => n.suggested_by === 'lab');
+  const baseLabPrice = parseFloat(String(firstLabNegotiation?.suggested_price ?? order.total_price ?? 0));
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50" >
@@ -165,7 +232,7 @@ export const LabOrderDetailScreen = () => {
           onPress={() => navigation.goBack()}
           className="h-10 w-10 items-center justify-center rounded-full bg-slate-100"
         >
-          <ChevronRight size={24} color="#1e293b" />
+          <ChevronLeft size={24} color="#1e293b" />
         </Pressable>
         <Text className="text-xl font-bold text-slate-800">تفاصيل الطلب</Text>
         <View className="w-10" />
@@ -267,6 +334,9 @@ export const LabOrderDetailScreen = () => {
                 <Text className={`text-right font-bold text-lg ${neg.suggested_by === 'lab' ? 'text-indigo-700' : 'text-orange-700'}`}>
                   {neg.suggested_price} DA
                 </Text>
+                <Text className="mt-1 text-right text-xs text-slate-500">
+                  {neg.status === 'accepted' ? 'تم القبول' : neg.status === 'rejected' ? 'تم الرفض' : 'بانتظار الرد'}
+                </Text>
               </View>
             ))}
           </View>
@@ -276,27 +346,50 @@ export const LabOrderDetailScreen = () => {
         {order.status === 'student_negotiation' && (
           <View className="mb-6 rounded-[32px] bg-white p-6 shadow-sm border border-slate-100">
             <Text className="text-right text-lg font-bold text-slate-800 mb-4">اقتراح سعر جديد من الطالب</Text>
+            {latestNegotiation?.suggested_by === 'student' && (
+              <View className="mb-4 rounded-2xl bg-orange-50 border border-orange-100 p-4">
+                <Text className="text-right text-sm text-orange-800">
+                  السعر الحالي المقترح من الطالب: {latestNegotiation.suggested_price} DA
+                </Text>
+              </View>
+            )}
             <View className="flex-row gap-3">
               <Pressable
                 className={`flex-1 rounded-xl bg-teal-600 py-3 items-center ${submitting ? 'opacity-50' : ''}`}
-                onPress={handleAcceptPrice}
+                onPress={confirmAcceptPrice}
                 disabled={submitting}
               >
                 <Text className="text-sm font-bold text-white">قبول السعر</Text>
               </Pressable>
-              
-              {(!order.negotiations || order.negotiations.filter((n:any) => n.suggested_by === 'lab').length < 3) && (
+
+              {canLabCounter && (
                 <Pressable
                   className="flex-1 rounded-xl bg-white border border-rose-500 py-3 items-center"
+                  disabled={submitting}
                   onPress={() => setIsNegotiating(!isNegotiating)}>
                   <Text className="text-sm font-bold text-rose-600">رفض واقتراح سعر</Text>
                 </Pressable>
               )}
             </View>
 
+            <Pressable
+              className="mt-3 rounded-xl border border-slate-300 bg-white py-3 items-center"
+              onPress={confirmRejectNegotiation}
+              disabled={submitting}>
+              <Text className="text-sm font-bold text-slate-700">رفض نهائي</Text>
+            </Pressable>
+
             {isNegotiating && (
               <View className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <Text className="mb-2 text-right text-xs text-slate-500">
+                  عدد محاولات التفاوض المتبقية: {labNegotiationsLeft}
+                </Text>
                 <Text className="text-right text-sm text-slate-700 mb-2 font-medium">أدخل السعر المقترح (DA):</Text>
+                {baseLabPrice > 0 && (
+                  <Text className="mb-3 text-right text-xs text-slate-500">
+                    يجب أن يكون السعر أعلى من سعر الطالب الحالي، وبحد أقصى {baseLabPrice + 100} DA.
+                  </Text>
+                )}
                 <TextInput
                   value={suggestedPrice}
                   onChangeText={setSuggestedPrice}
@@ -306,13 +399,22 @@ export const LabOrderDetailScreen = () => {
                 />
                 <Pressable
                   className={`rounded-xl bg-indigo-600 py-3 items-center ${submitting ? 'opacity-50' : ''}`}
-                  onPress={handleSuggestPrice}
+                  onPress={confirmSuggestPrice}
                   disabled={submitting}
                 >
                   <Text className="text-sm font-bold text-white">إرسال الاقتراح</Text>
                 </Pressable>
               </View>
             )}
+          </View>
+        )}
+
+        {order.status === 'lab_negotiation' && latestNegotiation?.suggested_by === 'student' && latestNegotiation?.status === 'accepted' && (
+          <View className="mb-6 rounded-[32px] border border-emerald-100 bg-emerald-50 p-6">
+            <Text className="text-right text-base font-bold text-emerald-900 mb-2">بانتظار توقيع الطالب</Text>
+            <Text className="text-right text-sm leading-6 text-emerald-800">
+              تم قبول سعر الطالب، لكن الطلب لن يتحول إلى مؤكد حتى يقوم الطالب بمراجعة العقد والتوقيع النهائي.
+            </Text>
           </View>
         )}
 

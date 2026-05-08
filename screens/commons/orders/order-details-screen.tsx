@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Order } from './orders-screen';
-import { ChevronRight, Package, Calendar, FileText, Info, ChevronLeft } from 'lucide-react-native';
+import { Package, Calendar, FileText, Info, ChevronLeft } from 'lucide-react-native';
 
 import { Routes } from '@/utils/routes';
 import api from '@/utils/api/axios-instance';
@@ -28,6 +28,7 @@ export const OrderDetailScreen = () => {
   const [loading, setLoading] = useState(!initialOrder);
   const [suggestedPrice, setSuggestedPrice] = useState('');
   const [isNegotiating, setIsNegotiating] = useState(false);
+  const [submittingAction, setSubmittingAction] = useState<'accept' | 'counter' | 'reject' | null>(null);
 
   useEffect(() => {
     fetchOrderDetails();
@@ -53,8 +54,26 @@ export const OrderDetailScreen = () => {
 
   const handleSuggestPrice = async () => {
     if (!suggestedPrice) return;
+
+    const nextPrice = parseFloat(suggestedPrice);
+    const currentLabPrice = parseFloat(String(order?.total_price ?? latestNegotiation?.suggested_price ?? 0));
+
+    if (Number.isNaN(nextPrice) || nextPrice <= 0) {
+      Alert.alert('تنبيه', 'يرجى إدخال سعر صالح');
+      return;
+    }
+
+    if (currentLabPrice > 0 && nextPrice >= currentLabPrice) {
+      Alert.alert('تنبيه', 'يجب أن يكون اقتراحك أقل من السعر الحالي للمخبر');
+      return;
+    }
+
+    setSubmittingAction('counter');
     try {
-      const response: any = await api.post(`/orders/${order!.id}/negotiate`, { suggested_price: suggestedPrice });
+      const response: any = await api.post(`/orders/${order!.id}/negotiate`, {
+        action: 'counter',
+        suggested_price: suggestedPrice,
+      });
       if (response.status === 'success') {
         Alert.alert('نجاح', 'تم إرسال اقتراح السعر بنجاح');
         setIsNegotiating(false);
@@ -63,7 +82,40 @@ export const OrderDetailScreen = () => {
       }
     } catch (error: any) {
       Alert.alert('خطأ', error.response?.data?.message || 'حدث خطأ أثناء إرسال الاقتراح');
+    } finally {
+      setSubmittingAction(null);
     }
+  };
+
+  const handleRejectPricing = async () => {
+    setSubmittingAction('reject');
+    try {
+      const response: any = await api.post(`/orders/${order!.id}/negotiate`, { action: 'reject' });
+      if (response.status === 'success') {
+        Alert.alert('تم', 'تم رفض التسعير');
+        fetchOrderDetails();
+      }
+    } catch (error: any) {
+      Alert.alert('خطأ', error.response?.data?.message || 'حدث خطأ أثناء رفض التسعير');
+    } finally {
+      setSubmittingAction(null);
+    }
+  };
+
+  const confirmSuggestPrice = () => {
+    if (!suggestedPrice) return;
+
+    Alert.alert('تأكيد الاقتراح', 'هل أنت متأكد من إرسال هذا السعر المقترح؟', [
+      { text: 'إلغاء', style: 'cancel' },
+      { text: 'تأكيد', onPress: handleSuggestPrice },
+    ]);
+  };
+
+  const confirmRejectPricing = () => {
+    Alert.alert('تأكيد الرفض', 'هل أنت متأكد من الرفض النهائي لهذا التسعير؟', [
+      { text: 'إلغاء', style: 'cancel' },
+      { text: 'تأكيد', style: 'destructive', onPress: handleRejectPricing },
+    ]);
   };
 
   const onRefresh = () => {
@@ -128,6 +180,10 @@ export const OrderDetailScreen = () => {
   };
 
   const statusInfo = getStatusInfo(order.status);
+  const latestNegotiation = order.negotiations?.[order.negotiations.length - 1];
+  const studentNegotiationCount = order.negotiations?.filter((n:any) => n.suggested_by === 'student').length || 0;
+  const studentNegotiationsLeft = Math.max(0, 3 - studentNegotiationCount);
+  const canStudentCounter = studentNegotiationsLeft > 0;
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
@@ -266,6 +322,9 @@ export const OrderDetailScreen = () => {
                 <Text className={`text-right font-bold text-lg ${neg.suggested_by === 'student' ? 'text-indigo-700' : 'text-orange-700'}`}>
                   {neg.suggested_price} DA
                 </Text>
+                <Text className="mt-1 text-right text-xs text-slate-500">
+                  {neg.status === 'accepted' ? 'تم القبول' : neg.status === 'rejected' ? 'تم الرفض' : 'بانتظار الرد'}
+                </Text>
               </View>
             ))}
           </View>
@@ -274,27 +333,46 @@ export const OrderDetailScreen = () => {
         {(order.status === 'estimation_provided' || order.status === 'lab_negotiation') && (
           <View className="mt-4 border-t border-slate-100 pt-6">
             <Text className="text-right font-medium text-slate-600 mb-4">ما هو قرارك بشأن هذا التسعير؟</Text>
+            {order.status === 'lab_negotiation' && latestNegotiation?.suggested_by === 'lab' && latestNegotiation?.status === 'accepted' && (
+              <View className="mb-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                <Text className="text-right text-sm font-medium text-emerald-800">
+                  المخبر وافق على سعرك المقترح. ما زال الطلب بانتظار توقيعك النهائي لتأكيده.
+                </Text>
+              </View>
+            )}
             
             <View className="flex-row gap-3 mb-4">
               <Pressable
-                className="flex-1 rounded-xl bg-blue-600 py-3 items-center"
+                className={`flex-1 rounded-xl py-3 items-center ${submittingAction === 'accept' ? 'bg-blue-400' : 'bg-blue-600'}`}
+                disabled={submittingAction !== null}
                 onPress={() => {
                   navigation.navigate(Routes.ContractSigningScreen, { orderId: order.id, onRefresh: onRefresh });
                 }}>
                 <Text className="text-sm font-bold text-white">مراجعة وتوقيع</Text>
               </Pressable>
               
-              {(!order.negotiations || order.negotiations.filter((n:any) => n.suggested_by === 'student').length < 3) && (
+              {canStudentCounter && (
                 <Pressable
                   className="flex-1 rounded-xl bg-white border border-rose-500 py-3 items-center"
+                  disabled={submittingAction !== null}
                   onPress={() => setIsNegotiating(!isNegotiating)}>
                   <Text className="text-sm font-bold text-rose-600">رفض واقتراح سعر</Text>
                 </Pressable>
               )}
             </View>
 
+            <Pressable
+              className={`rounded-xl border py-3 items-center ${submittingAction === 'reject' ? 'border-slate-300 bg-slate-100' : 'border-slate-300 bg-white'}`}
+              disabled={submittingAction !== null}
+              onPress={confirmRejectPricing}>
+              <Text className="text-sm font-bold text-slate-700">رفض نهائي</Text>
+            </Pressable>
+
             {isNegotiating && (
               <View className="mt-2 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <Text className="mb-2 text-right text-xs text-slate-500">
+                  عدد محاولات التفاوض المتبقية: {studentNegotiationsLeft}
+                </Text>
                 <Text className="text-right text-sm text-slate-700 mb-2 font-medium">أدخل السعر المقترح (DA):</Text>
                 <TextInput
                   value={suggestedPrice}
@@ -304,8 +382,9 @@ export const OrderDetailScreen = () => {
                   className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-right text-base mb-3"
                 />
                 <Pressable
-                  className="rounded-xl bg-indigo-600 py-3 items-center"
-                  onPress={handleSuggestPrice}>
+                  className={`rounded-xl py-3 items-center ${submittingAction === 'counter' ? 'bg-indigo-400' : 'bg-indigo-600'}`}
+                  disabled={submittingAction !== null}
+                  onPress={confirmSuggestPrice}>
                   <Text className="text-sm font-bold text-white">إرسال الاقتراح</Text>
                 </Pressable>
               </View>

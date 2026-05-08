@@ -191,6 +191,8 @@ export function ContractSigningScreen({
   const orderDate = order.created_at.split('T')[0];
   const orderItems = order.items;
   const totalPrice = order.total_price;
+  const negotiations = order.negotiations || [];
+  const latestNegotiation = negotiations[negotiations.length - 1];
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
@@ -287,6 +289,46 @@ export function ContractSigningScreen({
           </View>
         )}
 
+        {negotiations.length > 0 && (
+          <View
+            className="rounded-[24px] bg-white px-5 py-5"
+            style={{
+              shadowColor: '#0f172a',
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.08,
+              shadowRadius: 14,
+              elevation: 3,
+            }}>
+            <Text className="mb-3 text-right text-lg font-bold text-slate-800">سجل التفاوض</Text>
+
+            {latestNegotiation?.suggested_by === 'lab' && latestNegotiation?.status === 'accepted' && (
+              <View className="mb-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                <Text className="text-right text-sm font-medium text-emerald-800">
+                  المخبر وافق على سعرك المقترح. هذا هو السعر النهائي بانتظار توقيعك لتأكيد الطلب.
+                </Text>
+              </View>
+            )}
+
+            <View className="gap-3">
+              {negotiations.map((neg: any) => (
+                <View
+                  key={neg.id}
+                  className={`rounded-2xl border p-4 ${neg.suggested_by === 'student' ? 'border-indigo-100 bg-indigo-50 ml-8' : 'border-orange-100 bg-orange-50 mr-8'}`}>
+                  <Text className="mb-1 text-right text-xs text-slate-500">
+                    {neg.suggested_by === 'student' ? 'اقتراحك' : 'اقتراح المخبر'}
+                  </Text>
+                  <Text className={`text-right text-lg font-bold ${neg.suggested_by === 'student' ? 'text-indigo-700' : 'text-orange-700'}`}>
+                    {neg.suggested_price} DA
+                  </Text>
+                  <Text className="mt-1 text-right text-xs text-slate-500">
+                    {neg.status === 'accepted' ? 'تم القبول' : neg.status === 'rejected' ? 'تم الرفض' : 'بانتظار الرد'}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
 
         {orderNotes && (
           <View className="mb-2">
@@ -311,7 +353,7 @@ export function ContractSigningScreen({
             <Text className="text-blue-600 text-xl">📄</Text>
           </View>
 
-          <View className="max-h-56 gap-2">
+          <View className="gap-2">
             <Text className="text-right text-sm leading-7 text-slate-700">
               بموجب هذا العقد، يوافق الطرف الأول (المخبر) على تقديم الخدمات المخبرية المتفق عليها
               للطرف الثاني (العميل).
