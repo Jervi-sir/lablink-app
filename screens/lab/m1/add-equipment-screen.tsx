@@ -17,6 +17,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as Device from 'expo-device';
+import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
 import { Image } from 'react-native';
 import {
   Plus,
@@ -29,6 +30,7 @@ import {
   X,
   Package,
   ArrowLeft,
+  Camera,
 } from 'lucide-react-native';
 
 interface NewEquipment {
@@ -101,38 +103,52 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
     }
   };
 
-  const pickImages = async () => {
-    if (images.length >= 3) {
+  const imageSheetRef = React.useRef<ActionSheetRef>(null);
+
+  const showImagePickerOptions = () => {
+    if (images.length + existingImages.length >= 3) {
       Alert.alert('تنبيه', 'يمكنك إضافة 3 صور كحد أقصى');
       return;
     }
+    imageSheetRef.current?.show();
+  };
 
-    const isPhysicalDevice = Device.isDevice;
-    const { status } = isPhysicalDevice
-      ? await ImagePicker.requestCameraPermissionsAsync()
-      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const pickImageFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== 'granted') {
-      Alert.alert(
-        'تنبيه',
-        isPhysicalDevice
-          ? 'نحتاج إلى إذن الوصول للكاميرا لالتقاط الصور'
-          : 'نحتاج إلى إذن الوصول إلى الصور لاختيار صورة'
-      );
+      Alert.alert('تنبيه', 'نحتاج إلى إذن الوصول إلى الصور لاختيار صورة');
       return;
     }
 
-    const result = isPhysicalDevice
-      ? await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.4,
-        allowsEditing: false,
-      })
-      : await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.4,
-        allowsEditing: false,
-      });
+    const remainingLimit = 3 - (images.length + existingImages.length);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.4,
+      allowsEditing: false,
+      allowsMultipleSelection: true,
+      selectionLimit: remainingLimit,
+    });
+
+    if (!result.canceled) {
+      const newAssets = result.assets.slice(0, remainingLimit);
+      setImages([...images, ...newAssets]);
+    }
+  };
+
+  const takePhotoWithCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (status !== 'granted') {
+      Alert.alert('تنبيه', 'نحتاج إلى إذن الوصول للكاميرا لالتقاط الصور');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.4,
+      allowsEditing: false,
+    });
 
     if (!result.canceled) {
       setImages([...images, ...result.assets]);
@@ -317,7 +333,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
               <Text className="text-sm font-semibold text-slate-700">صور الجهاز ({images.length + existingImages.length}/3)</Text>
             </View>
             {(images.length + existingImages.length) < 3 && (
-              <Pressable onPress={pickImages} className="rounded-xl bg-teal-50 px-3 py-1">
+              <Pressable onPress={showImagePickerOptions} className="rounded-xl bg-teal-50 px-3 py-1">
                 <Text className="text-xs font-bold text-teal-600">إضافة صورة</Text>
               </Pressable>
             )}
@@ -327,7 +343,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
             {/* Add More Button (Inline) */}
             {(images.length + existingImages.length) > 0 && (images.length + existingImages.length) < 3 && (
               <Pressable
-                onPress={pickImages}
+                onPress={showImagePickerOptions}
                 className="h-24 w-24 items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 ml-3"
               >
                 <Plus size={24} color="#64748b" />
@@ -362,7 +378,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
 
             {images.length === 0 && existingImages.length === 0 && (
               <Pressable
-                onPress={pickImages}
+                onPress={showImagePickerOptions}
                 className="h-24 w-full items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50"
               >
                 <Text className="text-sm text-slate-400">لم يتم التقاط أي صور</Text>
@@ -517,6 +533,51 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
           </Pressable>
         </View>
       </View>
+
+      <ActionSheet
+        ref={imageSheetRef}
+        gestureEnabled
+        containerStyle={{ borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
+      >
+        <View className="px-6 pb-10 pt-6">
+          <Text className="mb-6 text-right text-lg font-bold text-slate-900">إضافة صورة</Text>
+          <View className="gap-3">
+            <Pressable
+              onPress={() => {
+                imageSheetRef.current?.hide();
+                setTimeout(() => {
+                  takePhotoWithCamera();
+                }, 400);
+              }}
+              className="flex-row-reverse items-center justify-between rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4 active:bg-slate-100"
+            >
+              <View className="flex-row-reverse items-center gap-3">
+                <View className="h-10 w-10 items-center justify-center rounded-xl bg-teal-50">
+                  <Camera size={20} color="#0d9488" />
+                </View>
+                <Text className="text-right text-base font-semibold text-slate-800">التقاط صورة بالكاميرا</Text>
+              </View>
+            </Pressable>
+
+            <Pressable
+              onPress={() => {
+                imageSheetRef.current?.hide();
+                setTimeout(() => {
+                  pickImageFromGallery();
+                }, 400);
+              }}
+              className="flex-row-reverse items-center justify-between rounded-2xl bg-slate-50 border border-slate-200 px-4 py-4 active:bg-slate-100"
+            >
+              <View className="flex-row-reverse items-center gap-3">
+                <View className="h-10 w-10 items-center justify-center rounded-xl bg-teal-50">
+                  <ImageIcon size={20} color="#0d9488" />
+                </View>
+                <Text className="text-right text-base font-semibold text-slate-800">اختيار من معرض الصور</Text>
+              </View>
+            </Pressable>
+          </View>
+        </View>
+      </ActionSheet>
     </KeyboardAvoidingView>
   );
 }
