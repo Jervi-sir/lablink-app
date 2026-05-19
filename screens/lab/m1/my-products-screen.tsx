@@ -114,7 +114,7 @@ export function MyProductsScreen() {
         </View>
 
         <Pressable
-          onPress={() => navigation.navigate(Routes.AddEquipmentScreen)}
+          onPress={() => navigation.navigate(Routes.AddEquipmentScreen, { type: type })}
           className="h-10 w-10 items-center justify-center rounded-full bg-teal-600 shadow-lg"
         >
           <Plus size={24} color="white" />

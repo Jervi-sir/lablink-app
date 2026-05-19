@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   ScrollView,
   View,
@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import {
   ArrowLeft,
   Edit2,
@@ -42,9 +42,11 @@ export default function ProductStatsScreen() {
   const [loading, setLoading] = useState(true);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  useEffect(() => {
-    fetchProductDetails();
-  }, [productId]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchProductDetails();
+    }, [productId])
+  );
 
   const fetchProductDetails = async () => {
     setLoading(true);

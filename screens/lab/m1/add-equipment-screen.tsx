@@ -55,10 +55,10 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
-  const { productId } = route.params || {};
+  const { productId, type } = route.params || {};
   const isEditing = !!productId;
   const [loading, setLoading] = useState(false);
-  const [type, setType] = useState<'equipment' | 'service'>('equipment');
+  const [seletecType, setSelectedType] = useState<'equipment' | 'service'>(type || 'equipment');
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -86,7 +86,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
         const p = response.data;
         setName(p.name_ar);
         setDescription(p.description_ar);
-        setType(p.type);
+        setSelectedType(p.type);
         setIsAvailable(p.is_available);
         setLocation(p.location);
         setSupervisor(p.supervisor);
@@ -189,11 +189,15 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
       const mediaIds: number[] = [];
       const imageUrls: string[] = [];
       for (const img of images) {
-        // Resize image to ensure it's under 2MB (PHP limit)
+        // Resize image to ensure it's under 2MB (PHP limit) and well compressed
+        const actions = [];
+        if (img.width > 800) {
+          actions.push({ resize: { width: 800 } });
+        }
         const manipulatedImage = await ImageManipulator.manipulateAsync(
           img.uri,
-          [{ resize: { width: 1200 } }],
-          { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG }
+          actions,
+          { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG }
         );
 
         const formData = new FormData();
@@ -228,7 +232,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
         supervisor,
         working_hours: workingHours,
         min_booking_time: minBookingTime,
-        type,
+        type: seletecType,
         media_ids: mediaIds,
       };
 
@@ -243,7 +247,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
       }
 
       if (response.status === 'success') {
-        Alert.alert('نجاح', isEditing ? 'تم تحديث البيانات بنجاح' : `تمت إضافة ${type === 'equipment' ? 'الجهاز' : 'الخدمة'} بنجاح`);
+        Alert.alert('نجاح', isEditing ? 'تم تحديث البيانات بنجاح' : `تمت إضافة ${seletecType === 'equipment' ? 'الجهاز' : 'الخدمة'} بنجاح`);
         navigation.goBack();
       }
     } catch (error: any) {
@@ -277,10 +281,10 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
           <Text className="text-base font-bold text-white">رجوع</Text>
         </Pressable>
         <Text className="text-right text-3xl font-black text-white">
-          {isEditing ? 'تعديل البيانات' : (type === 'equipment' ? 'إضافة جهاز' : 'إضافة خدمة')}
+          {isEditing ? 'تعديل البيانات' : (seletecType === 'equipment' ? 'إضافة جهاز' : 'إضافة خدمة')}
         </Text>
         <Text className="mt-1 text-right text-sm text-teal-100">
-          {isEditing ? 'تحديث معلومات المنتج أو الخدمة' : (type === 'equipment' ? 'أضف جهازاً جديداً إلى قائمة المعدات' : 'أضف خدمة جديدة إلى قائمة خدماتك')}
+          {isEditing ? 'تحديث معلومات المنتج أو الخدمة' : (seletecType === 'equipment' ? 'أضف جهازاً جديداً إلى قائمة المعدات' : 'أضف خدمة جديدة إلى قائمة خدماتك')}
         </Text>
       </View>
 
@@ -295,18 +299,18 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
           <Text className="mb-3 text-right text-sm font-semibold text-slate-700">نوع الإضافة</Text>
           <View className="flex-row-reverse gap-3">
             <Pressable
-              onPress={() => setType('equipment')}
-              className={`flex-1 flex-row-reverse justify-center items-center py-4 rounded-2xl border-2 ${type === 'equipment' ? 'bg-teal-100 border-teal-500' : 'bg-white border-slate-200'}`}
+              onPress={() => setSelectedType('equipment')}
+              className={`flex-1 flex-row-reverse justify-center items-center py-4 rounded-2xl border-2 ${seletecType === 'equipment' ? 'bg-teal-100 border-teal-500' : 'bg-white border-slate-200'}`}
             >
-              <Package size={20} color={type === 'equipment' ? '#0d9488' : '#64748b'} />
-              <Text className={`mr-2 font-bold ${type === 'equipment' ? 'text-teal-700' : 'text-slate-600'}`}>جهاز / معدات</Text>
+              <Package size={20} color={seletecType === 'equipment' ? '#0d9488' : '#64748b'} />
+              <Text className={`mr-2 font-bold ${seletecType === 'equipment' ? 'text-teal-700' : 'text-slate-600'}`}>جهاز / معدات</Text>
             </Pressable>
             <Pressable
-              onPress={() => setType('service')}
-              className={`flex-1 flex-row-reverse justify-center items-center py-4 rounded-2xl border-2 ${type === 'service' ? 'bg-teal-100 border-teal-500' : 'bg-white border-slate-200'}`}
+              onPress={() => setSelectedType('service')}
+              className={`flex-1 flex-row-reverse justify-center items-center py-4 rounded-2xl border-2 ${seletecType === 'service' ? 'bg-teal-100 border-teal-500' : 'bg-white border-slate-200'}`}
             >
-              <Clock size={20} color={type === 'service' ? '#0d9488' : '#64748b'} />
-              <Text className={`mr-2 font-bold ${type === 'service' ? 'text-teal-700' : 'text-slate-600'}`}>خدمة مخبرية</Text>
+              <Clock size={20} color={seletecType === 'service' ? '#0d9488' : '#64748b'} />
+              <Text className={`mr-2 font-bold ${seletecType === 'service' ? 'text-teal-700' : 'text-slate-600'}`}>خدمة مخبرية</Text>
             </Pressable>
           </View>
         </View>
@@ -314,12 +318,12 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
         {/* Name */}
         <View className="mb-6">
           <Text className={labelClassName}>
-            {type === 'equipment' ? 'اسم الجهاز' : 'اسم الخدمة'} <Text className="text-red-500">*</Text>
+            {seletecType === 'equipment' ? 'اسم الجهاز' : 'اسم الخدمة'} <Text className="text-red-500">*</Text>
           </Text>
           <TextInput
             value={name}
             onChangeText={setName}
-            placeholder={type === 'equipment' ? 'مثال: مجهر إلكتروني متطور' : 'مثال: تحليل مياه الشرب'}
+            placeholder={seletecType === 'equipment' ? 'مثال: مجهر إلكتروني متطور' : 'مثال: تحليل مياه الشرب'}
             className={inputClassName}
             textAlign="right"
           />

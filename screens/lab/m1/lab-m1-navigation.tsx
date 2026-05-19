@@ -1,12 +1,12 @@
-import { Routes } from '@/utils/routes';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { ScrollView, Text, View, Pressable, StatusBar, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LayoutGrid, Package, Settings, FileText, ClipboardList, Briefcase, PlusCircle, Activity } from 'lucide-react-native';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Routes } from '@/utils/routes';
 
 function Header({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -75,9 +75,11 @@ export function LabM1Navigation() {
     }
   };
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchStats();
+    }, [])
+  );
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -113,7 +115,7 @@ export function LabM1Navigation() {
             accent="bg-amber-600"
             icon={<Activity size={28} color="white" />}
             onPress={() => navigation.navigate(Routes.AddEquipmentScreen)}
-            title="إضافة منتج"
+            title="إضافة عناصر"
           />
           <SquareActionCard
             accent="bg-teal-600"
