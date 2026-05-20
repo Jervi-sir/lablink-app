@@ -5,7 +5,6 @@ import {
   View,
   Pressable,
   StatusBar,
-  Image,
   ActivityIndicator,
   Alert,
   RefreshControl,
@@ -14,6 +13,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Order } from './orders-screen';
 import { Package, Calendar, FileText, Info, ChevronLeft } from 'lucide-react-native';
+import { Image } from 'expo-image';
 
 import { Routes } from '@/utils/routes';
 import api from '@/utils/api/axios-instance';
@@ -181,7 +181,7 @@ export const OrderDetailScreen = () => {
 
   const statusInfo = getStatusInfo(order.status);
   const latestNegotiation = order.negotiations?.[order.negotiations.length - 1];
-  const studentNegotiationCount = order.negotiations?.filter((n:any) => n.suggested_by === 'student').length || 0;
+  const studentNegotiationCount = order.negotiations?.filter((n: any) => n.suggested_by === 'student').length || 0;
   const studentNegotiationsLeft = Math.max(0, 3 - studentNegotiationCount);
   const canStudentCounter = studentNegotiationsLeft > 0;
 
@@ -340,7 +340,7 @@ export const OrderDetailScreen = () => {
                 </Text>
               </View>
             )}
-            
+
             <View className="flex-row gap-3 mb-4">
               <Pressable
                 className={`flex-1 rounded-xl py-3 items-center ${submittingAction === 'accept' ? 'bg-blue-400' : 'bg-blue-600'}`}
@@ -350,7 +350,7 @@ export const OrderDetailScreen = () => {
                 }}>
                 <Text className="text-sm font-bold text-white">مراجعة وتوقيع</Text>
               </Pressable>
-              
+
               {canStudentCounter && (
                 <Pressable
                   className="flex-1 rounded-xl bg-white border border-rose-500 py-3 items-center"

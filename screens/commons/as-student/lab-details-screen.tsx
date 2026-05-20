@@ -10,7 +10,6 @@ import {
   Text,
   TextInput,
   View,
-  Image,
   Platform,
 } from 'react-native';
 import Animated, {
@@ -26,6 +25,7 @@ import api from '@/utils/api/axios-instance';
 import { ApiRoutes, buildRoute } from '@/utils/api/api';
 import { Routes } from '@/utils/routes';
 import { useCart } from '@/context/CartContext';
+import { Image } from 'expo-image';
 
 interface Lab {
   id: number;
@@ -524,7 +524,7 @@ export function LabDetailsScreen() {
 
       {/* Floating Cart Button */}
       {!isCartEmpty && cartLabId === labId && (
-        <View 
+        <View
           className="absolute left-6 right-6"
           style={{ bottom: Platform.OS === 'android' ? 60 + insets.bottom + 10 : 24 }}
         >

@@ -10,7 +10,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
-  Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/zustand/auth-store';
@@ -22,6 +21,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import { registerForPushNotificationsAsync } from '@/utils/notifications/push-notifications';
 import { SERVER_URL } from '@/utils/api/api';
+import { Image } from 'expo-image';
 
 const inputClassName = "rounded-2xl border border-slate-200 bg-white px-4 py-4 text-right text-base text-slate-900";
 
@@ -89,7 +89,7 @@ export const LabProfileScreen = () => {
       data.append('brand_name', formData.brand_name);
       data.append('email', formData.email);
       data.append('phone_number', formData.phone_number);
-      
+
       if (formData.password) {
         data.append('password', formData.password);
         data.append('password_confirmation', formData.password_confirmation);
@@ -98,7 +98,7 @@ export const LabProfileScreen = () => {
       if (selectedImage) {
         const uriParts = selectedImage.split('.');
         const fileType = uriParts[uriParts.length - 1];
-        
+
         data.append('avatar', {
           uri: selectedImage,
           name: `avatar.${fileType}`,
@@ -116,7 +116,7 @@ export const LabProfileScreen = () => {
         Alert.alert('نجاح', 'تم تحديث الملف الشخصي بنجاح');
         setEditing(false);
         setSelectedImage(null);
-        
+
         if (response.data) {
           updateUser(response.data);
         }
@@ -157,16 +157,16 @@ export const LabProfileScreen = () => {
                     <Image source={{ uri: selectedImage }} className="h-full w-full" style={{ width: '100%', height: '100%' }} />
                   </View>
                 ) : labProfile?.avatar_url ? (
-                  <Image 
-                    source={{ uri: `${SERVER_URL}/storage/${labProfile.avatar_url}` }} 
-                    className="h-full w-full" 
-                    style={{ width: '100%', height: '100%' }} 
+                  <Image
+                    source={{ uri: `${SERVER_URL}/storage/${labProfile.avatar_url}` }}
+                    className="h-full w-full"
+                    style={{ width: '100%', height: '100%' }}
                   />
                 ) : (
                   <Text className="text-5xl">{labProfile?.icon || '🔬'}</Text>
                 )}
               </View>
-              
+
               {editing && (
                 <Pressable
                   onPress={pickImage}

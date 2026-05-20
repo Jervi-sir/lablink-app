@@ -1,5 +1,6 @@
-import { Pressable, ScrollView, Text, View, Platform, Image } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Star, Plus, ArrowLeft } from 'lucide-react-native';
+import { Image } from 'expo-image';
 
 /**
  * --------------------------------------------------------------------------

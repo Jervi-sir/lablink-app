@@ -1,11 +1,12 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
-import { PanResponder, Pressable, ScrollView, Text, View, Alert, ActivityIndicator, Image } from 'react-native';
+import { PanResponder, Pressable, ScrollView, Text, View, Alert, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
 import { Routes } from '@/utils/routes';
+import { Image } from 'expo-image';
 
 type OrderStatus = 'pending' | 'signed' | 'completed';
 

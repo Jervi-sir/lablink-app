@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert, TextInput, Image, Platform } from 'react-native';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert, TextInput, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useCart } from '@/context/CartContext';
 import { Trash2, Send, ArrowLeft } from 'lucide-react-native';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes, buildRoute } from '@/utils/api/api';
+import { Image } from 'expo-image';
 
 export function CartScreen() {
   const navigation = useNavigation<any>();

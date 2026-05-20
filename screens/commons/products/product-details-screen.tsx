@@ -8,7 +8,6 @@ import {
   Platform,
   Share,
   Alert,
-  Image,
   ActivityIndicator,
 } from 'react-native';
 import { useEffect, useState } from 'react';
@@ -49,6 +48,7 @@ interface ProductDetailsScreenProps {
 }
 
 import { useCart } from '@/context/CartContext';
+import { Image } from 'expo-image';
 
 export default function ProductDetailsScreen({
   product: propsProduct,

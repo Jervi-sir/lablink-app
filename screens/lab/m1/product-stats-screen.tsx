@@ -4,7 +4,6 @@ import {
   View,
   Text,
   Pressable,
-  Image,
   Dimensions,
   Platform,
   ActivityIndicator,
@@ -30,6 +29,7 @@ import {
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
 import { Routes } from '@/utils/routes';
+import { Image } from 'expo-image';
 
 const { width } = Dimensions.get('window');
 

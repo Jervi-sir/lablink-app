@@ -6,7 +6,6 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
-  Image,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -14,6 +13,7 @@ import { Package, Calendar, Send, CheckCircle, ChevronLeft } from 'lucide-react-
 import api from '@/utils/api/axios-instance';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Order, OrderItem } from '@/screens/commons/orders/orders-screen';
+import { Image } from 'expo-image';
 
 export const LabOrderDetailScreen = () => {
   const navigation = useNavigation<any>();

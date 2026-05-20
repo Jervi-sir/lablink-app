@@ -6,8 +6,6 @@ import {
   Pressable,
   ActivityIndicator,
   RefreshControl,
-  Image as RNImage,
-  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -15,6 +13,7 @@ import { Plus, Package, ChevronLeft, Search, ArrowLeft } from 'lucide-react-nati
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
 import { Routes } from '@/utils/routes';
+import { Image } from 'expo-image';
 
 export function MyProductsScreen() {
   const navigation = useNavigation<any>();

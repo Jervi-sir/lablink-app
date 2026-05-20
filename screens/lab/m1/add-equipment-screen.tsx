@@ -18,7 +18,6 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as Device from 'expo-device';
 import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
-import { Image } from 'react-native';
 import {
   Plus,
   Image as ImageIcon,
@@ -32,6 +31,7 @@ import {
   ArrowLeft,
   Camera,
 } from 'lucide-react-native';
+import { Image } from 'expo-image';
 
 interface NewEquipment {
   name: string;
