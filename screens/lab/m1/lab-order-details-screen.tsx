@@ -13,7 +13,7 @@ import { Package, Calendar, Send, CheckCircle, ChevronLeft } from 'lucide-react-
 import api from '@/utils/api/axios-instance';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Order, OrderItem } from '@/screens/commons/orders/orders-screen';
-import { Image } from 'expo-image';
+import ImageWrapper from '@/components/image-wrapper';
 
 export const LabOrderDetailScreen = () => {
   const navigation = useNavigation<any>();
@@ -276,7 +276,7 @@ export const LabOrderDetailScreen = () => {
                 <View className="flex-row items-center gap-3">
                   <View className="h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-slate-50">
                     {item.product.image_url && (item.product.image_url.startsWith('http') || item.product.image_url.startsWith('file')) ? (
-                      <Image source={{ uri: item.product.image_url }} className="h-full w-full" resizeMode="cover" />
+                      <ImageWrapper source={{ uri: item.product.image_url }} className="h-full w-full" resizeMode="cover" />
                     ) : (
                       <Text className="text-xl">{item.product.image_url || '📦'}</Text>
                     )}

@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Star, Plus, ArrowLeft } from 'lucide-react-native';
-import { Image } from 'expo-image';
+import ImageWrapper from '@/components/image-wrapper';
 
 /**
  * --------------------------------------------------------------------------
@@ -52,7 +52,7 @@ export function ServiceDetailsScreen({
         <View className="flex-row items-start gap-4 mb-4">
           <View className={`w-16 h-16 rounded-3xl bg-white/20 items-center justify-center overflow-hidden shadow-lg`}>
             {supplier.icon && (supplier.icon.startsWith('http') || supplier.icon.startsWith('file')) ? (
-              <Image source={{ uri: supplier.icon }} className="h-full w-full" resizeMode="cover" />
+              <ImageWrapper source={{ uri: supplier.icon }} className="h-full w-full" resizeMode="cover" />
             ) : (
               <Text className="text-3xl">{supplier.icon || '🔬'}</Text>
             )}
@@ -96,7 +96,7 @@ export function ServiceDetailsScreen({
           >
             <View className="w-full aspect-square bg-slate-50 rounded-2xl items-center justify-center overflow-hidden mb-3">
               {product.image && (product.image.startsWith('http') || product.image.startsWith('file')) ? (
-                <Image source={{ uri: product.image }} className="h-full w-full" resizeMode="cover" />
+                <ImageWrapper source={{ uri: product.image }} className="h-full w-full" resizeMode="cover" />
               ) : (
                 <Text className="text-6xl">{product.image || '🔬'}</Text>
               )}

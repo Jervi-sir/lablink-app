@@ -25,7 +25,7 @@ import api from '@/utils/api/axios-instance';
 import { ApiRoutes, buildRoute } from '@/utils/api/api';
 import { Routes } from '@/utils/routes';
 import { useCart } from '@/context/CartContext';
-import { Image } from 'expo-image';
+import ImageWrapper from '@/components/image-wrapper';
 
 interface Lab {
   id: number;
@@ -354,7 +354,7 @@ export function LabDetailsScreen() {
         <Pressable onPress={() => handleProductClick(item)}>
           <View className="mb-3 aspect-square items-center justify-center overflow-hidden rounded-[18px] bg-teal-50 w-full">
             {isUri ? (
-              <Image source={{ uri: mainImage }} className="h-full w-full" resizeMode="cover" />
+              <ImageWrapper source={{ uri: mainImage }} className="h-full w-full" resizeMode="cover" />
             ) : (
               <Text className="text-6xl">{mainImage || '📦'}</Text>
             )}

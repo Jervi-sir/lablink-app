@@ -48,7 +48,7 @@ interface ProductDetailsScreenProps {
 }
 
 import { useCart } from '@/context/CartContext';
-import { Image } from 'expo-image';
+import ImageWrapper from '@/components/image-wrapper';
 
 export default function ProductDetailsScreen({
   product: propsProduct,
@@ -155,7 +155,7 @@ export default function ProductDetailsScreen({
                   {product.images.map((img: string, index: number) => (
                     <View key={index} style={{ width: Dimensions.get('window').width - 48, maxWidth: 350 }} className="h-full items-center justify-center">
                       {img.startsWith('http') || img.startsWith('file') ? (
-                        <Image source={{ uri: img }} className="h-full w-full" resizeMode="cover" />
+                        <ImageWrapper source={{ uri: img }} className="h-full w-full" resizeMode="cover" />
                       ) : (
                         <Text className="text-9xl">{img || '📦'}</Text>
                       )}
@@ -165,7 +165,7 @@ export default function ProductDetailsScreen({
               ) : (
                 <View className="h-full w-full items-center justify-center">
                   {product.image && (product.image.startsWith('http') || product.image.startsWith('file')) ? (
-                    <Image source={{ uri: product.image }} className="h-full w-full" resizeMode="cover" />
+                    <ImageWrapper source={{ uri: product.image }} className="h-full w-full" resizeMode="cover" />
                   ) : (
                     <Text className="text-9xl">{product.image || '🔬'}</Text>
                   )}
@@ -207,7 +207,7 @@ export default function ProductDetailsScreen({
               <View className="flex-row items-center gap-4">
                 <View className="h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-blue-600 shadow-md">
                   {product.supplierIcon && (product.supplierIcon.startsWith('http') || product.supplierIcon.startsWith('file')) ? (
-                    <Image source={{ uri: product.supplierIcon }} className="h-full w-full" resizeMode="cover" />
+                    <ImageWrapper source={{ uri: product.supplierIcon }} className="h-full w-full" resizeMode="cover" />
                   ) : (
                     <Text className="text-2xl">{product.supplierIcon || '🔬'}</Text>
                   )}

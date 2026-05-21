@@ -6,7 +6,7 @@ import { useCart } from '@/context/CartContext';
 import { Trash2, Send, ArrowLeft } from 'lucide-react-native';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes, buildRoute } from '@/utils/api/api';
-import { Image } from 'expo-image';
+import ImageWrapper from '@/components/image-wrapper';
 
 export function CartScreen() {
   const navigation = useNavigation<any>();
@@ -78,7 +78,7 @@ export function CartScreen() {
           <View key={index} className="mb-4 bg-white rounded-2xl p-4 gap-4 shadow-sm border border-slate-100 flex-row items-center">
             <View className="h-16 w-16 bg-slate-50 rounded-xl overflow-hidden items-center justify-center border border-slate-100">
               {item.product.image && (item.product.image.startsWith('http') || item.product.image.startsWith('file')) ? (
-                <Image source={{ uri: item.product.image }} className="h-full w-full" resizeMode="cover" />
+                <ImageWrapper source={{ uri: item.product.image }} className="h-full w-full" resizeMode="cover" />
               ) : (
                 <Text className="text-3xl">{item.product.image || '📦'}</Text>
               )}

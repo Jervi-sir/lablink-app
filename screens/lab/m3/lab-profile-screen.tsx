@@ -21,7 +21,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import { registerForPushNotificationsAsync } from '@/utils/notifications/push-notifications';
 import { SERVER_URL } from '@/utils/api/api';
-import { Image } from 'expo-image';
+import ImageWrapper from '@/components/image-wrapper';
 
 const inputClassName = "rounded-2xl border border-slate-200 bg-white px-4 py-4 text-right text-base text-slate-900";
 
@@ -154,10 +154,10 @@ export const LabProfileScreen = () => {
                 {selectedImage ? (
                   <View className="h-full w-full">
                     <Text className="absolute z-10 top-1 right-1 bg-white/20 px-1 rounded text-[8px] text-white">جديد</Text>
-                    <Image source={{ uri: selectedImage }} className="h-full w-full" style={{ width: '100%', height: '100%' }} />
+                    <ImageWrapper source={{ uri: selectedImage }} className="h-full w-full" style={{ width: '100%', height: '100%' }} />
                   </View>
                 ) : labProfile?.avatar_url ? (
-                  <Image
+                  <ImageWrapper
                     source={{ uri: `${SERVER_URL}/storage/${labProfile.avatar_url}` }}
                     className="h-full w-full"
                     style={{ width: '100%', height: '100%' }}

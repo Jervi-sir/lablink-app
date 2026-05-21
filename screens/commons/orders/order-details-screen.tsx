@@ -13,11 +13,11 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Order } from './orders-screen';
 import { Package, Calendar, FileText, Info, ChevronLeft } from 'lucide-react-native';
-import { Image } from 'expo-image';
 
 import { Routes } from '@/utils/routes';
 import api from '@/utils/api/axios-instance';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ImageWrapper from '@/components/image-wrapper';
 
 export const OrderDetailScreen = () => {
   const navigation = useNavigation<any>();
@@ -154,8 +154,7 @@ export const OrderDetailScreen = () => {
   };
 
   const handleLabClick = () => {
-
-    navigation.navigate(Routes.LabDetailsScreen, { labId: order?.lab?.id })
+    navigation.navigate(Routes.LabDetailsScreen, { labId: order?.lab?.lab?.id || order?.lab?.id })
   };
 
   const getStatusInfo = (status: Order['status']) => {
@@ -216,7 +215,7 @@ export const OrderDetailScreen = () => {
           <View className="flex-row items-center gap-4">
             <View className="h-16 w-16 items-center justify-center rounded-2xl bg-teal-50 overflow-hidden">
               {order.lab.lab.icon && order.lab.lab.icon.startsWith('http') ? (
-                <Image source={{ uri: order.lab.lab.icon }} className="h-full w-full" />
+                <ImageWrapper source={{ uri: order.lab.lab.icon }} className="h-full w-full" />
               ) : (
                 <Text className="text-3xl">{order.lab.lab.icon || '🔬'}</Text>
               )}
@@ -259,7 +258,7 @@ export const OrderDetailScreen = () => {
               <View className="flex-row items-center gap-4">
                 <View className="h-12 w-12 items-center justify-center rounded-xl bg-slate-50 border border-slate-100 overflow-hidden">
                   {item.product.image_url && item.product.image_url.startsWith('http') ? (
-                    <Image source={{ uri: item.product.image_url }} className="h-full w-full" />
+                    <ImageWrapper source={{ uri: item.product.image_url }} className="h-full w-full" />
                   ) : (
                     <Text className="text-2xl">{item.product.image_url || '📦'}</Text>
                   )}

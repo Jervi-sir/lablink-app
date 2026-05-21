@@ -13,7 +13,7 @@ import { Plus, Package, ChevronLeft, Search, ArrowLeft } from 'lucide-react-nati
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
 import { Routes } from '@/utils/routes';
-import { Image } from 'expo-image';
+import ImageWrapper from '@/components/image-wrapper';
 
 export function MyProductsScreen() {
   const navigation = useNavigation<any>();
@@ -64,7 +64,7 @@ export function MyProductsScreen() {
     >
       <View className="h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-slate-50 border border-slate-100 mr-4">
         {item.image_url ? (
-          <Image source={{ uri: item.image_url }} className="h-full w-full" resizeMode="cover" />
+          <ImageWrapper source={{ uri: item.image_url }} className="h-full w-full" resizeMode="cover" />
         ) : (
           <Text className="text-4xl">🔬</Text>
         )}

@@ -29,7 +29,7 @@ import {
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
 import { Routes } from '@/utils/routes';
-import { Image } from 'expo-image';
+import ImageWrapper from '@/components/image-wrapper';
 
 const { width } = Dimensions.get('window');
 
@@ -131,7 +131,7 @@ export default function ProductStatsScreen() {
           >
             {images.length > 0 ? (
               images.map((img: string, index: number) => (
-                <Image
+                <ImageWrapper
                   key={index}
                   source={{ uri: img }}
                   style={{ width, height: 300 }}

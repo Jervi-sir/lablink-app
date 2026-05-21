@@ -4,9 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import api from '@/utils/api/axios-instance';
-import { ApiRoutes } from '@/utils/api/api';
-import { Routes } from '@/utils/routes';
-import { Image } from 'expo-image';
+import ImageWrapper from '@/components/image-wrapper';
 
 type OrderStatus = 'pending' | 'signed' | 'completed';
 
@@ -226,7 +224,7 @@ export function ContractSigningScreen({
           <View className="mb-4 flex-row items-center gap-4">
             <View className="h-16 w-16 items-center justify-center rounded-2xl bg-teal-50 overflow-hidden border border-teal-100">
               {labIcon && labIcon.startsWith('http') ? (
-                <Image source={{ uri: labIcon }} className="h-full w-full" />
+                <ImageWrapper source={{ uri: labIcon }} className="h-full w-full" />
               ) : (
                 <Text className="text-3xl">{labIcon}</Text>
               )}

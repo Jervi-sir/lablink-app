@@ -31,7 +31,7 @@ import {
   ArrowLeft,
   Camera,
 } from 'lucide-react-native';
-import { Image } from 'expo-image';
+import ImageWrapper from '@/components/image-wrapper';
 
 interface NewEquipment {
   name: string;
@@ -357,7 +357,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
             {/* Existing Images */}
             {existingImages.map((uri, idx) => (
               <View key={`existing-${idx}`} className="ml-3 h-24 w-24 overflow-hidden rounded-2xl bg-slate-200">
-                <Image source={{ uri }} className="h-full w-full" />
+                <ImageWrapper source={{ uri }} className="h-full w-full" />
                 <Pressable
                   onPress={() => removeExistingImage(idx)}
                   className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-red-500 shadow-sm"
@@ -370,7 +370,7 @@ export function AddEquipmentScreen({ }: AddEquipmentScreenProps) {
             {/* New Images */}
             {images.map((img, idx) => (
               <View key={`new-${idx}`} className="ml-3 h-24 w-24 overflow-hidden rounded-2xl bg-slate-200">
-                <Image source={{ uri: img.uri }} className="h-full w-full" />
+                <ImageWrapper source={{ uri: img.uri }} className="h-full w-full" />
                 <Pressable
                   onPress={() => removeImage(idx)}
                   className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-red-500 shadow-sm"
