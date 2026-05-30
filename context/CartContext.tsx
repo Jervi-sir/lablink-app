@@ -26,7 +26,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (labId !== null && labId !== newLabId) {
       Alert.alert(
         'مخبر مختلف',
-        'لا يمكنك إضافة منتجات من مخابر مختلفة في نفس الطلب. هل تريد تفريغ السلة الحالية؟',
+        'لا يمكنك إضافة عناصر من مخابر مختلفة في نفس الطلب. هل تريد تفريغ السلة الحالية؟',
         [
           { text: 'إلغاء', style: 'cancel' },
           {

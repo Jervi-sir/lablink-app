@@ -69,7 +69,7 @@ export function CartScreen() {
         </Pressable>
         <Text className="text-right text-2xl font-bold text-white">السلة</Text>
         <Text className="mt-1 text-right text-sm text-teal-100">
-          مراجعة المنتجات والخدمات المطلوبة
+          مراجعة العناصر
         </Text>
       </View>
 

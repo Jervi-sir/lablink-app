@@ -147,7 +147,7 @@ export function LabM1Navigation() {
               <Text className="text-2xl font-black text-teal-600">
                 {loading ? <ActivityIndicator size="small" color="#0d9488" /> : stats?.inventory?.total || 0}
               </Text>
-              <Text className="text-xs text-slate-400">المنتجات</Text>
+              <Text className="text-xs text-slate-400">العناصر</Text>
             </View>
             <View className="h-10 w-[1px] bg-slate-100 self-center" />
             <View className="items-center">

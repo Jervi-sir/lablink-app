@@ -108,7 +108,7 @@ export function MyProductsScreen() {
             <ArrowLeft size={24} color="#1e293b" />
           </Pressable>
           <Text className="text-xl font-bold text-slate-800">
-            {type === 'equipment' ? 'منتجاتي' : type === 'service' ? 'خدماتي' : 'معداتي وخدماتي'}
+            {type === 'equipment' ? 'عناصر' : type === 'service' ? 'خدماتي' : 'معداتي وخدماتي'}
           </Text>
         </View>
 
@@ -141,7 +141,7 @@ export function MyProductsScreen() {
                 <View className="mb-4 h-24 w-24 items-center justify-center rounded-full bg-slate-100">
                   <Package size={40} color="#94a3b8" />
                 </View>
-                <Text className="text-lg font-bold text-slate-400">لا توجد منتجات حتى الآن</Text>
+                <Text className="text-lg font-bold text-slate-400">لا توجد عناصر حتى الآن</Text>
                 <Pressable
                   onPress={() => navigation.navigate(Routes.AddEquipmentScreen)}
                   className="mt-4 rounded-full bg-teal-50 px-6 py-2"
