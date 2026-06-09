@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import api from '@/utils/api/axios-instance';
 import { ApiRoutes } from '@/utils/api/api';
 import { Order } from '../commons/orders/orders-screen';
+import { useAuthStore } from '@/zustand/auth-store';
 
 function isOrderNew(order: Order, type: 'student' | 'lab') {
   const lastViewed = type === 'student' ? order.student_last_viewed_at : order.lab_last_viewed_at;
@@ -30,7 +31,7 @@ function useTabScreens() {
 
         let count = 0;
         if (reqRes.status === 'success') {
-          count += reqRes.data.filter((o: Order) => 
+          count += reqRes.data.filter((o: Order) =>
             isOrderNew(o, 'student') && (o.status === 'estimation_provided' || o.status === 'lab_negotiation')
           ).length;
         }
@@ -64,10 +65,15 @@ function useTabScreens() {
 const Tab = createBottomTabNavigator();
 
 export function StudentNavigation() {
+  const token = useAuthStore((state) => state.token)
   const insets = useSafeAreaInsets();
   const tabs = useTabScreens();
 
   const height = 60 + insets.bottom + 10;
+
+  useEffect(() => {
+    console.log('token:', JSON.stringify(token, null, 2));
+  }, [token])
 
   return (
     <>

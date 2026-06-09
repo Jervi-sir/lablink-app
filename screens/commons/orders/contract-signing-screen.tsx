@@ -36,10 +36,12 @@ function SignaturePad({
   onSignedChange,
   onBeginDrawing,
   onEndDrawing,
+  onPathsChange,
 }: {
   onSignedChange: (signed: boolean) => void;
   onBeginDrawing?: () => void;
   onEndDrawing?: () => void;
+  onPathsChange?: (paths: string[]) => void;
 }) {
   const [paths, setPaths] = useState<string[]>([]);
   const currentPath = useRef('');
@@ -53,7 +55,11 @@ function SignaturePad({
           onBeginDrawing?.();
           const { locationX, locationY } = event.nativeEvent;
           currentPath.current = `M ${locationX} ${locationY}`;
-          setPaths((current) => [...current, currentPath.current]);
+          setPaths((current) => {
+            const next = [...current, currentPath.current];
+            onPathsChange?.(next);
+            return next;
+          });
           onSignedChange(true);
         },
         onPanResponderMove: (event) => {
@@ -62,6 +68,7 @@ function SignaturePad({
           setPaths((current) => {
             const next = [...current];
             next[next.length - 1] = currentPath.current;
+            onPathsChange?.(next);
             return next;
           });
         },
@@ -72,7 +79,7 @@ function SignaturePad({
           onEndDrawing?.();
         },
       }),
-    [onSignedChange, onBeginDrawing, onEndDrawing]
+    [onSignedChange, onBeginDrawing, onEndDrawing, onPathsChange]
   );
 
   return (
@@ -104,6 +111,7 @@ function SignaturePad({
           setPaths([]);
           currentPath.current = '';
           onSignedChange(false);
+          onPathsChange?.([]);
         }}>
         <Text className="text-sm font-medium text-red-600">مسح التوقيع</Text>
       </Pressable>
@@ -123,6 +131,7 @@ export function ContractSigningScreen({
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [hasSigned, setHasSigned] = useState(false);
+  const [signaturePaths, setSignaturePaths] = useState<string[]>([]);
   const [scrollEnabled, setScrollEnabled] = useState(true);
 
   useEffect(() => {
@@ -153,7 +162,9 @@ export function ContractSigningScreen({
 
     setSubmitting(true);
     try {
-      const response: any = await api.post(`/orders/${orderId}/signature`);
+      const response: any = await api.post(`/orders/${orderId}/signature`, {
+        signature_paths: signaturePaths,
+      });
       if (response.status === 'success') {
         Alert.alert('نجاح', 'تم توقيع العقد وتأكيد الطلب بنجاح', [
           {
@@ -395,6 +406,7 @@ export function ContractSigningScreen({
             onBeginDrawing={() => setScrollEnabled(false)}
             onEndDrawing={() => setScrollEnabled(true)}
             onSignedChange={setHasSigned}
+            onPathsChange={setSignaturePaths}
           />
         </View>
 

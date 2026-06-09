@@ -9,6 +9,7 @@ import {
   Alert,
   RefreshControl,
   TextInput,
+  Linking,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Order } from './orders-screen';
@@ -306,6 +307,33 @@ export const OrderDetailScreen = () => {
               </View>
             </View>
           </View>
+        )}
+
+        {/* Contract PDF */}
+        {order.contract_pdf_url && (
+          <Pressable
+            onPress={() => {
+              Linking.openURL(order.contract_pdf_url).catch((err) => {
+                console.error('Failed to open PDF URL:', err);
+                Alert.alert('خطأ', 'تعذر فتح ملف العقد (PDF)');
+              });
+            }}
+            style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+            className="mt-6 flex-row items-center justify-between rounded-2xl bg-white p-5 border border-slate-100 shadow-sm"
+          >
+            <View className="flex-row items-center gap-4">
+              <View className="h-12 w-12 items-center justify-center rounded-xl bg-red-50">
+                <FileText size={24} color="#ef4444" />
+              </View>
+              <View>
+                <Text className="text-right font-bold text-slate-800">عقد الاتفاق (PDF)</Text>
+                <Text className="text-right text-xs text-slate-500">اضغط لعرض أو تحميل العقد</Text>
+              </View>
+            </View>
+            <View className="rounded-lg bg-red-100 px-3 py-1.5">
+              <Text className="text-xs font-bold text-red-700">عرض</Text>
+            </View>
+          </Pressable>
         )}
 
 

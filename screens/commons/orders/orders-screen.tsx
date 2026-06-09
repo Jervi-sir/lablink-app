@@ -48,6 +48,7 @@ export interface Order {
   items: OrderItem[];
   student?: any | null;
   negotiations?: any[];
+  contract_pdf_url?: string;
 }
 
 function isOrderNew(order: Order, type: 'student' | 'lab') {
