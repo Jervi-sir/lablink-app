@@ -22,7 +22,7 @@ function getStatusInfo(status: OrderStatus) {
     case 'estimation_provided':
       return { text: 'تم تقديم السعر', tone: 'bg-blue-50 text-blue-700', icon: <Clock size={14} color="#1d4ed8" /> };
     case 'confirmed':
-      return { text: 'طلب مؤكد', tone: 'bg-indigo-50 text-indigo-700', icon: <CheckCircle2 size={14} color="#4338ca" /> };
+      return { text: 'الحجز مقبول', tone: 'bg-indigo-50 text-indigo-700', icon: <CheckCircle2 size={14} color="#4338ca" /> };
     case 'rejected':
       return { text: 'مرفوض', tone: 'bg-rose-50 text-rose-700', icon: <XCircle size={14} color="#be123c" /> };
     case 'completed':
@@ -157,7 +157,7 @@ export const LabOrdersScreen = () => {
           style={{ backgroundColor: activeTab === 'requests' ? 'white' : 'transparent' }}
         >
           <Text className={`text-xs font-bold ${activeTab === 'requests' ? 'text-blue-700' : 'text-slate-500'}`}>
-            طلبات التسعير
+            الحجوزات
           </Text>
         </Pressable>
         <Pressable

@@ -101,7 +101,7 @@ export const LabOrderDetailScreen = () => {
       });
 
       if (response.status === 'success') {
-        Alert.alert('نجاح', 'تم تحديث حالة الطلب إلى مكتمل');
+        Alert.alert('نجاح', 'تم تحديث حالة الحجز إلى مكتمل');
         fetchOrderDetail();
       }
     } catch (error) {
@@ -268,7 +268,7 @@ export const LabOrderDetailScreen = () => {
         <View className="mb-6">
           <View className="mb-4 flex-row items-center gap-2">
             <Package size={20} color="#0f172a" />
-            <Text className="text-right text-lg font-bold text-slate-800">العناصر المطلوبة</Text>
+            <Text className="text-right text-lg font-bold text-slate-800">عناصر الحجوزات</Text>
           </View>
 
           {order.items.map((item) => (
@@ -473,7 +473,7 @@ export const LabOrderDetailScreen = () => {
         {isConfirmed && (
           <View className="mt-4 rounded-[32px] bg-blue-600 p-8 shadow-xl">
             <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-lg font-bold text-white">حالة الطلب: مؤكد</Text>
+              <Text className="text-lg font-bold text-white">حالة : تم توقيع العقد</Text>
               <CheckCircle size={24} color="white" />
             </View>
             <Text className="text-right text-sm text-blue-100 mb-6 leading-5">

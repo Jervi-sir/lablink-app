@@ -169,7 +169,7 @@ export const OrderDetailScreen = () => {
       case 'lab_negotiation':
         return { text: 'تسعير جديد من المخبر', tone: 'bg-orange-100 text-orange-700', icon: '🔄' };
       case 'confirmed':
-        return { text: 'طلب مؤكد', tone: 'bg-blue-100 text-blue-700', icon: '📄' };
+        return { text: 'الحجز مقبول', tone: 'bg-blue-100 text-blue-700', icon: '📄' };
       case 'rejected':
         return { text: 'مرفوض', tone: 'bg-rose-100 text-rose-700', icon: '❌' };
       case 'completed':
@@ -196,7 +196,7 @@ export const OrderDetailScreen = () => {
           >
             <ChevronLeft size={24} color="#1e293b" />
           </Pressable>
-          <Text className="text-xl font-bold text-slate-800">تفاصيل الطلب</Text>
+          <Text className="text-xl font-bold text-slate-800">تفاصيل العمليات</Text>
           <View className="w-10" />
         </View>
       </View>
@@ -231,7 +231,7 @@ export const OrderDetailScreen = () => {
           </View>
 
           <View className="mt-6 flex-row items-center justify-between border-t border-slate-50 pt-4">
-            <Text className="text-sm text-slate-500">حالة الطلب</Text>
+            <Text className="text-sm text-slate-500">حالة الحجز</Text>
             <View className={`flex-row items-center gap-2 rounded-full px-4 py-1.5 ${statusInfo.tone}`}>
               <Text className="text-xs">{statusInfo.icon}</Text>
               <Text className="text-xs font-bold">{statusInfo.text}</Text>
@@ -243,7 +243,7 @@ export const OrderDetailScreen = () => {
         <View className="mb-6">
           <View className="mb-4 flex-row items-center gap-2">
             <Package size={20} color="#0f172a" />
-            <Text className="text-right text-lg font-bold text-slate-800">العناصر المطلوبة</Text>
+            <Text className="text-right text-lg font-bold text-slate-800">عناصر الحجوزات</Text>
           </View>
 
           {order.items.map((item) => (
@@ -423,7 +423,7 @@ export const OrderDetailScreen = () => {
         <View className="mt-8 flex-row items-start gap-3 rounded-2xl bg-blue-50 p-4 border border-blue-100">
           <Info size={20} color="#2563eb" />
           <Text className="flex-1 text-right text-xs leading-5 text-blue-700">
-            يمكنك متابعة حالة الطلب من هنا. سيتم إشعارك فور قيام المخبر بتحديث الحالة أو تقديم عرض سعر جديد.
+            يمكنك متابعة حالة الحجز من هنا. سيتم إشعارك فور قيام المخبر بتحديث الحالة أو تقديم عرض سعر جديد.
           </Text>
         </View>
       </ScrollView>

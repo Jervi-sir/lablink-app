@@ -68,7 +68,7 @@ function getStatusInfo(status: OrderStatus) {
     case 'lab_negotiation':
       return { text: 'تسعير جديد من المخبر', tone: 'bg-orange-50 text-orange-600', icon: '🔄' };
     case 'confirmed':
-      return { text: 'طلب مؤكد', tone: 'bg-blue-50 text-blue-600', icon: '📄' };
+      return { text: 'الحجز مقبول', tone: 'bg-blue-50 text-blue-600', icon: '📄' };
     case 'rejected':
       return { text: 'مرفوض', tone: 'bg-rose-50 text-rose-600', icon: '❌' };
     case 'completed':
@@ -351,8 +351,8 @@ export const OrdersScreen = () => {
     <SafeAreaView className="flex-1 bg-slate-50" edges={['top']}>
       {/* Header */}
       <View className="bg-blue-700 px-6 pb-6 pt-5">
-        <Text className="text-right text-3xl font-bold text-white">قائمة الطلبات</Text>
-        <Text className="mt-2 text-right text-sm text-blue-100">تابع حالة طلباتك وعقودك</Text>
+        <Text className="text-right text-3xl font-bold text-white">قائمة العمليات</Text>
+        <Text className="mt-2 text-right text-sm text-blue-100">تابع حالة حجوزاتك و عقودك</Text>
       </View>
 
       {/* Tab Bar */}
@@ -368,7 +368,7 @@ export const OrdersScreen = () => {
             </View>
           )}
           <Text className={`font-bold ${activeTab === 'requests' ? 'text-blue-700' : 'text-slate-500'}`}>
-            طلبات التسعير
+            الحجوزات
           </Text>
         </Pressable>
         <Pressable
@@ -382,7 +382,7 @@ export const OrdersScreen = () => {
             </View>
           )}
           <Text className={`font-bold ${activeTab === 'confirmed' ? 'text-blue-700' : 'text-slate-500'}`}>
-            الطلبات المؤكدة
+            العقود المبرمة
           </Text>
         </Pressable>
       </View>
